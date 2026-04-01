@@ -1,0 +1,571 @@
+﻿@model PharmaChain.Infrastructure.Models.Medicine
+@{
+    ViewData["Title"] = "AddMedicine";
+    Layout = "~/Views/Shared/_adminDashboard.cshtml";
+
+    int totalmedicines = ViewBag.MedicineInfos.TotalMedicines;
+    int ActiveMedicines = ViewBag.medicineInfos.ActiveMedicines;
+    int PrescriptionRequired = ViewBag.medicineInfos.PrescriptionRequired;
+    string FormAction = ViewBag.FormAction;
+
+    string cat = Model?.Category ?? "";
+
+    bool rxChecked = Model?.IsPrescriptionRequired == true;
+    bool activeChecked = Model == null || Model.IsActive == true;
+}
+
+
+<div class="am-toast-wrap" id="amToastWrap"></div>
+
+<div class="am-success-overlay" id="amSuccessOverlay">
+    <div class="am-overlay-backdrop"></div>
+    <div class="am-success-card">
+        <div class="am-confetti" id="amConfetti"></div>
+        <div class="am-success-circle">
+            <svg class="am-check-svg" viewBox="0 0 40 40">
+                <path class="am-check-path" d="M8 21 L17 30 L33 12" />
+            </svg>
+        </div>
+        <div class="am-success-title">Medicine Added!</div>
+        <div class="am-success-msg">
+            The medicine has been registered<br>successfully in the system.
+        </div>
+        <button class="am-overlay-close" id="amOverlayClose">
+            <i class="bi bi-plus-lg" style="position: relative; top: -4px;"></i> Add Another
+        </button>
+    </div>
+</div>
+
+<div class="am-page">
+
+    <div class="am-page-header">
+        <div class="am-page-title">
+            <h4><i class="bi bi-plus-circle" style="position: relative; top: -4px;"></i> Add New Medicine</h4>
+            <p>Fill in the details below to register a new medicine in the system.</p>
+        </div>
+        <div class="am-page-actions"></div>
+    </div>
+
+    <div class="am-layout">
+        <div>
+            <form id="amMedicineForm" novalidate action="@FormAction" method="post">
+
+                <!-- Hidden fields -->
+                <input type="hidden" name="medicineId" id="amMedicineId" value="@Model?.MedicineId" />
+
+                <div class="am-card">
+                    <div class="am-card-header">
+                        <div class="am-card-header-icon accent">
+                            <i class="bi bi-info-circle" style="position: relative; top: -4px;"></i>
+                        </div>
+                        <div>
+                            <div class="am-card-header-title">Basic Information</div>
+                            <div class="am-card-header-sub">Core medicine identity fields</div>
+                        </div>
+                        <div class="am-card-header-right">
+                            <span class="am-chip am-chip-accent"><i class="bi bi-asterisk" style="font-size:9px;"></i> Required</span>
+                        </div>
+                    </div>
+                    <div class="am-card-body">
+
+                        <div class="am-form-section">
+                            <div class="am-section-label"><i class="bi bi-tag" style="position: relative; top: -4px;"></i> Medicine Identity</div>
+                            <div class="am-form-grid">
+
+                                <div class="am-form-group am-col-6">
+                                    <label class="am-form-label">Medicine Name <span class="am-req">*</span></label>
+                                    <input type="text" id="amMedicineName" name="medicineName"
+                                           value="@Model?.MedicineName" class="am-form-control" required />
+                                    <span class="am-invalid-feedback">Medicine name is required.</span>
+                                </div>
+
+                                <div class="am-form-group am-col-6">
+                                    <label class="am-form-label">Generic Name <span class="am-req">*</span></label>
+                                    <input type="text" id="amGenericName" name="genericName"
+                                           value="@Model?.GenericName" class="am-form-control" required />
+                                    <span class="am-invalid-feedback">Generic name is required.</span>
+                                </div>
+
+                                <div class="am-form-group am-col-4">
+                                    <label class="am-form-label">Category <span class="am-req">*</span></label>
+                                    <select id="amCategory" name="category" class="am-form-select" required>
+                                        <option value="">Select category</option>
+                                        @if (cat == "Analgesic")
+                                        {
+                                            <option value="Analgesic" selected>Analgesic</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="Analgesic">Analgesic</option>
+                                        }
+                                        @if (cat == "Antibiotic")
+                                        {
+                                            <option value="Antibiotic" selected>Antibiotic</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="Antibiotic">Antibiotic</option>
+                                        }
+                                        @if (cat == "Antifungal")
+                                        {
+                                            <option value="Antifungal" selected>Antifungal</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="Antifungal">Antifungal</option>
+                                        }
+                                        @if (cat == "Antiviral")
+                                        {
+                                            <option value="Antiviral" selected>Antiviral</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="Antiviral">Antiviral</option>
+                                        }
+                                        @if (cat == "Antipyretic")
+                                        {
+                                            <option value="Antipyretic" selected>Antipyretic</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="Antipyretic">Antipyretic</option>
+                                        }
+                                        @if (cat == "Antacid")
+                                        {
+                                            <option value="Antacid" selected>Antacid</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="Antacid">Antacid</option>
+                                        }
+                                        @if (cat == "Antihistamine")
+                                        {
+                                            <option value="Antihistamine" selected>Antihistamine</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="Antihistamine">Antihistamine</option>
+                                        }
+                                        @if (cat == "Antidiabetic")
+                                        {
+                                            <option value="Antidiabetic" selected>Antidiabetic</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="Antidiabetic">Antidiabetic</option>
+                                        }
+                                        @if (cat == "Antihypertensive")
+                                        {
+                                            <option value="Antihypertensive" selected>Antihypertensive</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="Antihypertensive">Antihypertensive</option>
+                                        }
+                                        @if (cat == "Vitamin / Supplement")
+                                        {
+                                            <option value="Vitamin / Supplement" selected>Vitamin / Supplement</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="Vitamin / Supplement">Vitamin / Supplement</option>
+                                        }
+                                        @if (cat == "Other")
+                                        {
+                                            <option value="Other" selected>Other</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="Other">Other</option>
+                                        }
+                                    </select>
+                                    <span class="am-invalid-feedback">Category is required.</span>
+                                </div>
+
+                                <div class="am-form-group am-col-4">
+                                    <label class="am-form-label">Strength <span class="am-req">*</span></label>
+                                    <input type="text" id="amStrength" name="strength"
+                                           value="@Model?.Strength" class="am-form-control" required />
+                                    <span class="am-invalid-feedback">Strength is required.</span>
+                                </div>
+
+                                <div class="am-form-group am-col-4">
+                                    <label class="am-form-label">Manufacturer</label>
+                                    <input type="text" id="amManufacturer" name="manufacturer"
+                                           value="@Model?.Manufacturer" class="am-form-control" />
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="am-form-section">
+                            <div class="am-section-label"><i class="bi bi-receipt" style="position: relative; top: -4px;"></i> Tax &amp; Compliance</div>
+                            <div class="am-form-grid">
+
+                                <div class="am-form-group am-col-4">
+                                    <label class="am-form-label">HSN Code</label>
+                                    <input type="text"
+                                           class="am-form-control am-mono"
+                                           id="amHsnCode"
+                                           name="hsnCode"
+                                           placeholder="e.g. 3004"
+                                           maxlength="8"
+                                           value="@Model?.HsnCode" />
+                                </div>
+
+                                <div class="am-form-group am-col-4">
+                                    <label class="am-form-label">GST Percentage</label>
+                                    <div class="am-input-group">
+                                        <input type="number"
+                                               class="am-form-control"
+                                               id="amGstPercentage"
+                                               name="gstPercentage"
+                                               placeholder="0"
+                                               min="0"
+                                               max="100"
+                                               step="0.01"
+                                               value="@Model?.GstPercentage" />
+                                        <span class="am-input-suffix">%</span>
+                                    </div>
+                                </div>
+
+                                <div class="am-form-group am-col-4">
+                                    <label class="am-form-label">Minimum Stock Level</label>
+                                    <div class="am-input-group">
+                                        <span class="am-input-prefix"><i class="bi bi-boxes" style="position: relative; top: -4px;"></i></span>
+                                        <input type="number"
+                                               class="am-form-control"
+                                               id="amMinStock"
+                                               name="minimumStockLevel"
+                                               placeholder="0"
+                                               min="0"
+                                               value="@Model?.MinimumStockLevel" />
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="am-card">
+                    <div class="am-card-header">
+                        <div class="am-card-header-icon success">
+                            <i class="bi bi-toggles" style="position: relative; top: -4px;"></i>
+                        </div>
+                        <div>
+                            <div class="am-card-header-title">Settings &amp; Status</div>
+                            <div class="am-card-header-sub">Control visibility and requirements</div>
+                        </div>
+                    </div>
+                    <div class="am-card-body">
+                        <div class="am-form-grid">
+
+                            <div class="am-col-6">
+                                <div class="am-toggle-row">
+                                    <div>
+                                        <div class="am-toggle-title"><i class="bi bi-file-medical am-me-1 am-text-accent" style="position: relative; top: -4px;"></i> Prescription Required</div>
+                                        <div class="am-toggle-desc">Medicine needs a valid prescription</div>
+                                    </div>
+                                    <label class="am-switch">
+                                        <input type="checkbox"
+                                               id="amIsPrescriptionRequired"
+                                               name="isPrescriptionRequired"
+                                               value="true"
+                                               @(rxChecked ? "checked" : "") />
+                                        <span class="am-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="am-col-6">
+                                <div class="am-toggle-row">
+                                    <div>
+                                        <div class="am-toggle-title"><i class="bi bi-check-circle am-me-1 am-text-success" style="position: relative; top: -4px;"></i> Active Status</div>
+                                        <div class="am-toggle-desc">Mark medicine as active in system</div>
+                                    </div>
+                                    <label class="am-switch">
+                                        <input type="checkbox"
+                                               id="amIsActive"
+                                               name="isActive"
+                                               value="true"
+                                               @(activeChecked ? "checked" : "") />
+                                        <span class="am-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Footer -->
+                <div class="am-card">
+                    <div class="am-form-footer">
+                        <p class="am-req-legend"><span>*</span> Required fields must be filled</p>
+                        <div class="am-footer-right">
+                            <button type="button" class="am-btn am-btn-outline" id="amResetBtn"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+                            <button type="submit" class="am-btn am-btn-primary" id="amSubmitBtn">
+                                @(Model?.MedicineId != null ? "Update Medicine" : "Add Medicine")
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+        <div class="am-sidebar">
+
+            <div class="am-mini-stat">
+                <div class="am-mini-stat-icon" style="background:var(--am-accent-soft);">
+                    <i class="bi bi-capsule am-text-accent" style="position: relative; top: -4px;"></i>
+                </div>
+                <div>
+                    <div class="am-mini-stat-val" id="amStatTotal"></div>
+                    <div class="am-mini-stat-label">Total Medicines</div>
+                </div>
+            </div>
+
+            <div class="am-mini-stat">
+                <div class="am-mini-stat-icon" style="background:var(--am-success-soft);">
+                    <i class="bi bi-check-circle am-text-success" style="position: relative; top: -4px;"></i>
+                </div>
+                <div>
+                    <div class="am-mini-stat-val" id="amStatActive">—</div>
+                    <div class="am-mini-stat-label">Active Medicines</div>
+                </div>
+            </div>
+
+            <div class="am-mini-stat">
+                <div class="am-mini-stat-icon" style="background:var(--am-warning-soft);">
+                    <i class="bi bi-file-medical am-text-warning" style="position: relative; top: -4px;"></i>
+                </div>
+                <div>
+                    <div class="am-mini-stat-val" id="amStatRx">—</div>
+                    <div class="am-mini-stat-label">Rx Required</div>
+                </div>
+            </div>
+
+            <!-- Live Preview Card -->
+            <div class="am-preview-card">
+                <div class="am-preview-head">
+                    <div class="am-med-icon"><i class="bi bi-capsule" style="position: relative; top: -7px; right: 2px;"></i></div>
+                    <div class="am-med-name" id="amPrevName">Medicine Name</div>
+                    <div class="am-med-generic" id="amPrevGeneric">Generic name will appear here</div>
+                </div>
+                <div class="am-preview-body">
+                    <div class="am-preview-row">
+                        <span class="am-pr-label">Category</span>
+                        <span class="am-pr-val" id="amPrevCategory">—</span>
+                    </div>
+                    <div class="am-preview-row">
+                        <span class="am-pr-label">Strength</span>
+                        <span class="am-pr-val" id="amPrevStrength">—</span>
+                    </div>
+                    <div class="am-preview-row">
+                        <span class="am-pr-label">Manufacturer</span>
+                        <span class="am-pr-val" id="amPrevManuf">—</span>
+                    </div>
+                    <div class="am-preview-row">
+                        <span class="am-pr-label">HSN Code</span>
+                        <span class="am-pr-val" id="amPrevHsn">—</span>
+                    </div>
+                    <div class="am-preview-row">
+                        <span class="am-pr-label">GST</span>
+                        <span class="am-pr-val" id="amPrevGst">—</span>
+                    </div>
+                    <div class="am-preview-row">
+                        <span class="am-pr-label">Min. Stock</span>
+                        <span class="am-pr-val" id="amPrevStock">—</span>
+                    </div>
+                    <div class="am-preview-row">
+                        <span class="am-pr-label">Prescription</span>
+                        <span id="amPrevRx"><span class="am-chip am-chip-success">Not Required</span></span>
+                    </div>
+                    <div class="am-preview-row">
+                        <span class="am-pr-label">Status</span>
+                        <span id="amPrevStatus"><span class="am-chip am-chip-success"><i class="bi bi-dot"></i> Active</span></span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    /* ── Form Submit ───────────────────────────────────────────────── */
+    document.getElementById('amMedicineForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!amValidate()) return;
+
+        const now = new Date().toISOString();
+
+        const btn = document.getElementById('amSubmitBtn');
+        btn.innerHTML = '<span class="am-spinner"></span> Saving…';
+        btn.disabled = true;
+    });
+
+    /* ── Live Preview Bindings ─────────────────────────────────────── */
+    function amBind(id, targetId, transform) {
+        const el = document.getElementById(id);
+        const tg = document.getElementById(targetId);
+        if (!el || !tg) return;
+        el.addEventListener('input', () => {
+            tg.textContent = transform ? transform(el.value) : (el.value || '—');
+        });
+    }
+
+    amBind('amMedicineName', 'amPrevName',     v => v || 'Medicine Name');
+    amBind('amGenericName',  'amPrevGeneric',  v => v || 'Generic name will appear here');
+    amBind('amCategory',     'amPrevCategory', v => v || '—');
+    amBind('amStrength',     'amPrevStrength', v => v || '—');
+    amBind('amManufacturer', 'amPrevManuf',    v => v || '—');
+    amBind('amHsnCode',      'amPrevHsn',      v => v || '—');
+    amBind('amMinStock',     'amPrevStock',    v => v ? `${v} units` : '—');
+
+    document.getElementById('amGstPercentage').addEventListener('input', function () {
+        document.getElementById('amPrevGst').textContent = this.value ? `${this.value}%` : '—';
+    });
+
+    document.getElementById('amIsPrescriptionRequired').addEventListener('change', function () {
+        document.getElementById('amPrevRx').innerHTML = this.checked
+            ? '<span class="am-chip am-chip-warning"><i class="bi bi-file-medical am-me-1" style="position: relative; top: -4px;"></i>Required</span>'
+            : '<span class="am-chip am-chip-success">Not Required</span>';
+    });
+
+    document.getElementById('amIsActive').addEventListener('change', function () {
+        document.getElementById('amPrevStatus').innerHTML = this.checked
+            ? '<span class="am-chip am-chip-success"><i class="bi bi-dot" style="position: relative; top: -4px;"></i> Active</span>'
+            : '<span class="am-chip am-chip-danger"><i class="bi bi-dot" style="position: relative; top: -4px;"></i> Inactive</span>';
+    });
+
+    /* ── Validation ────────────────────────────────────────────────── */
+    function amValidate() {
+        const required = ['amMedicineName', 'amGenericName', 'amCategory', 'amStrength'];
+        let valid = true;
+        required.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el.value.trim()) { el.classList.add('is-invalid'); valid = false; }
+            else                  { el.classList.remove('is-invalid'); }
+        });
+        return valid;
+    }
+
+    ['amMedicineName', 'amGenericName', 'amCategory', 'amStrength'].forEach(id => {
+        document.getElementById(id).addEventListener('input', function () {
+            if (this.value.trim()) this.classList.remove('is-invalid');
+        });
+    });
+
+    /* ── Completion Overlay ────────────────────────────────────────── */
+    const CONFETTI_COLORS = [
+        'var(--am-accent)', 'var(--am-success)', 'var(--am-warning)',
+        '#f87171', '#a78bfa', '#34d399'
+    ];
+
+    function amSpawnConfetti() {
+        const container = document.getElementById('amConfetti');
+        container.innerHTML = '';
+        for (let i = 0; i < 18; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'am-dot';
+            const angle = (i / 18) * 360;
+            const dist  = 60 + Math.random() * 90;
+            const rad   = angle * Math.PI / 180;
+            const tx    = Math.cos(rad) * dist;
+            const ty    = Math.sin(rad) * dist - 40;
+            dot.style.cssText = `
+                background: ${CONFETTI_COLORS[i % CONFETTI_COLORS.length]};
+                left: calc(50% - 4px);
+                top: 90px;
+            `;
+            dot.animate([
+                { transform: 'translate(0,0) scale(0)', opacity: 1 },
+                { transform: `translate(${tx}px, ${ty}px) scale(1)`, opacity: 0.9, offset: 0.7 },
+                { transform: `translate(${tx}px, ${ty + 20}px) scale(0.8)`, opacity: 0 }
+            ], {
+                duration: 700 + Math.random() * 300,
+                delay: 550 + i * 28,
+                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                fill: 'forwards'
+            });
+            container.appendChild(dot);
+        }
+    }
+
+    document.getElementById('amOverlayClose').addEventListener('click', () => {
+        document.getElementById('amSuccessOverlay').style.display = 'none';
+        amResetForm();
+    });
+
+    document.getElementById('amSuccessOverlay').addEventListener('click', function (e) {
+        if (e.target === this || e.target.classList.contains('am-overlay-backdrop')) {
+            this.style.display = 'none';
+            amResetForm();
+        }
+    });
+
+    /* ── Reset helper ──────────────────────────────────────────────── */
+    function amResetForm() {
+        document.getElementById('amMedicineForm').reset();
+        document.querySelectorAll('.am-form-control.is-invalid, .am-form-select.is-invalid')
+            .forEach(el => el.classList.remove('is-invalid'));
+        ['amCreatedAt', 'amUpdatedAt', 'amDeletedAt'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
+        document.getElementById('amPrevName').textContent    = 'Medicine Name';
+        document.getElementById('amPrevGeneric').textContent = 'Generic name will appear here';
+        ['amPrevCategory', 'amPrevStrength', 'amPrevManuf', 'amPrevHsn', 'amPrevGst', 'amPrevStock']
+            .forEach(id => document.getElementById(id).textContent = '—');
+        document.getElementById('amPrevRx').innerHTML     = '<span class="am-chip am-chip-success">Not Required</span>';
+        document.getElementById('amPrevStatus').innerHTML = '<span class="am-chip am-chip-success"><i class="bi bi-dot" style="position: relative; top: -4px;"></i> Active</span>';
+
+        const btn = document.getElementById('amSubmitBtn');
+        btn.disabled = false;
+        btn.innerHTML = '@(Model?.MedicineId != null ? "Update Medicine" : "Add Medicine")';
+    }
+
+    /* ── Reset Button ──────────────────────────────────────────────── */
+    document.getElementById('amResetBtn').addEventListener('click', () => amResetForm());
+
+    /* ── Populate sidebar stats ────────────────────────────────────── */
+    setTimeout(() => {
+        document.getElementById('amStatTotal').textContent  = "@totalmedicines";
+        document.getElementById('amStatActive').textContent = "@ActiveMedicines";
+        document.getElementById('amStatRx').textContent     = "@PrescriptionRequired";
+    }, 600);
+
+    /* ── Initialise live preview from existing model values ────────── */
+    (function initPreview() {
+        const name     = document.getElementById('amMedicineName').value;
+        const generic  = document.getElementById('amGenericName').value;
+        const cat      = document.getElementById('amCategory').value;
+        const strength = document.getElementById('amStrength').value;
+        const manuf    = document.getElementById('amManufacturer').value;
+        const hsn      = document.getElementById('amHsnCode').value;
+        const gst      = document.getElementById('amGstPercentage').value;
+        const stock    = document.getElementById('amMinStock').value;
+        const rx       = document.getElementById('amIsPrescriptionRequired').checked;
+        const active   = document.getElementById('amIsActive').checked;
+
+        if (name)     document.getElementById('amPrevName').textContent    = name;
+        if (generic)  document.getElementById('amPrevGeneric').textContent = generic;
+        if (cat)      document.getElementById('amPrevCategory').textContent = cat;
+        if (strength) document.getElementById('amPrevStrength').textContent = strength;
+        if (manuf)    document.getElementById('amPrevManuf').textContent   = manuf;
+        if (hsn)      document.getElementById('amPrevHsn').textContent     = hsn;
+        if (gst)      document.getElementById('amPrevGst').textContent     = gst + '%';
+        if (stock)    document.getElementById('amPrevStock').textContent   = stock + ' units';
+
+        document.getElementById('amPrevRx').innerHTML = rx
+            ? '<span class="am-chip am-chip-warning"><i class="bi bi-file-medical am-me-1" style="position: relative; top: -4px;"></i>Required</span>'
+            : '<span class="am-chip am-chip-success">Not Required</span>';
+
+        document.getElementById('amPrevStatus').innerHTML = active
+            ? '<span class="am-chip am-chip-success"><i class="bi bi-dot" style="position: relative; top: -4px;"></i> Active</span>'
+            : '<span class="am-chip am-chip-danger"><i class="bi bi-dot" style="position: relative; top: -4px;"></i> Inactive</span>';
+    })();
+</script>

@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="PharmaChain.Application/PharmaChain.Application.csproj" />
+  <Project Path="PharmaChain.Domain/PharmaChain.Domain.csproj" />
+  <Project Path="PharmaChain.Infrastructure/PharmaChain.Infrastructure.csproj" />
+  <Project Path="PharmaChain.Tests/PharmaChain.Tests.csproj" />
+  <Project Path="PharmaChain.Web/PharmaChain.Web.csproj" Id="e966b3bf-e9b1-4f9e-b2eb-897ab00e8fcd" />
+</Solution>

@@ -1,0 +1,362 @@
+﻿@{
+    ViewData["Title"] = "Pharma Chain - Medicines";
+    Layout = "~/Views/Shared/_adminDashboard.cshtml";
+}
+
+@{
+    int currentPage = ViewBag.page ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int CurrentPageSize = ViewBag.size ?? 1;
+}
+
+<div class="drawer-overlay" id="medDrawerOverlay"></div>
+
+<div class="log-drawer" id="medDrawer">
+    <div class="drawer-head">
+        <span class="live-dot"></span>
+        <h6>Medicine Detail</h6>
+        <span class="badge bg-success bg-opacity-10 text-success" id="medDrawerId" style="font-size:10.5px;">#—</span>
+        <button class="drawer-close med-drawer-close-btn"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="drawer-body" id="medDrawerBody"></div>
+    <div class="drawer-foot">
+        <button class="btn btn-outline-secondary btn-sm med-drawer-close-btn">
+            <i class="bi bi-x me-1"></i> Close
+        </button>
+        <button class="btn btn-primary btn-sm" id="medExportBtn" hidden>
+            <i class="bi bi-download me-1"></i> Export JSON
+        </button>
+    </div>
+</div>
+
+<div class="page-heading">
+    <div class="page-title">
+        <div class="row">
+            <div class="col-12 col-md-6 order-md-1 order-last">
+                <h3>Medicine Management</h3>
+                <p class="text-subtitle text-muted">
+                    Manage medicines inventory, details, and availability status.
+                </p>
+            </div>
+            <div class="col-12 col-md-6 order-md-2 order-first">
+                <nav aria-label="breadcrumb" class="breadcrumb-header float-start float-lg-end">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Medicines</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Stat Cards ── -->
+    <section class="row stats-row mb-3" id="statCards">
+        <div class="col-6 col-lg-2 col-md-6">
+            <div class="card" style="cursor:pointer;" onclick="filterByStatus('All')" id="card-All">
+                <div class="card-body px-3 py-3">
+                    <div class="row">
+                        <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start">
+                            <div class="stats-icon blue mb-2">
+                                <i class="bi bi-capsule-pill"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                            <h6 class="text-muted font-semibold">Total Medicines</h6>
+                            <h6 class="font-extrabold mb-0" id="countAll">@ViewBag.TotalUsers</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2 col-md-6">
+            <div class="card" style="cursor:pointer;" onclick="filterByStatus('Active')" id="card-Active">
+                <div class="card-body px-3 py-3">
+                    <div class="row">
+                        <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start">
+                            <div class="stats-icon green mb-2">
+                                <i class="bi bi-capsule"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                            <h6 class="text-muted font-semibold">Active</h6>
+                            <h6 class="font-extrabold mb-0" id="countActive">@ViewBag.ActiveUsers</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2 col-md-6">
+            <div class="card" style="cursor:pointer;" onclick="filterByStatus('Inactive')" id="card-Inactive">
+                <div class="card-body px-3 py-3">
+                    <div class="row">
+                        <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start">
+                            <div class="stats-icon red mb-2">
+                                <i class="bi bi-capsule-pill"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                            <h6 class="text-muted font-semibold">Inactive</h6>
+                            <h6 class="font-extrabold mb-0" id="countInactive">@ViewBag.InactiveUsers</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2 col-md-6">
+            <div class="card" style="cursor:pointer;" onclick="filterByStatus('Suspended')" id="card-Suspended">
+                <div class="card-body px-3 py-3">
+                    <div class="row">
+                        <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start">
+                            <div class="stats-icon yellow mb-2">
+                                <i class="bi bi-archive-fill"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                            <h6 class="text-muted font-semibold">Archived</h6>
+                            <h6 class="font-extrabold mb-0" id="countSuspended">@ViewBag.SuspendedUsers</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ─────────── Main Table Section ─────────── -->
+<section class="section">
+    <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2" style="position: relative;">
+            <span class="live-dot"></span>
+            <h4 class="card-title mb-0" style="position: absolute; left: 30px;">
+                All Medicines
+            </h4>
+            <span class="badge bg-primary bg-opacity-10 text-primary" id="resultCount" style="font-size:11px;font-weight:600; position: absolute; left: 110px;">— records</span>
+            <a href="#" data-url="@Url.Action("AddMedicine", "Medicine")" class="btn btn-primary btn-sm ajax-link">
+                <i class="bi bi-person-plus-fill me-1"></i> Add New Medicine
+            </a>
+        </div>
+
+        <div class="card-body">
+
+            <!-- ── Toolbar ── -->
+            <div class="row mb-3 g-2 align-items-center">
+
+                <!-- Search -->
+                <div class="col-12 col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" id="searchInput" class="form-control"
+                               placeholder="Search name, generic name, category…" oninput="applyFilters()" />
+                    </div>
+                </div>
+
+                <!-- Category Filter -->
+                <div class="col-6 col-md-2">
+                    <select id="filterCategory" class="form-select" onchange="applyFilters()">
+                        <option value="">All Categories</option>
+                        <option value="Antibiotic">Antibiotic</option>
+                        <option value="Analgesic">Analgesic</option>
+                        <option value="Antiviral">Antiviral</option>
+                        <option value="Cardiovascular">Cardiovascular</option>
+                        <option value="Vitamin">Vitamin</option>
+                    </select>
+                </div>
+
+                <!-- Manufacturer Filter -->
+                <div class="col-6 col-md-2">
+                    <select id="filterManufacturer" class="form-select" onchange="applyFilters()">
+                        <option value="">All Manufacturers</option>
+                        <option value="Cipla">Cipla</option>
+                        <option value="Dr Reddy">Dr Reddy</option>
+                        <option value="Sun Pharma">Sun Pharma</option>
+                        <option value="Lupin">Lupin</option>
+                    </select>
+                </div>
+
+                <!-- Sort -->
+                <div class="col-6 col-md-2">
+                    <select id="sortField" class="form-select" onchange="applyFilters()">
+                        <option value="createdAt-desc">Newest First</option>
+                        <option value="createdAt-asc">Oldest First</option>
+                        <option value="name-asc">Name A→Z</option>
+                        <option value="name-desc">Name Z→A</option>
+                    </select>
+                </div>
+
+                <!-- Right buttons -->
+                <div class="col-6 col-md-2 d-flex gap-2 justify-content-end">
+
+                    <!-- Column toggle dropdown -->
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false" title="Toggle Columns">
+                            <i class="bi bi-layout-three-columns"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end p-2" style="min-width:170px;">
+                            <li class="px-1 py-1">
+                                <label class="col-toggle-label">
+                                    <input type="checkbox" class="form-check-input col-toggle" data-col="colPhone"
+                                           checked>
+                                    Generic Name
+                                </label>
+                            </li>
+                            <li class="px-1 py-1">
+                                <label class="col-toggle-label">
+                                    <input type="checkbox" class="form-check-input col-toggle" data-col="colEmail"
+                                           checked>
+                                    Category
+                                </label>
+                            </li>
+                            <li class="px-1 py-1">
+                                <label class="col-toggle-label">
+                                    <input type="checkbox" class="form-check-input col-toggle" data-col="colBranch"
+                                           checked>
+                                    Manufacturer
+                                </label>
+                            </li>
+                            <li class="px-1 py-1">
+                                <label class="col-toggle-label">
+                                    <input type="checkbox" class="form-check-input col-toggle" data-col="colCreated"
+                                           checked>
+                                    Created At
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Export -->
+                    <button class="btn btn-outline-success btn-sm" onclick="exportExcel()" title="Export Excel">
+                        <i class="bi bi-download"></i>
+                    </button>
+
+                    <!-- Reset -->
+                    <button class="btn btn-outline-secondary btn-sm" onclick="resetFilters()" title="Reset Filters">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- ── Table ── -->
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0" id="userTable">
+                    <thead>
+                        <tr>
+                            <th style="width:40px;">
+                                <input type="checkbox" class="form-check-input" id="selectAll"
+                                       onchange="toggleSelectAll(this)">
+                            </th>
+                            <th class="sortable" onclick="sortByCol('id')"
+                                style="cursor:pointer; white-space:nowrap;">
+                                Medicine <i class="bi bi-chevron-expand text-muted ms-1" style="font-size:0.7rem;"></i>
+                            </th>
+                            <th class="colPhone sortable" onclick="sortByCol('phone')"
+                                style="cursor:pointer; white-space:nowrap;">
+                                Generic Name <i class="bi bi-chevron-expand text-muted ms-1" style="font-size:0.7rem;"></i>
+                            </th>
+                            <th class="colEmail sortable" onclick="sortByCol('email')"
+                                style="cursor:pointer; white-space:nowrap;">
+                                Category <i class="bi bi-chevron-expand text-muted ms-1" style="font-size:0.7rem;"></i>
+                            </th>
+                            <th class="sortable" onclick="sortByCol('role')"
+                                style="cursor:pointer; white-space:nowrap;">
+                                Strength <i class="bi bi-chevron-expand text-muted ms-1" style="font-size:0.7rem;"></i>
+                            </th>
+                            <th class="colBranch sortable" onclick="sortByCol('branch')"
+                                style="cursor:pointer; white-space:nowrap;">
+                                Manufacturer <i class="bi bi-chevron-expand text-muted ms-1"
+                                                style="font-size:0.7rem;"></i>
+                            </th>
+                            <th class="sortable" onclick="sortByCol('status')"
+                                style="cursor:pointer; white-space:nowrap;">
+                                Status <i class="bi bi-chevron-expand text-muted ms-1"
+                                          style="font-size:0.7rem;"></i>
+                            </th>
+                            <th class="colCreated sortable" onclick="sortByCol('createdAt')"
+                                style="cursor:pointer; white-space:nowrap;">
+                                Created At <i class="bi bi-chevron-expand text-muted ms-1"
+                                              style="font-size:0.7rem;"></i>
+                            </th>
+                            <th class="text-center" style="white-space:nowrap;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody">
+                        @foreach (var medicine in ViewBag.Medicines)
+                        {
+                            <tr class="med-row" id="@medicine.MedicineId" style="cursor: pointer">
+                                <td>
+                                    <input type="checkbox" class="form-check-input row-check">
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>@medicine.MedicineName</strong><br />
+                                        <small class="text-muted">@medicine.MedicineId</small>
+                                    </div>
+                                </td>
+                                <td class="colPhone">@medicine.GenericName</td>
+                                <td class="colEmail">@medicine.Category</td>
+                                <td>@medicine.Strength</td>
+                                <td class="colBranch">@medicine.Manufacturer</td>
+                                <td>
+                                    @if (medicine.IsActive)
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Inactive</span>
+                                    }
+                                </td>
+                                <td class="colCreated">@medicine.CreatedAt.ToString("dd MMM yyyy")</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-primary px-2 py-1 medicineViewBtn"
+                                            title="View" data-id="@medicine.MedicineId">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary px-2 py-1 ajax-link" title="Edit Medicine" id="" href="#" data-url="/Medicine/edit-Medicine?id=@medicine.MedicineId">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                    @* <button class="btn btn-sm btn-outline-danger delete-user">
+                                        <i class="bi bi-trash"></i>
+                                    </button> *@
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty state -->
+            <div id="emptyState" class="d-none text-center py-5">
+                <i class="bi bi-people fs-1 text-muted d-block mb-2"></i>
+                <p class="text-muted mb-2">No medicines found matching your filters.</p>
+                <button class="btn btn-sm btn-outline-secondary" onclick="resetFilters()">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
+                </button>
+            </div>
+
+        </div>
+
+        <!-- ── Footer / Pagination ── -->
+        <div class="card-footer d-flex align-items-center justify-content-between flex-wrap gap-2"
+             id="tableFooter"
+             data-total-pages="@ViewBag.TotalPages"
+             data-current-page="@ViewBag.page"
+             data-page-size="@ViewBag.size">
+            <div class="d-flex align-items-center gap-2">
+                <small class="text-muted" id="resultsInfo">Showing 0 of 0 medicines</small>
+                <select class="form-select form-select-sm" id="rowsPerPage" style="width:auto;">
+                    <option value="5" selected="@(CurrentPageSize == 5 ? "selected" : null)">5</option>
+                    <option value="10" selected="@(CurrentPageSize == 10 ? "selected" : null)">10</option>
+                    <option value="25" selected="@(CurrentPageSize == 25 ? "selected" : null)">25</option>
+                    <option value="50" selected="@(CurrentPageSize == 50 ? "selected" : null)">50</option>
+                </select>
+                <small class="text-muted">per page</small>
+            </div>
+            <nav>
+                <ul class="pagination pagination-sm mb-0"></ul>
+            </nav>
+        </div>
+    </div>
+
+</section>

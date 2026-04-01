@@ -1,0 +1,279 @@
+﻿
+@{
+    ViewData["Title"] = "Pharma Chain - Roles";
+    Layout = "~/Views/Shared/_adminDashboard.cshtml";
+}
+
+    <!-- ─────────── Page Heading ─────────── -->
+    <div class="page-heading">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-12 col-md-6 order-md-1 order-last">
+                    <h3>Role Management</h3>
+                    <p class="text-subtitle text-muted">
+                        Manage system roles and their assigned permissions.
+                    </p>
+                </div>
+                <div class="col-12 col-md-6 order-md-2 order-first">
+                    <nav aria-label="breadcrumb" class="breadcrumb-header float-start float-lg-end">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="#">Roles & Permissions</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Roles</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Stat Cards ── -->
+        <section class="row stats-row mb-3" id="statCards">
+            <div class="col-6 col-lg-2 col-md-6">
+                <div class="card" style="cursor:pointer;" onclick="filterByStatus('All')" id="card-All">
+                    <div class="card-body px-3 py-3">
+                        <div class="row">
+                            <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start">
+                                <div class="stats-icon blue mb-2">
+                                    <i class="iconly-boldProfile"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                                <h6 class="text-muted font-semibold">Total Roles</h6>
+                                <h6 class="font-extrabold mb-0" id="countAll">0</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-2 col-md-6">
+                <div class="card" style="cursor:pointer;" onclick="filterByStatus('Active')" id="card-Active">
+                    <div class="card-body px-3 py-3">
+                        <div class="row">
+                            <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start">
+                                <div class="stats-icon green mb-2">
+                                    <i class="iconly-boldAdd-User"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                                <h6 class="text-muted font-semibold">Active</h6>
+                                <h6 class="font-extrabold mb-0" id="countActive">0</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-2 col-md-6">
+                <div class="card" style="cursor:pointer;" onclick="filterByStatus('Inactive')" id="card-Inactive">
+                    <div class="card-body px-3 py-3">
+                        <div class="row">
+                            <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start">
+                                <div class="stats-icon red mb-2">
+                                    <i class="iconly-boldDelete"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                                <h6 class="text-muted font-semibold">Inactive</h6>
+                                <h6 class="font-extrabold mb-0" id="countInactive">0</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-2 col-md-6">
+                <div class="card">
+                    <div class="card-body px-3 py-3">
+                        <div class="row">
+                            <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start">
+                                <div class="stats-icon yellow mb-2">
+                                    <i class="iconly-boldDanger"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                                <h6 class="text-muted font-semibold">System Roles</h6>
+                                <h6 class="font-extrabold mb-0" id="countSystem">0</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ─────────── Main Table Section ─────────── -->
+    <section class="section">
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <h4 class="card-title mb-0">All Roles</h4>
+                <button class="btn btn-primary btn-sm" onclick="openModal()">
+                    <i class="bi bi-shield-plus me-1"></i> Add New Role
+                </button>
+            </div>
+
+            <div class="card-body">
+
+                <!-- ── Toolbar ── -->
+                <div class="row mb-3 g-2 align-items-center">
+
+                    <!-- Status Filter -->
+                    <div class="col-6 col-md-2">
+                        <select id="filterStatus" class="form-select" onchange="applyFilters()">
+                            <option value="">All Status</option>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+
+                    <!-- Permission Filter -->
+                    <div class="col-6 col-md-3">
+                        <select id="filterPermission" class="form-select" onchange="applyFilters()">
+                            <option value="">All Permissions</option>
+                            <option value="Dashboard">Dashboard</option>
+                            <option value="User Management">User Management</option>
+                            <option value="Stock Management">Stock Management</option>
+                            <option value="Sales">Sales</option>
+                            <option value="Reports">Reports</option>
+                            <option value="Settings">Settings</option>
+                            <option value="Purchases">Purchases</option>
+                            <option value="Audit Logs">Audit Logs</option>
+                        </select>
+                    </div>
+
+                    <!-- Sort -->
+                    <div class="col-6 col-md-2">
+                        <select id="sortField" class="form-select" onchange="applyFilters()">
+                            <option value="createdAt-desc">Newest First</option>
+                            <option value="createdAt-asc">Oldest First</option>
+                            <option value="name-asc">Name A→Z</option>
+                            <option value="name-desc">Name Z→A</option>
+                        </select>
+                    </div>
+
+                    <!-- Right buttons -->
+                    <div class="col-6 col-md-5 d-flex gap-2 justify-content-end">
+
+                        <!-- Column toggle dropdown -->
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false" title="Toggle Columns">
+                                <i class="bi bi-layout-three-columns"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end p-2" style="min-width:170px;">
+                                <li class="px-1 py-1">
+                                    <label class="col-toggle-label d-flex align-items-center gap-2">
+                                        <input type="checkbox" class="form-check-input col-toggle" data-col="colPermissions" checked>
+                                        Permissions
+                                    </label>
+                                </li>
+                                <li class="px-1 py-1">
+                                    <label class="col-toggle-label d-flex align-items-center gap-2">
+                                        <input type="checkbox" class="form-check-input col-toggle" data-col="colUsers" checked>
+                                        Users Assigned
+                                    </label>
+                                </li>
+                                <li class="px-1 py-1">
+                                    <label class="col-toggle-label d-flex align-items-center gap-2">
+                                        <input type="checkbox" class="form-check-input col-toggle" data-col="colCreated" checked>
+                                        Created At
+                                    </label>
+                                </li>
+                                <li class="px-1 py-1">
+                                    <label class="col-toggle-label d-flex align-items-center gap-2">
+                                        <input type="checkbox" class="form-check-input col-toggle" data-col="colUpdated" checked>
+                                        Last Updated
+                                    </label>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Export -->
+                        <button class="btn btn-outline-success btn-sm" onclick="exportCSV()" title="Export CSV">
+                            <i class="bi bi-download"></i>
+                        </button>
+
+                        <!-- Reset -->
+                        <button class="btn btn-outline-secondary btn-sm" onclick="resetFilters()" title="Reset Filters">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- ── Table ── -->
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0" id="roleTable">
+                        <thead>
+                            <tr>
+                                <th style="width:40px;">
+                                    <input type="checkbox" class="form-check-input" id="selectAll"
+                                           onchange="toggleSelectAll(this)">
+                                </th>
+                                <th class="sortable" onclick="sortByCol('name')" style="cursor:pointer; white-space:nowrap;">
+                                    Role Name <i class="bi bi-chevron-expand text-muted ms-1" style="font-size:0.7rem;"></i>
+                                </th>
+                                <th class="colPermissions" style="white-space:nowrap;">
+                                    Permissions
+                                </th>
+                                <th class="colUsers sortable" onclick="sortByCol('usersCount')" style="cursor:pointer; white-space:nowrap;">
+                                    Users Assigned <i class="bi bi-chevron-expand text-muted ms-1" style="font-size:0.7rem;"></i>
+                                </th>
+                                <th class="sortable" onclick="sortByCol('status')" style="cursor:pointer; white-space:nowrap;">
+                                    Status <i class="bi bi-chevron-expand text-muted ms-1" style="font-size:0.7rem;"></i>
+                                </th>
+                                <th class="colCreated sortable" onclick="sortByCol('createdAt')" style="cursor:pointer; white-space:nowrap;">
+                                    Created At <i class="bi bi-chevron-expand text-muted ms-1" style="font-size:0.7rem;"></i>
+                                </th>
+                                <th class="colUpdated sortable" onclick="sortByCol('updatedAt')" style="cursor:pointer; white-space:nowrap;">
+                                    Last Updated <i class="bi bi-chevron-expand text-muted ms-1" style="font-size:0.7rem;"></i>
+                                </th>
+                                <th class="text-center" style="white-space:nowrap;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="roleTableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Empty state -->
+                <div id="emptyState" class="d-none text-center py-5">
+                    <i class="bi bi-shield-x fs-1 text-muted d-block mb-2"></i>
+                    <p class="text-muted mb-2">No roles found matching your filters.</p>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="resetFilters()">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- ── Footer / Pagination ── -->
+            <div class="card-footer d-flex align-items-center justify-content-between flex-wrap gap-2" id="tableFooter">
+                <div class="d-flex align-items-center gap-2">
+                    <small class="text-muted" id="resultsInfo">Showing 0 of 0 roles</small>
+                    <select class="form-select form-select-sm" id="rowsPerPage" style="width:auto;" onchange="changeRows()">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                    </select>
+                    <small class="text-muted">per page</small>
+                </div>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+                </nav>
+            </div>
+
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer clearfix mb-0 text-muted">
+            <div class="float-start">
+                <p>2023 &copy; Mazer</p>
+            </div>
+            <div class="float-end">
+                <p>
+                    Crafted with <span class="text-danger"><i class="bi bi-heart-fill icon-mid"></i></span>
+                    by <a href="https://saugi.me">Saugi</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+

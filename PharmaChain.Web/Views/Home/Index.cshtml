@@ -1,0 +1,481 @@
+﻿@{
+    ViewData["Title"] = "Pharma Chain - Login";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PharmaChain — Sign In</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #1a6b4a;
+            --accent-dark: #134e37;
+            --accent-glow: rgba(26, 107, 74, .18);
+            --left-top: #0d3d28;
+            --left-bot: #1a6b4a;
+            --bg-right: #f7faf8;
+            --border: rgba(26, 107, 74, .22);
+            --border-focus: #1a6b4a;
+            --text-main: #0f1f18;
+            --text-muted: #7a9187;
+            --text-label: #3d5c50;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-image: url("2_asadas12221.jpg");
+            background-color: #96bea8;
+            background-size: cover;
+            background-position: bottom;
+            user-select: none;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ── Card ───────────────────────── */
+        .card {
+            display: flex;
+            flex-direction: row;
+            width: 530px;
+            max-width: 95vw;
+            border-radius: 0;
+            overflow: visible;
+            position: relative;
+        }
+
+        /* ── Left panel ─────────────────── */
+        .panel-left {
+            width: 40%;
+            flex-shrink: 0;
+            background: linear-gradient(160deg, var(--left-top), var(--left-bot));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 36px 18px;
+            text-align: center;
+            color: #fff;
+            position: relative;
+            z-index: 1;
+            box-shadow: 6px 0 32px rgba(13, 61, 40, .28), 0 12px 48px rgba(0,0,0,.22);
+        }
+
+            .panel-left::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: repeating-linear-gradient( 45deg, transparent, transparent 18px, rgba(255,255,255,.025) 18px, rgba(255,255,255,.025) 19px );
+                pointer-events: none;
+            }
+
+        .logo-box {
+            height: 84px;
+            width: 84px;
+            background-image: url("logo1.png");
+            background-color: rgb(255, 255, 255);
+            background-size: 76px;
+            background-position: center;
+            background-repeat: no-repeat;
+            border: 1px solid rgba(255,255,255,.25);
+            border-radius: 50%;
+            border-top-left-radius: 0%;
+            margin-bottom: 14px;
+        }
+
+        .panel-left h6 {
+            font-weight: 800;
+            font-size: 15px;
+            letter-spacing: .5px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+            .panel-left h6 span {
+                opacity: .55;
+            }
+
+        .panel-left p {
+            font-size: 8px;
+            opacity: .45;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            font-weight: 700;
+            line-height: 1.6;
+        }
+
+        .divider-line {
+            width: 28px;
+            height: 1px;
+            background: rgba(255,255,255,.3);
+            margin: 12px auto;
+        }
+
+        /* ── Right panel ────────────────── */
+        .panel-right {
+            flex: 1;
+            background-color: var(--bg-right);
+            padding: 32px 28px;
+            position: relative;
+            box-shadow: 12px 12px 0px rgba(26, 107, 74, .10), 18px 18px 48px rgba(0,0,0,.16), 0 2px 8px rgba(0,0,0,.08);
+        }
+
+            .panel-right h6 {
+                font-size: 17px;
+                font-weight: 800;
+                color: var(--text-main);
+                margin-bottom: 3px;
+                letter-spacing: -.2px;
+            }
+
+            .panel-right .sub {
+                font-size: 12px;
+                color: var(--text-muted);
+                margin-bottom: 22px;
+            }
+
+        /* ── Field ──────────────────────── */
+        .field {
+            margin-bottom: 16px;
+        }
+
+            .field label {
+                display: block;
+                font-size: 10.5px;
+                font-weight: 700;
+                color: var(--text-label);
+                letter-spacing: .6px;
+                text-transform: uppercase;
+                margin-bottom: 6px;
+            }
+
+        /* ── Input — fully square ───────── */
+        .input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+            .input-wrap .icon {
+                position: absolute;
+                left: 12px;
+                color: #a8bfb5;
+                font-size: 12px;
+                pointer-events: none;
+                transition: color .2s;
+            }
+
+            .input-wrap input {
+                width: 100%;
+                height: 40px;
+                padding: 0 38px 0 34px;
+                border: 1px solid var(--border);
+                border-radius: 0;
+                background: #fff;
+                font-family: 'Nunito', sans-serif;
+                font-size: 12.5px;
+                color: var(--text-main);
+                outline: none;
+                transition: border-color .2s, box-shadow .2s;
+                appearance: none;
+                -webkit-appearance: none;
+            }
+
+                .input-wrap input::placeholder {
+                    color: #c0d0ca;
+                    font-size: 12px;
+                }
+
+                .input-wrap input:focus {
+                    border-color: var(--border-focus);
+                    box-shadow: 0 0 0 2px var(--accent-glow), inset 0 1px 2px rgba(0,0,0,.04);
+                }
+
+            .input-wrap:focus-within .icon {
+                color: var(--accent);
+            }
+
+            .input-wrap::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 0;
+                height: 2px;
+                background: var(--accent);
+                transition: width .25s ease;
+            }
+
+            .input-wrap:focus-within::after {
+                width: 100%;
+            }
+
+        .toggle-pwd {
+            position: absolute;
+            right: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #b0c4bc;
+            font-size: 12.5px;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            transition: color .2s;
+        }
+
+            .toggle-pwd:hover {
+                color: var(--accent);
+            }
+
+        /* ── Meta row ───────────────────── */
+        .meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            margin-top: 2px;
+        }
+
+        .custom-check {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+            .custom-check input[type="checkbox"] {
+                position: absolute;
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+        .check-box {
+            width: 15px;
+            height: 15px;
+            border: 1px solid var(--border);
+            border-radius: 0;
+            background: #fff;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background .15s, border-color .15s;
+        }
+
+            .check-box svg {
+                display: none;
+                width: 8px;
+                height: 8px;
+                stroke: #fff;
+                stroke-width: 2.8;
+                fill: none;
+            }
+
+        .custom-check input:checked + .check-box {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+            .custom-check input:checked + .check-box svg {
+                display: block;
+            }
+
+        .custom-check span {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .forgot-link {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--accent);
+            text-decoration: none;
+            letter-spacing: .2px;
+            position: relative;
+        }
+
+            .forgot-link::after {
+                content: '';
+                position: absolute;
+                bottom: -1px;
+                left: 0;
+                width: 0;
+                height: 1px;
+                background: var(--accent);
+                transition: width .2s;
+            }
+
+            .forgot-link:hover::after {
+                width: 100%;
+            }
+
+        /* ── Submit ─────────────────────── */
+        .btn-signin {
+            width: 100%;
+            height: 41px;
+            border: none;
+            border-radius: 0;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            color: #fff;
+            font-family: 'Nunito', sans-serif;
+            font-size: 12.5px;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: transform .15s, box-shadow .15s;
+            box-shadow: 4px 4px 0 rgba(13,61,40,.25);
+        }
+
+            .btn-signin::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: rgba(255,255,255,.07);
+                opacity: 0;
+                transition: opacity .2s;
+            }
+
+            .btn-signin:hover {
+                transform: translate(-1px, -1px);
+                box-shadow: 5px 5px 0 rgba(13,61,40,.3);
+            }
+
+                .btn-signin:hover::before {
+                    opacity: 1;
+                }
+
+            .btn-signin:active {
+                transform: translate(1px, 1px);
+                box-shadow: 2px 2px 0 rgba(13,61,40,.2);
+            }
+
+        /* ── Footer ─────────────────────── */
+        .footer-note {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 16px;
+        }
+
+            .footer-note a {
+                color: var(--accent);
+                font-weight: 700;
+                text-decoration: none;
+            }
+
+                .footer-note a:hover {
+                    text-decoration: underline;
+                }
+
+        /* ── Corner accent ──────────────── */
+        .panel-right::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 40px;
+            height: 40px;
+            border-top: 2px solid var(--accent);
+            border-right: 2px solid var(--accent);
+            opacity: .3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+
+        <!-- LEFT -->
+        <div class="panel-left">
+            <div class="logo-box"></div>
+            <div class="divider-line"></div>
+            <h6>Pharma<span>Chain</span></h6>
+            <p>Pharmacy Chain<br>Management System</p>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="panel-right">
+            <h6>Welcome back.</h6>
+            <p class="sub">Sign in to your account</p>
+
+            <form asp-controller="BackendApi" asp-action="Login" method="post">
+
+                <div class="field">
+                    <label for="identifier">Username / Email</label>
+                    <div class="input-wrap">
+                        <i class="fa-solid fa-circle-user icon"></i>
+                        <input type="text"
+                               id="identifier"
+                               name="Username"
+                               placeholder="Username, Reg. ID or Email"
+                               autocomplete="username">
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="password">Password</label>
+                    <div class="input-wrap">
+                        <i class="fa-solid fa-lock icon"></i>
+                        <input type="password"
+                               id="password"
+                               name="Password"
+                               placeholder="Enter your password"
+                               autocomplete="current-password">
+                        <button type="button" class="toggle-pwd" onclick="togglePwd()">
+                            <i class="fa-regular fa-eye" id="eye-icon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="meta-row">
+                    <label class="custom-check">
+                        <input type="checkbox" name="RememberMe">
+                        <div class="check-box">
+                            <svg viewBox="0 0 12 12">
+                                <polyline points="1.5,6 4.5,9 10.5,3" />
+                            </svg>
+                        </div>
+                        <span>Remember me</span>
+                    </label>
+                    <a href="#" class="forgot-link">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="btn-signin">Sign In</button>
+
+            </form>
+
+            <p class="footer-note">
+                Need access? <a href="#">Contact IT Support</a>
+            </p>
+        </div>
+
+    </div>
+
+    <script>
+        function togglePwd() {
+            const inp = document.getElementById('password');
+            const ico = document.getElementById('eye-icon');
+            inp.type = inp.type === 'password' ? 'text' : 'password';
+            ico.classList.toggle('fa-eye');
+            ico.classList.toggle('fa-eye-slash');
+        }
+    </script>
+</body>
+</html>

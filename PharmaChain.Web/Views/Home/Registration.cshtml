@@ -1,0 +1,418 @@
+﻿@model PharmaChain.Application.DTOs.CreateUserRequest
+
+@{
+    ViewData["Title"] = "Pharma Chain - User Registration";
+    Layout = "~/Views/Shared/_adminDashboard.cshtml";
+}
+
+<div class="page-heading">
+    <h3><i class="bi bi-person-circle"></i>&nbsp;&nbsp;Add New User</h3>
+    <p class="text-muted">Complete all steps to register a new user.</p>
+</div>
+
+<form asp-controller="api" asp-action="Create-User" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <div class="card">
+        <div class="card-body">
+
+            <!-- Step Wizard -->
+            <div class="step-wizard" id="stepWizard">
+                <div class="step-progress-line" id="stepProgressLine"></div>
+                <div class="step-item">
+                    <div class="step-circle active" id="circle-1"><i class="bi bi-person-fill"></i></div>
+                    <span class="step-label active" id="label-1">Basic Info</span>
+                </div>
+                <div class="step-item">
+                    <div class="step-circle" id="circle-2"><i class="bi bi-geo-alt-fill"></i></div>
+                    <span class="step-label" id="label-2">Address</span>
+                </div>
+                <div class="step-item">
+                    <div class="step-circle" id="circle-3"><i class="bi bi-shield-lock-fill"></i></div>
+                    <span class="step-label" id="label-3">Role & Branch</span>
+                </div>
+                <div class="step-item">
+                    <div class="step-circle" id="circle-4"><i class="bi bi-key-fill"></i></div>
+                    <span class="step-label" id="label-4">Credentials</span>
+                </div>
+                <div class="step-item">
+                    <div class="step-circle" id="circle-5"><i class="bi bi-card-image"></i></div>
+                    <span class="step-label" id="label-5">ID & Docs</span>
+                </div>
+            </div>
+
+            <!-- ── STEP 1: Basic Info ── -->
+            <div class="step-content" id="step-1" style="padding-left: 50px;
+    padding-right: 50px;">
+                <h5 class="mb-3">Basic Information</h5>
+                <div class="row">
+
+                    <div class="col-md-4">
+                        <label asp-for="FullName">Full Name <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-8 form-group">
+                        
+                        <input asp-for="FullName" id="fname" class="form-control" placeholder="Full Name" />
+                        <div class="field-error" id="err-fname">Full name is required.</div>
+                    </div>
+
+                    <div class="col-md-4">
+                       
+                        <label asp-for="Phone">Mobile <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-8 form-group">
+                        <input asp-for="Phone" id="mobile" class="form-control" placeholder="10-digit Mobile Number" maxlength="10" />
+                        <div class="field-error" id="err-mobile">Enter a valid 10-digit mobile number.</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Email">Email <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-8 form-group">
+                        <div class="input-group">
+                            <input asp-for="Email" id="email" class="form-control" placeholder="Email Address" />
+                            <button class="btn btn-outline-primary" type="button" id="sendOtpBtn">
+                                <i class="bi bi-envelope-fill"></i> Send OTP
+                            </button>
+                        </div>
+                        <div class="field-error" id="err-email">Enter a valid email address.</div>
+                    </div>
+
+                    <!-- OTP fields — no model binding, purely JS-verified -->
+                    <div class="col-md-4 d-none" id="otpLabelCol">
+                        <label for="otpInput">Enter OTP <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-8 form-group d-none" id="otpFieldCol">
+                        <div class="input-group">
+                            <input type="text" id="otpInput" class="form-control otp-input"
+                                   placeholder="_ _ _ _ _ _" maxlength="6" autocomplete="one-time-code" />
+                            <button class="btn btn-outline-success" type="button" id="verifyOtpBtn">
+                                <i class="bi bi-patch-check-fill"></i> Verify OTP
+                            </button>
+                        </div>
+                        <div class="field-error" id="err-otp">Enter the 6-digit OTP sent to your email.</div>
+                        <small class="text-muted" id="otpTimer"></small>
+                    </div>
+
+                    <div class="col-12 col-md-8 offset-md-4 d-none" id="emailVerifiedBadge">
+                        <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Email Verified</span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Gender" name="gender">Gender <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-8 form-group">
+                        <fieldset class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio"
+                                       asp-for="Gender" id="genderMale" value="Male" />
+                                <label class="form-check-label" for="genderMale">Male</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio"
+                                       asp-for="Gender" id="genderFemale" value="Female" />
+                                <label class="form-check-label" for="genderFemale">Female</label>
+                            </div>
+                        </fieldset>
+                        <div class="field-error" id="err-gender">Please select a gender.</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ── STEP 2: Address ── -->
+            <div class="step-content d-none" id="step-2" style="padding-left: 50px;
+                 padding-right: 50px;>
+                <h5 class="mb-3">Address Details</h5>
+                <div class="row">
+
+                    <div class="col-md-4">
+                        <label asp-for="AddressLine1">Address Line 1 <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-8 form-group">
+                        <input asp-for="AddressLine1" id="addressLine1" class="form-control" placeholder="House / Flat / Street" />
+                        <div class="field-error" id="err-addressLine1">Address Line 1 is required.</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="AddressLine2">Address Line 2 <span class="text-muted">(Optional)</span></label>
+                    </div>
+                    <div class="col-md-8 form-group">
+                        <input asp-for="AddressLine2" id="addressLine2" class="form-control" placeholder="Area / Landmark" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Country">Country <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-8 form-group">
+                        <select asp-for="Country" id="country" class="form-select">
+                            <option value="" disabled selected>-- Select Country --</option>
+                            <option value="India">India</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <div class="field-error" id="err-country">Please select a country.</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="State">State <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-8 form-group">
+                        <select asp-for="State" id="state" class="form-select">
+                            <option value="" disabled selected>-- Select State --</option>
+                            <option>Andhra Pradesh</option>
+                            <option>Arunachal Pradesh</option>
+                            <option>Assam</option>
+                            <option>Bihar</option>
+                            <option>Chhattisgarh</option>
+                            <option>Goa</option>
+                            <option>Gujarat</option>
+                            <option>Haryana</option>
+                            <option>Himachal Pradesh</option>
+                            <option>Jharkhand</option>
+                            <option>Karnataka</option>
+                            <option>Kerala</option>
+                            <option>Madhya Pradesh</option>
+                            <option>Maharashtra</option>
+                            <option>Manipur</option>
+                            <option>Meghalaya</option>
+                            <option>Mizoram</option>
+                            <option>Nagaland</option>
+                            <option>Odisha</option>
+                            <option>Punjab</option>
+                            <option>Rajasthan</option>
+                            <option>Sikkim</option>
+                            <option>Tamil Nadu</option>
+                            <option>Telangana</option>
+                            <option>Tripura</option>
+                            <option>Uttar Pradesh</option>
+                            <option>Uttarakhand</option>
+                            <option>West Bengal</option>
+                            <option>Delhi</option>
+                            <option>Jammu &amp; Kashmir</option>
+                            <option>Ladakh</option>
+                            <option>Puducherry</option>
+                            <option>Chandigarh</option>
+                        </select>
+                        <div class="field-error" id="err-state">Please select a state.</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="City">City <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-8 form-group">
+                        <input asp-for="City" id="city" class="form-control" placeholder="City" />
+                        <div class="field-error" id="err-city">City is required.</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Pincode">Pincode <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-8 form-group">
+                        <input asp-for="Pincode" id="pincode" class="form-control" placeholder="6-digit Pincode" maxlength="6" />
+                        <div class="field-error" id="err-pincode">Enter a valid 6-digit pincode.</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ── STEP 3: Role & Branch ── -->
+            <div class="step-content d-none" id="step-3" style="padding-left: 50px;
+                 padding-right: 50px;>
+                <h5 class="mb-3">Role & Branch</h5>
+                <div class="row">
+
+                    <div class="col-md-4">
+                        <label asp-for="BranchId">Branch <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-8 form-group">
+                        <select asp-for="BranchId" id="branchSelect" class="form-select">
+                            <option value="" disabled selected>-- Select Branch --</option>
+                            @if (ViewBag.Branches != null)
+                            {
+                                foreach (var branch in ViewBag.Branches)
+                                {
+                                    <option value="@branch.BranchId">
+                                        @branch.BranchId — @branch.BranchName, @branch.AddressLine1, @branch.City
+                                    </option>
+                                }
+                            }
+                        </select>
+                        <small class="text-muted">Branches are loaded from the system.</small>
+                        <div class="field-error" id="err-branch">Please select a branch.</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="RoleId">Role <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-8 form-group">
+                        <select asp-for="RoleId" id="roleSelect" class="form-select">
+                            <option value="" disabled selected>-- Select Role --</option>
+                            <option value="5">Super Admin</option>
+                            <option value="6">Admin</option>
+                            <option value="7">Branch Manager</option>
+                            <option value="8">Pharmacist</option>
+                            <option value="9">Cashier</option>
+                            <option value="10">Stock Manager</option>
+                            <option value="11">Auditor</option>
+                        </select>
+                        <div class="field-error" id="err-role">Please select a role.</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ── STEP 4: Login Credentials ── -->
+            <div class="step-content d-none" id="step-4" style="padding-left: 50px;
+    padding-right: 50px;">
+                <h5 class="mb-3">Login Credentials</h5>
+                <div class="row">
+
+                    <div class="col-md-4">
+                        <label>Username <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-8 form-group">
+                        <div class="input-group">
+                            <input id="username" class="form-control" placeholder="Username" disabled/>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Password">Password <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-8 form-group">
+                        <div class="input-group">
+                            
+                            <input asp-for="Password" id="password" class="form-control" placeholder="Password" />
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                            </button>
+                        </div>
+                        <div class="field-error" id="err-password">Password must be at least 8 characters.</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="ConfirmPassword">Confirm Password <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-8 form-group">
+                        <div class="input-group">
+                            <input asp-for="ConfirmPassword" id="confirmPassword" class="form-control" placeholder="Confirm Password" />
+                            <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                                <i class="bi bi-eye" id="toggleConfirmPasswordIcon"></i>
+                            </button>
+                        </div>
+                        <small id="passwordMatchMsg"></small>
+                        <div class="field-error" id="err-confirmPassword">Passwords do not match.</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ── STEP 5: ID & Documents ── -->
+            <div class="step-content d-none" id="step-5" style="padding-left: 50px;
+                 padding-right: 50px;>
+                <h5 class="mb-3">ID & Documents</h5>
+                <div class="row">
+
+                    <div class="col-md-4">
+                        <label asp-for="IdProofType">ID Proof Type <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-8 form-group">
+                        <select asp-for="IdProofType" id="idProofType" class="form-select">
+                            <option value="" disabled selected>-- Select ID Proof --</option>
+                            <option value="Aadhaar">Aadhaar Card</option>
+                            <option value="Pan">PAN Card</option>
+                            <option value="Passport">Passport</option>
+                            <option value="VoterId">Voter ID</option>
+                        </select>
+                        <div class="field-error" id="err-idProofType">Please select an ID proof type.</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="IdProofNumber">ID Proof Number <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-8 form-group">
+                        <input asp-for="IdProofNumber" id="idProofNumber" class="form-control" placeholder="Enter ID Number" />
+                        <div class="field-error" id="err-idProofNumber">ID proof number is required.</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="IdProofDoc">Upload ID Proof <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-8 form-group">
+                        <div class="input-group">
+                            
+                            <input type="file" class="form-control" id="idProofDoc"
+                                   name="IdProofDoc" accept=".jpg,.jpeg,.png,.pdf" />
+                            <label class="input-group-text" for="idProofDoc">
+                                <i class="bi bi-upload"></i>
+                            </label>
+                        </div>
+                        <small class="text-muted">Accepted: JPG, PNG, PDF. Max 2MB.</small>
+                        <div class="field-error" id="err-idProofDoc">Please upload your ID proof document.</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="ProfileImage">Profile Image <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-8 form-group">
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="profileImage"
+                                   name="ProfileImage" accept=".jpg,.jpeg,.png" />
+                            <label class="input-group-text" for="profileImage">
+                                <i class="bi bi-person-bounding-box"></i>
+                            </label>
+                        </div>
+                        <small class="text-muted">Accepted: JPG, PNG. Max 1MB.</small>
+                        <div class="field-error" id="err-profileImage">Please upload a profile image.</div>
+                        <div class="mt-2">
+                            <img id="profilePreview" src="#" alt="Preview"
+                                 class="rounded-circle d-none"
+                                 style="width:80px;height:80px;object-fit:cover;border:2px solid #dee2e6;" />
+                        </div>
+                    </div>
+
+                    <!-- CAPTCHA — JS only, no name attribute, not posted to server -->
+                    <div class="col-md-4">
+                        <label>Security Captcha <span class="text-danger">*</span></label>
+                    </div>
+                    <div class="col-md-8 form-group">
+                        <div class="captcha-box mb-2">
+                            <span class="captcha-text" id="captchaText"></span>
+                            <button type="button" class="btn btn-sm btn-outline-secondary ms-auto"
+                                    id="refreshCaptcha" title="Refresh Captcha">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                        </div>
+                        <input type="text" id="captchaInput" class="form-control"
+                               placeholder="Type the characters above" maxlength="6" autocomplete="off" />
+                        <div class="field-error" id="err-captcha">Captcha does not match. Please try again.</div>
+                    </div>
+
+                    <!-- Consent — JS only, no name attribute, not posted to server -->
+                    <div class="col-12 col-md-8 offset-md-4 form-group">
+                        <div class="form-check">
+                            <input type="checkbox" id="consentCheck" class="form-check-input" />
+                            <label class="form-check-label" for="consentCheck">
+                                I confirm that the above information is correct.
+                                <span class="text-danger">*</span>
+                            </label>
+                        </div>
+                        <div class="field-error" id="err-consent">You must confirm before submitting.</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ── Navigation ── -->
+            <div class="d-flex justify-content-between mt-4">
+                <button type="button" class="btn btn-light-secondary" id="prevBtn" disabled style="position: relative; left: 50px; bottom: 20px;">
+                    <i class="bi bi-arrow-left"></i> Previous
+                </button>
+                <button type="button" class="btn btn-primary" id="nextBtn" style="position: relative; right: 50px; bottom: 20px;">
+                    Next <i class="bi bi-arrow-right"></i>
+                </button>
+                <button type="submit" id="submitBtn" class="d-none" style="position: relative; right: 50px; bottom: 20px;"></button>
+            </div>
+
+        </div>
+    </div>
+</form>
