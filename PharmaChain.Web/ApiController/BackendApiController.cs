@@ -5,7 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using MimeKit;
 using PharmaChain.Application.DTOs;
 using PharmaChain.Application.Interfaces;
+using PharmaChain.Infrastructure.BackendServices;
 using PharmaChain.Infrastructure.Models;
+using static PharmaChain.Application.DTOs.SupplierRequest;
 
 namespace PharmaChain.Web.ApiController
 {
@@ -22,6 +24,7 @@ namespace PharmaChain.Web.ApiController
         private readonly IJwtService _jwtService;
         private readonly ILogService _logService;
         private readonly IMedicineService _medicineService;
+        private readonly ISupplierService _supplierService;
 
         public BackendApiController(IPharmaChainDbContext context,
             IAuthService authService, IOtpService otpService,
@@ -29,7 +32,8 @@ namespace PharmaChain.Web.ApiController
             IPermissionService permissionService,
             IJwtService jwtService,
             ILogService logService,
-            IMedicineService medicineService
+            IMedicineService medicineService,
+            ISupplierService supplierService
             )
         {
             _context = context;
@@ -41,6 +45,7 @@ namespace PharmaChain.Web.ApiController
             _jwtService = jwtService;
             _logService = logService;
             _medicineService = medicineService;
+            _supplierService = supplierService;
         }
 
         [HttpGet]
@@ -546,6 +551,35 @@ namespace PharmaChain.Web.ApiController
 
             if (!result.Success)
                 return NotFound(result);
+
+            return Ok(result);
+        }
+
+
+        /*************************************** Supplier ***********************************************/
+
+        [Authorize]
+        [HttpPost("Supplier/Create")]
+        public async Task<IActionResult> CreateSupplier([FromForm] CreateSupplierRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                                       .SelectMany(v => v.Errors)
+                                       .Select(e => e.ErrorMessage)
+                                       .ToList();
+
+                return new JsonResult(new
+                {
+                    success = false,
+                    message = string.Join(", ", errors)
+                });
+            }
+
+            var result = await _supplierService.CreateSupplierAsync(request);
+
+            if (!result.Success)
+                return BadRequest(result);
 
             return Ok(result);
         }

@@ -1,0 +1,501 @@
+﻿@{
+    ViewData["Title"] = "CreateSupplier";
+    Layout = "~/Views/Shared/_adminDashboard.cshtml";
+
+    int totalSuppliers = ViewBag.supplierInfos.TotalSuppliers;
+    int activeSuppliers = ViewBag.supplierInfos.ActiveSuppliers;
+    int inactiveSuppliers = ViewBag.supplierInfos.InactiveSuppliers;
+    string formAction = ViewBag.FormAction ?? "/api/Supplier/Create";
+}
+
+<div class="pc-page-wrap">
+    <div class="pc-page-header">
+        <div class="pc-page-title-wrap">
+            <h4><i class="bi bi-building pc-text-accent" style="font-size:15px"></i> Add New Supplier</h4>
+            <p>Register a new pharmaceutical supplier with contact and regulatory information.</p>
+        </div>
+        <div class="pc-page-actions">
+            <a href="#" class="pc-btn pc-btn-outline pc-btn-sm"><i class="bi bi-list-ul"></i> All Suppliers</a>
+        </div>
+    </div>
+
+    <div class="pc-layout-grid">
+        <div>
+           
+            <form id="pcSupplierForm" novalidate action="@formAction">
+
+                <!-- Card 1: Basic Information -->
+                <div class="pc-card" style="margin-bottom:10px">
+                    <div class="pc-card-header">
+                        <div class="pc-card-header-icon" style="background:var(--pc-accent-soft)">
+                            <i class="bi bi-building pc-text-accent"></i>
+                        </div>
+                        <div>
+                            <div class="pc-card-header-title">Basic Information</div>
+                            <div class="pc-card-header-sub">Supplier name and contact person details</div>
+                        </div>
+                        <div class="pc-card-header-right">
+                            <span class="pc-chip pc-chip-accent"><i class="bi bi-asterisk" style="font-size:8px"></i> Required</span>
+                        </div>
+                    </div>
+                    <div class="pc-card-body">
+                        <div class="pc-form-section">
+                            <div class="pc-section-label"><i class="bi bi-building"></i> Supplier Details</div>
+                            <div class="pc-form-grid">
+                                <div class="pc-form-group pc-col-12">
+                                    <label class="pc-form-label">Supplier Name <span class="pc-req-star">*</span></label>
+                                    <input type="text" class="pc-form-control" id="pcSupplierName"
+                                           name="SupplierName"
+                                           placeholder="e.g. MedLine Distributors Pvt. Ltd." />
+                                    <span class="pc-invalid-feedback">Supplier name is required.</span>
+                                </div>
+                                <div class="pc-form-group pc-col-6">
+                                    <label class="pc-form-label">Contact Person <span class="pc-req-star">*</span></label>
+                                    <input type="text" class="pc-form-control" id="pcContactPerson"
+                                           name="ContactPerson"
+                                           placeholder="e.g. Rajesh Kumar" />
+                                    <span class="pc-invalid-feedback">Contact person name is required.</span>
+                                </div>
+                                <div class="pc-form-group pc-col-6">
+                                    <label class="pc-form-label">Designation</label>
+                                    <input type="text" class="pc-form-control" id="pcDesignation"
+                                           name="Designation"
+                                           placeholder="e.g. Sales Manager" />
+                                    <div class="pc-form-hint">Optional designation of contact person</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Contact Details -->
+                <div class="pc-card" style="margin-bottom:10px">
+                    <div class="pc-card-header">
+                        <div class="pc-card-header-icon" style="background:var(--pc-info-soft)">
+                            <i class="bi bi-telephone" style="color:var(--pc-info)"></i>
+                        </div>
+                        <div>
+                            <div class="pc-card-header-title">Contact Details</div>
+                            <div class="pc-card-header-sub">Phone, email, and communication information</div>
+                        </div>
+                    </div>
+                    <div class="pc-card-body">
+                        <div class="pc-form-section">
+                            <div class="pc-section-label"><i class="bi bi-telephone"></i> Communication</div>
+                            <div class="pc-form-grid">
+                                <div class="pc-form-group pc-col-6">
+                                    <label class="pc-form-label">Phone <span class="pc-req-star">*</span></label>
+                                    <div class="pc-input-group">
+                                        <span class="pc-input-prefix">+91</span>
+                                        <input type="tel" class="pc-form-control pc-form-control-mono" id="pcPhone"
+                                               name="Phone"
+                                               placeholder="9876543210" />
+                                    </div>
+                                    <span class="pc-invalid-feedback">Valid 10-digit phone number required.</span>
+                                </div>
+                                <div class="pc-form-group pc-col-6">
+                                    <label class="pc-form-label">Email <span class="pc-req-star">*</span></label>
+                                    <input type="email" class="pc-form-control" id="pcEmail"
+                                           name="Email"
+                                           placeholder="contact@supplier.com" />
+                                    <span class="pc-invalid-feedback">Valid email address is required.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Address -->
+                <div class="pc-card" style="margin-bottom:10px">
+                    <div class="pc-card-header">
+                        <div class="pc-card-header-icon" style="background:var(--pc-warning-soft)">
+                            <i class="bi bi-geo-alt" style="color:var(--pc-warning)"></i>
+                        </div>
+                        <div>
+                            <div class="pc-card-header-title">Address &amp; Location</div>
+                            <div class="pc-card-header-sub">Physical address and business location</div>
+                        </div>
+                    </div>
+                    <div class="pc-card-body">
+                        <div class="pc-form-section">
+                            <div class="pc-section-label"><i class="bi bi-geo-alt"></i> Address</div>
+                            <div class="pc-form-grid">
+                                <div class="pc-form-group pc-col-12">
+                                    <label class="pc-form-label">Address <span class="pc-req-star">*</span></label>
+                                    <input type="text" class="pc-form-control" id="pcAddress"
+                                           name="Address"
+                                           placeholder="Street address and area" />
+                                    <span class="pc-invalid-feedback">Address is required.</span>
+                                </div>
+                                <div class="pc-form-group pc-col-6">
+                                    <label class="pc-form-label">City/Town</label>
+                                    <input type="text" class="pc-form-control" id="pcCity"
+                                           name="City" placeholder="e.g. Lucknow" />
+                                </div>
+                                <div class="pc-form-group pc-col-3">
+                                    <label class="pc-form-label">State</label>
+                                    <input type="text" class="pc-form-control" id="pcState"
+                                           name="State" placeholder="e.g. Uttar Pradesh" />
+                                </div>
+                                <div class="pc-form-group pc-col-3">
+                                    <label class="pc-form-label">Postal Code</label>
+                                    <input type="text" class="pc-form-control pc-form-control-mono" id="pcPostalCode"
+                                           name="PostalCode" placeholder="226001" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4: Regulatory & Compliance -->
+                <div class="pc-card" style="margin-bottom:10px">
+                    <div class="pc-card-header">
+                        <div class="pc-card-header-icon" style="background:var(--pc-success-soft)">
+                            <i class="bi bi-shield-check" style="color:var(--pc-success)"></i>
+                        </div>
+                        <div>
+                            <div class="pc-card-header-title">Regulatory &amp; Compliance</div>
+                            <div class="pc-card-header-sub">GST, drug license, and regulatory information</div>
+                        </div>
+                    </div>
+                    <div class="pc-card-body">
+                        <div class="pc-form-section">
+                            <div class="pc-section-label"><i class="bi bi-shield-check"></i> Tax &amp; Licenses</div>
+                            <div class="pc-form-grid">
+                                <div class="pc-form-group pc-col-6">
+                                    <label class="pc-form-label">GSTIN <span class="pc-req-star">*</span></label>
+                                    <input type="text" class="pc-form-control pc-form-control-mono" id="pcGstin"
+                                           name="GSTIN"
+                                           placeholder="e.g. 27ABCDE1234F2Z0"
+                                           maxlength="15" />
+                                    <span class="pc-invalid-feedback">Valid 15-character GSTIN is required.</span>
+                                    <div class="pc-form-hint">GST Identification Number (15 characters)</div>
+                                </div>
+                                <div class="pc-form-group pc-col-6">
+                                    <label class="pc-form-label">Drug License Number <span class="pc-req-star">*</span></label>
+                                    <input type="text" class="pc-form-control pc-form-control-mono" id="pcDrugLicenseNumber"
+                                           name="DrugLicenseNumber"
+                                           placeholder="e.g. DL-2025-0001" />
+                                    <span class="pc-invalid-feedback">Drug license number is required.</span>
+                                    <div class="pc-form-hint">Pharmaceutical license issued by regulatory body</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 5: Bank Details -->
+                <div class="pc-card" style="margin-bottom:10px">
+                    <div class="pc-card-header">
+                        <div class="pc-card-header-icon" style="background:var(--pc-danger-soft)">
+                            <i class="bi bi-bank" style="color:var(--pc-danger)"></i>
+                        </div>
+                        <div>
+                            <div class="pc-card-header-title">Bank Details</div>
+                            <div class="pc-card-header-sub">Payment and banking information</div>
+                        </div>
+                    </div>
+                    <div class="pc-card-body">
+                        <div class="pc-form-section">
+                            <div class="pc-section-label"><i class="bi bi-bank"></i> Bank Account</div>
+                            <div class="pc-form-grid">
+                                <div class="pc-form-group pc-col-8">
+                                    <label class="pc-form-label">Account Number <span class="pc-req-star">*</span></label>
+                                    <input type="text" class="pc-form-control pc-form-control-mono" id="pcBankAccountNumber"
+                                           name="BankAccountNumber"
+                                           placeholder="e.g. 1234567890123456" />
+                                    <span class="pc-invalid-feedback">Bank account number is required.</span>
+                                </div>
+                                <div class="pc-form-group pc-col-6">
+                                    <label class="pc-form-label">IFSC Code <span class="pc-req-star">*</span></label>
+                                    <input type="text" class="pc-form-control pc-form-control-mono" id="pcIfscCode"
+                                           name="IFSCCode"
+                                           placeholder="e.g. SBIN0001234"
+                                           maxlength="11" />
+                                    <span class="pc-invalid-feedback">Valid 11-character IFSC code is required.</span>
+                                    <div class="pc-form-hint">Indian Financial System Code</div>
+                                </div>
+                                <div class="pc-form-group pc-col-6">
+                                    <label class="pc-form-label">Bank Branch Name</label>
+                                    <input type="text" class="pc-form-control" id="pcBankBranchName"
+                                           name="BankBranchName"
+                                           placeholder="e.g. Lucknow Main Branch" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 6: Status -->
+                <div class="pc-card" style="margin-bottom:10px">
+                    <div class="pc-card-header">
+                        <div class="pc-card-header-icon" style="background:var(--pc-info-soft)">
+                            <i class="bi bi-toggle-on" style="color:var(--pc-info)"></i>
+                        </div>
+                        <div>
+                            <div class="pc-card-header-title">Status</div>
+                            <div class="pc-card-header-sub">Supplier active status and availability</div>
+                        </div>
+                    </div>
+                    <div class="pc-card-body">
+                        <div class="pc-form-section">
+                            <div class="pc-section-label"><i class="bi bi-toggle-on"></i> Active Status</div>
+                            <div class="pc-form-grid">
+                                <div class="pc-form-group pc-col-12">
+                                    <label class="pc-toggle-switch">
+                                        <input type="checkbox" id="pcIsActive" name="IsActive" value="true" checked />
+                                        <span class="pc-toggle-slider"></span>
+                                        <span id="pcStatusText">Active</span>
+                                    </label>
+                                    <div class="pc-form-hint">When disabled, this supplier cannot receive orders</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="pc-card">
+                    <div class="pc-form-footer">
+                        <div class="pc-footer-left">
+                            <p class="pc-req-legend"><span>*</span> Required fields must be filled</p>
+                        </div>
+                        <div class="pc-footer-right">
+                            <button type="button" class="pc-btn pc-btn-outline pc-btn-sm" id="pcResetBtn">
+                                <i class="bi bi-arrow-counterclockwise"></i> Reset
+                            </button>
+                            <button type="submit" class="pc-btn pc-btn-success pc-btn-sm" id="pcSubmitBtn">
+                                <i class="bi bi-plus-lg"></i> Add Supplier
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="pc-sidebar-stack">
+            <div class="pc-mini-stat">
+                <div class="pc-mini-stat-icon" style="background:var(--pc-accent-soft)">
+                    <i class="bi bi-building" style="color:var(--pc-accent)"></i>
+                </div>
+                <div>
+                    <div class="pc-mini-stat-val" id="pcStatSuppliers">&#8212;</div>
+                    <div class="pc-mini-stat-label">Total Suppliers</div>
+                </div>
+            </div>
+            <div class="pc-mini-stat">
+                <div class="pc-mini-stat-icon" style="background:var(--pc-success-soft)">
+                    <i class="bi bi-check-circle" style="color:var(--pc-success)"></i>
+                </div>
+                <div>
+                    <div class="pc-mini-stat-val" id="pcStatActive">&#8212;</div>
+                    <div class="pc-mini-stat-label">Active Suppliers</div>
+                </div>
+            </div>
+            <div class="pc-mini-stat">
+                <div class="pc-mini-stat-icon" style="background:var(--pc-warning-soft)">
+                    <i class="bi bi-exclamation-circle" style="color:var(--pc-warning)"></i>
+                </div>
+                <div>
+                    <div class="pc-mini-stat-val" id="pcStatInactive">&#8212;</div>
+                    <div class="pc-mini-stat-label">Inactive Suppliers</div>
+                </div>
+            </div>
+
+            <!-- Live Preview Card -->
+            <div class="pc-preview-card">
+                <div class="pc-preview-header">
+                    <div class="pc-supplier-icon"><i class="bi bi-building"></i></div>
+                    <div class="pc-supplier-name" id="pcPrevSupplierName">Supplier Name</div>
+                    <div class="pc-supplier-sub" id="pcPrevContactPerson">Enter supplier details above</div>
+                </div>
+                <div class="pc-preview-body">
+                    <div class="pc-preview-row">
+                        <span class="pc-pr-label">Contact</span>
+                        <span class="pc-pr-val" id="pcPrevContact">&#8212;</span>
+                    </div>
+                    <div class="pc-preview-row">
+                        <span class="pc-pr-label">Phone</span>
+                        <span class="pc-pr-val" id="pcPrevPhone">&#8212;</span>
+                    </div>
+                    <div class="pc-preview-row">
+                        <span class="pc-pr-label">Email</span>
+                        <span class="pc-pr-val" id="pcPrevEmail">&#8212;</span>
+                    </div>
+                    <div class="pc-preview-row">
+                        <span class="pc-pr-label">Address</span>
+                        <span class="pc-pr-val" id="pcPrevAddress">&#8212;</span>
+                    </div>
+                    <div class="pc-preview-row">
+                        <span class="pc-pr-label">GSTIN</span>
+                        <span class="pc-pr-val" id="pcPrevGstin">&#8212;</span>
+                    </div>
+                    <div class="pc-preview-row">
+                        <span class="pc-pr-label">License No.</span>
+                        <span class="pc-pr-val" id="pcPrevLicense">&#8212;</span>
+                    </div>
+                    <div class="pc-preview-row">
+                        <span class="pc-pr-label">Bank Account</span>
+                        <span class="pc-pr-val" id="pcPrevAccount">&#8212;</span>
+                    </div>
+                    <div class="pc-preview-row">
+                        <span class="pc-pr-label">Status</span>
+                        <span id="pcPrevStatus">
+                            <span class="pc-chip pc-chip-success"><i class="bi bi-dot"></i> Active</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Route injected from Razor — keeps JS clean of magic strings
+    const pcTruncate     = (v, len = 20) => v && v.length > len ? v.substring(0, len) + '\u2026' : v || '\u2014';
+
+    // ── Real-time Preview ──────────────────────────────────────────
+    document.getElementById('pcSupplierName').addEventListener('input', function () {
+        document.getElementById('pcPrevSupplierName').textContent = this.value || 'Supplier Name';
+    });
+    document.getElementById('pcContactPerson').addEventListener('input', function () {
+        document.getElementById('pcPrevContactPerson').textContent = this.value || 'Enter supplier details above';
+        document.getElementById('pcPrevContact').textContent       = this.value || '\u2014';
+    });
+    document.getElementById('pcPhone').addEventListener('input', function () {
+        document.getElementById('pcPrevPhone').textContent = this.value ? '+91 ' + this.value : '\u2014';
+    });
+    document.getElementById('pcEmail').addEventListener('input', function () {
+        document.getElementById('pcPrevEmail').textContent = pcTruncate(this.value);
+    });
+    document.getElementById('pcAddress').addEventListener('input', function () {
+        document.getElementById('pcPrevAddress').textContent = pcTruncate(this.value);
+    });
+    document.getElementById('pcGstin').addEventListener('input', function () {
+        this.value = this.value.toUpperCase(); // auto-uppercase for GSTIN
+        document.getElementById('pcPrevGstin').textContent = this.value || '\u2014';
+    });
+    document.getElementById('pcIfscCode').addEventListener('input', function () {
+        this.value = this.value.toUpperCase(); // auto-uppercase for IFSC
+    });
+    document.getElementById('pcDrugLicenseNumber').addEventListener('input', function () {
+        document.getElementById('pcPrevLicense').textContent = this.value || '\u2014';
+    });
+    document.getElementById('pcBankAccountNumber').addEventListener('input', function () {
+        document.getElementById('pcPrevAccount').textContent = this.value ? '**** ' + this.value.slice(-4) : '\u2014';
+    });
+    document.getElementById('pcIsActive').addEventListener('change', function () {
+        const statusEl  = document.getElementById('pcPrevStatus');
+        const statusTxt = document.getElementById('pcStatusText');
+        if (this.checked) {
+            statusEl.innerHTML    = '<span class="pc-chip pc-chip-success"><i class="bi bi-dot"></i> Active</span>';
+            statusTxt.textContent = 'Active';
+        } else {
+            statusEl.innerHTML    = '<span class="pc-chip pc-chip-danger"><i class="bi bi-dot"></i> Inactive</span>';
+            statusTxt.textContent = 'Inactive';
+        }
+    });
+
+    // ── Validation ─────────────────────────────────────────────────
+    const pcRequiredIds = [
+        'pcSupplierName', 'pcContactPerson', 'pcPhone', 'pcEmail',
+        'pcAddress', 'pcGstin', 'pcDrugLicenseNumber', 'pcBankAccountNumber', 'pcIfscCode'
+    ];
+
+    function pcValidate() {
+        let valid = true;
+
+        // Blank-check required fields
+        pcRequiredIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el.value.trim()) {
+                el.classList.add('pc-is-invalid');
+                valid = false;
+            } else {
+                el.classList.remove('pc-is-invalid');
+            }
+        });
+
+        // Email format
+        const emailEl = document.getElementById('pcEmail');
+        if (emailEl.value.trim() && !/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(emailEl.value)) {
+            emailEl.classList.add('pc-is-invalid'); valid = false;
+        }
+
+        // Phone — exactly 10 digits
+        const phoneEl = document.getElementById('pcPhone');
+        if (phoneEl.value.trim() && !/^\d{10}$/.test(phoneEl.value)) {
+            phoneEl.classList.add('pc-is-invalid'); valid = false;
+        }
+
+        // GSTIN — exactly 15 uppercase alphanumeric chars
+        const gstinEl = document.getElementById('pcGstin');
+        if (gstinEl.value.trim() && !/^[A-Z0-9]{15}$/.test(gstinEl.value)) {
+            gstinEl.classList.add('pc-is-invalid'); valid = false;
+        }
+
+        // IFSC — exactly 11 uppercase alphanumeric chars
+        const ifscEl = document.getElementById('pcIfscCode');
+        if (ifscEl.value.trim() && !/^[A-Z0-9]{11}$/.test(ifscEl.value)) {
+            ifscEl.classList.add('pc-is-invalid'); valid = false;
+        }
+
+        return valid;
+    }
+
+    // Remove invalid class as user corrects each field
+    pcRequiredIds.forEach(id => {
+        document.getElementById(id).addEventListener('input', function () {
+            if (this.value.trim()) this.classList.remove('pc-is-invalid');
+        });
+    });
+
+    // ── AJAX Submit ────────────────────────────────────────────────
+    document.getElementById('pcSupplierForm').addEventListener('submit', function (e) {
+        e.preventDefault(); // Always prevent — we own the POST via jQuery AJAX
+
+        if (!pcValidate()) {
+            return;
+        }
+
+        const btn = document.getElementById('pcSubmitBtn');
+        btn.innerHTML = '<span style="width:12px;height:12px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;display:inline-block;animation:pc-spin .6s linear infinite"></span> Saving\u2026';
+        btn.disabled  = true;
+
+        const fd = new FormData(document.getElementById('pcSupplierForm'));
+
+        if (!document.getElementById('pcIsActive').checked) {
+            fd.set('IsActive', 'false');
+        }
+    });
+
+    // ── Reset ──────────────────────────────────────────────────────
+    function pcResetForm() {
+        document.getElementById('pcSupplierForm').reset();
+        document.getElementById('pcIsActive').checked = true;
+        document.querySelectorAll('.pc-is-invalid').forEach(el => el.classList.remove('pc-is-invalid'));
+        document.getElementById('pcPrevSupplierName').textContent  = 'Supplier Name';
+        document.getElementById('pcPrevContactPerson').textContent = 'Enter supplier details above';
+        document.getElementById('pcStatusText').textContent        = 'Active';
+        ['pcPrevContact','pcPrevPhone','pcPrevEmail','pcPrevAddress','pcPrevGstin','pcPrevLicense','pcPrevAccount']
+            .forEach(id => document.getElementById(id).textContent = '\u2014');
+        document.getElementById('pcPrevStatus').innerHTML =
+            '<span class="pc-chip pc-chip-success"><i class="bi bi-dot"></i> Active</span>';
+        const btn = document.getElementById('pcSubmitBtn');
+        btn.disabled  = false;
+        btn.innerHTML = '<i class="bi bi-plus-lg"></i> Add Supplier';
+    }
+
+    document.getElementById('pcResetBtn').addEventListener('click', () => {
+        pcResetForm();
+    });
+
+    // ── Sidebar stats from ViewBag ─────────────────────────────────
+    setTimeout(() => {
+        document.getElementById('pcStatSuppliers').textContent = '@totalSuppliers';
+        document.getElementById('pcStatActive').textContent    = '@activeSuppliers';
+        document.getElementById('pcStatInactive').textContent  = '@inactiveSuppliers';
+    }, 500);
+</script>
