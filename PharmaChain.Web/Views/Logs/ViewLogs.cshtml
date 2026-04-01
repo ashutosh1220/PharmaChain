@@ -1,0 +1,374 @@
+﻿@{
+    ViewData["Title"] = "ViewLogs";
+    Layout = "~/Views/Shared/_adminDashboard.cshtml";
+
+    var logs = ViewBag.Logs as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    var totalLogs = (int)(ViewBag.TotalLogs ?? 0);
+    var curPage = (int)(ViewBag.CurrentPage ?? 1);
+    var totPages = (int)(ViewBag.TotalPages ?? 1);
+    var pageSize = (int)(ViewBag.size ?? 10);
+
+    static string ActionLabel(int v) => v switch
+    {
+        0 => "VIEW",
+        1 => "CREATE",
+        2 => "UPDATE",
+        3 => "DELETE",
+        4 => "LOGIN",
+        5 => "EXPORT",
+        _ => "OTHER"
+    };
+
+    static string SeverityLabel(int v) => v switch
+    {
+        0 => "Info",
+        1 => "Info",
+        2 => "Warning",
+        3 => "Error",
+        4 => "Critical",
+        _ => "Info"
+    };
+
+    // ── stat counters ─────────────────────────────────────────────────────────
+    var today = DateTime.Today;
+    int todayCount = logs.Count(l => l.CreatedAt != null && ((DateTime)l.CreatedAt).Date == today);
+    int successCount = logs.Count(l => (string)l.Status == "Success");
+    int failedCount = logs.Count(l => (string)l.Status == "Failed");
+    int warningCount = logs.Count(l => (string)l.Status == "Warning");
+    int criticalCount = logs.Count(l =>
+    {
+        try { return SeverityLabel((int)l.Severity) == "Critical"; } catch { return false; }
+    });
+}
+
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="log-drawer" id="logDrawer"> <div class="drawer-head"> <span class="live-dot"></span> <h6>Log Detail</h6> <span class="badge bg-primary bg-opacity-10 text-primary" id="drawerLogId" style="font-size:10.5px;">#—</span> <button class="drawer-close logdrawerclosebtn"><i class="bi bi-x-lg"></i></button> </div> <div class="drawer-body" id="drawerBody"></div> <div class="drawer-foot"> <button class="btn btn-outline-secondary btn-sm logdrawerclosebtn"> <i class="bi bi-x me-1"></i> Close </button> <button class="btn btn-primary btn-sm" id="drExportBtn"> <i class="bi bi-download me-1"></i> Export JSON </button> </div> </div>
+<div class="page-heading">
+    <div class="page-title">
+        <div class="row">
+            <div class="col-12 col-md-6 order-md-1 order-last">
+                <h3>Activity Logs</h3>
+                <p class="text-subtitle text-muted">Monitor all system events, user actions and audit trail.</p>
+            </div>
+            <div class="col-12 col-md-6 order-md-2 order-first">
+                <nav aria-label="breadcrumb" class="breadcrumb-header float-start float-lg-end">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="#">System</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Activity Logs</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stat Cards -->
+    <section class="row stats-row mb-3 g-2 mt-1">
+
+        <div class="col-6 col-lg-2 col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-4 col-lg-12 col-xxl-5 d-flex justify-content-start">
+                            <div class="stats-icon blue mb-2"><i class="bi bi-journal-text"></i></div>
+                        </div>
+                        <div class="col-md-8 col-lg-12 col-xxl-7">
+                            <h6 class="text-muted font-semibold">Total Logs</h6>
+                            <h6 class="font-extrabold mb-0">@totalLogs</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-2 col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-4 col-lg-12 col-xxl-5 d-flex justify-content-start">
+                            <div class="stats-icon green mb-2"><i class="bi bi-check-circle-fill"></i></div>
+                        </div>
+                        <div class="col-md-8 col-lg-12 col-xxl-7">
+                            <h6 class="text-muted font-semibold">Success</h6>
+                            <h6 class="font-extrabold mb-0">@successCount</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-2 col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-4 col-lg-12 col-xxl-5 d-flex justify-content-start">
+                            <div class="stats-icon red mb-2"><i class="bi bi-x-circle-fill"></i></div>
+                        </div>
+                        <div class="col-md-8 col-lg-12 col-xxl-7">
+                            <h6 class="text-muted font-semibold">Failed</h6>
+                            <h6 class="font-extrabold mb-0">@failedCount</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-2 col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-4 col-lg-12 col-xxl-5 d-flex justify-content-start">
+                            <div class="stats-icon yellow mb-2"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                        </div>
+                        <div class="col-md-8 col-lg-12 col-xxl-7">
+                            <h6 class="text-muted font-semibold">Warnings</h6>
+                            <h6 class="font-extrabold mb-0">@warningCount</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-2 col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-4 col-lg-12 col-xxl-5 d-flex justify-content-start">
+                            <div class="stats-icon red mb-2"><i class="bi bi-shield-exclamation"></i></div>
+                        </div>
+                        <div class="col-md-8 col-lg-12 col-xxl-7">
+                            <h6 class="text-muted font-semibold">Critical</h6>
+                            <h6 class="font-extrabold mb-0">@criticalCount</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-2 col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-4 col-lg-12 col-xxl-5 d-flex justify-content-start">
+                            <div class="stats-icon purple mb-2"><i class="bi bi-calendar-day-fill"></i></div>
+                        </div>
+                        <div class="col-md-8 col-lg-12 col-xxl-7">
+                            <h6 class="text-muted font-semibold">Today</h6>
+                            <h6 class="font-extrabold mb-0">@todayCount</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+</div>
+
+<!-- TABLE SECTION -->
+<section class="section">
+    <div class="card">
+
+        <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <h4 class="card-title mb-0">All Activity Logs</h4>
+                <span class="badge bg-primary bg-opacity-10 text-primary" style="font-size:11px;font-weight:600;">
+                    @totalLogs records
+                </span>
+            </div>
+        </div>
+
+        <div class="card-body">
+
+            <!-- Filter Form -->
+            <div class="row mb-3 g-2 align-items-center">
+
+                <div class="col-12 col-md-3">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" name="search" class="form-control"
+                               placeholder="Search user, action, module, IP…"
+                               value="@Context.Request.Query["search"]" />
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <select name="module" class="form-select form-select-sm">
+                        <option value="">All Modules</option>
+                        @foreach (var m in new[] { "Users", "Medicines", "Batches", "Suppliers", "Sales", "Purchases", "Stock", "Roles", "Settings" })
+                        {
+                            <option value="@m" selected="@(Context.Request.Query["module"] == m ? "selected" : null)">@m</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <select name="actionType" class="form-select form-select-sm">
+                        <option value="">All Actions</option>
+                        @foreach (var a in new[] { "CREATE", "UPDATE", "DELETE", "VIEW", "LOGIN", "EXPORT" })
+                        {
+                            <option value="@a" selected="@(Context.Request.Query["actionType"] == a ? "selected" : null)">@a</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <select name="severity" class="form-select form-select-sm">
+                        <option value="">All Severity</option>
+                        @foreach (var s in new[] { "Info", "Warning", "Error", "Critical" })
+                        {
+                            <option value="@s" selected="@(Context.Request.Query["severity"] == s ? "selected" : null)">@s</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-6 col-md-1">
+                    <input type="date" name="date" class="form-control form-control-sm"
+                           value="@Context.Request.Query["date"]" />
+                </div>
+
+                <div class="col-12 col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="bi bi-funnel me-1"></i> Filter
+                    </button>
+                    <a asp-action="ViewLogs" class="btn btn-outline-secondary btn-sm" title="Reset">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </a>
+                    <div class="d-flex align-items-center gap-2">
+                        <a asp-action="ExportCsv" class="btn btn-sm btn-outline-success" style="height: 25px;">
+                            <i class="bi bi-download me-1" style="position: relative; left: 1px;"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th style="width:34px;"><input type="checkbox" class="form-check-input"></th>
+                            <th>User</th>
+                            <th>Action Type</th>
+                            <th>Action</th>
+                            <th>Module</th>
+                            <th>Severity</th>
+                            <th>Status</th>
+                            <th>IP Address</th>
+                            <th>Created At</th>
+                            <th class="text-center">Detail</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!logs.Any())
+                        {
+                            <tr>
+                                <td colspan="10" class="text-center py-5 text-muted">
+                                    <i class="bi bi-journal-x fs-1 d-block mb-2"></i>
+                                    No activity logs found.
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var log in logs)
+                            {
+                                // ── map integer enums to labels ──────────────────────
+                                int atInt = 0;
+                                try { atInt = (int)log.ActionType; } catch { }
+                                string atLabel = ActionLabel(atInt);
+
+                                int svInt = 1;
+                                try { svInt = (int)log.Severity; } catch { }
+                                string svLabel = SeverityLabel(svInt);
+
+                                // ── badge CSS classes ────────────────────────────────
+                                string atClass = atLabel switch
+                                {
+                                                            "CREATE" => "bg-success bg-opacity-10 text-success",
+                                                            "UPDATE" => "bg-info bg-opacity-10 text-info",
+                                                            "DELETE" => "bg-danger bg-opacity-10 text-danger",
+                                                            "VIEW" => "bg-secondary bg-opacity-10 text-secondary",
+                                                            "LOGIN" => "bg-primary bg-opacity-10 text-primary",
+                                                            "EXPORT" => "bg-warning bg-opacity-10 text-warning",
+                                    _ => "bg-light text-dark"
+                                };
+
+                                string stClass = (string)log.Status switch
+                                {
+                                                            "Success" => "bg-success",
+                                                            "Failed" => "bg-danger",
+                                                            "Warning" => "bg-warning text-dark",
+                                    _ => "bg-secondary"
+                                };
+
+                                string svClass = svLabel switch
+                                {
+                                                            "Info" => "bg-info bg-opacity-10 text-info border border-info",
+                                                            "Warning" => "bg-warning bg-opacity-10 text-warning border border-warning",
+                                                            "Error" => "bg-danger bg-opacity-10 text-danger border border-danger",
+                                                            "Critical" => "bg-danger text-white",
+                                    _ => "bg-light text-dark"
+                                };
+
+                                <tr data-log-id="@log.LogId" style="cursor:pointer;">
+                                    <td><input type="checkbox" class="form-check-input"></td>
+                                    <td>
+                                        <span class="fw-semibold" style="font-size:13px;">@log.UserId</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @atClass">@atLabel</span>
+                                    </td>
+                                    <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                                        title="@log.Action">
+                                        @log.Action
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">@log.ModuleName</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @svClass">@svLabel</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @stClass">@log.Status</span>
+                                    </td>
+                                    <td style="font-family:monospace;font-size:12px;">@(log.IpAddress ?? "—")</td>
+                                    <td style="font-size:12px;white-space:nowrap;">
+                                        @(log.CreatedAt != null ? ((DateTime)log.CreatedAt).ToString("dd MMM yyyy, hh:mm tt") : "—")
+                                    </td>
+                                    <td class="text-center">
+                                        <a asp-action="LogDetail" asp-route-id="@log.LogId"
+                                           class="btn btn-sm btn-outline-primary py-0 px-2"
+                                           title="View Detail">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <!-- ── Footer / Pagination ── -->
+        <div class="card-footer d-flex align-items-center justify-content-between flex-wrap gap-2"
+             id="tableFooter"
+             data-total-pages="@ViewBag.TotalPages"
+             data-current-page="@ViewBag.page"
+             data-page-size="@ViewBag.size">
+            <div class="d-flex align-items-center gap-2">
+                <small class="text-muted" id="resultsInfo">Showing 0 of 0 users</small>
+                <select class="form-select form-select-sm" id="rowsPerPage" style="width:auto;">
+                    <option value="5" selected="@(pageSize == 5 ? "selected" : null)">5</option>
+                    <option value="10" selected="@(pageSize == 10 ? "selected" : null)">10</option>
+                    <option value="25" selected="@(pageSize == 25 ? "selected" : null)">25</option>
+                    <option value="50" selected="@(pageSize == 50 ? "selected" : null)">50</option>
+                </select>
+                <small class="text-muted">per page</small>
+            </div>
+            <nav>
+                <ul class="pagination pagination-sm mb-0"></ul>
+            </nav>
+        </div>
+</section>
