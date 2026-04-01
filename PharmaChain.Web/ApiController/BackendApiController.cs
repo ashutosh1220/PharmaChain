@@ -474,6 +474,10 @@ namespace PharmaChain.Web.ApiController
         [HttpPost("Medicine/Create")]
         public async Task<IActionResult> CreateMedicine([FromForm] MedicineRequest request)
         {
+
+            if (!string.IsNullOrEmpty(request.MedicineId))
+                return BadRequest(new { success = false, message = "MedicineId should not be provided for new medicines" });
+
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values

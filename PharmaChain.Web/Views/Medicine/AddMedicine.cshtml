@@ -14,28 +14,6 @@
     bool activeChecked = Model == null || Model.IsActive == true;
 }
 
-
-<div class="am-toast-wrap" id="amToastWrap"></div>
-
-<div class="am-success-overlay" id="amSuccessOverlay">
-    <div class="am-overlay-backdrop"></div>
-    <div class="am-success-card">
-        <div class="am-confetti" id="amConfetti"></div>
-        <div class="am-success-circle">
-            <svg class="am-check-svg" viewBox="0 0 40 40">
-                <path class="am-check-path" d="M8 21 L17 30 L33 12" />
-            </svg>
-        </div>
-        <div class="am-success-title">Medicine Added!</div>
-        <div class="am-success-msg">
-            The medicine has been registered<br>successfully in the system.
-        </div>
-        <button class="am-overlay-close" id="amOverlayClose">
-            <i class="bi bi-plus-lg" style="position: relative; top: -4px;"></i> Add Another
-        </button>
-    </div>
-</div>
-
 <div class="am-page">
 
     <div class="am-page-header">
@@ -51,7 +29,7 @@
             <form id="amMedicineForm" novalidate action="@FormAction" method="post">
 
                 <!-- Hidden fields -->
-                <input type="hidden" name="medicineId" id="amMedicineId" value="@Model?.MedicineId" />
+                
 
                 <div class="am-card">
                     <div class="am-card-header">
@@ -396,9 +374,16 @@
 </div>
 
 <script>
-    /* ── Form Submit ───────────────────────────────────────────────── */
     document.getElementById('amMedicineForm').addEventListener('submit', function (e) {
         e.preventDefault();
+
+    const formData = new FormData(this);
+
+    // LOG WHAT'S BEING SENT
+    console.log('=== FormData Contents ===');
+    for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+    }
         if (!amValidate()) return;
 
         const now = new Date().toISOString();
@@ -408,7 +393,6 @@
         btn.disabled = true;
     });
 
-    /* ── Live Preview Bindings ─────────────────────────────────────── */
     function amBind(id, targetId, transform) {
         const el = document.getElementById(id);
         const tg = document.getElementById(targetId);
@@ -495,18 +479,6 @@
             container.appendChild(dot);
         }
     }
-
-    document.getElementById('amOverlayClose').addEventListener('click', () => {
-        document.getElementById('amSuccessOverlay').style.display = 'none';
-        amResetForm();
-    });
-
-    document.getElementById('amSuccessOverlay').addEventListener('click', function (e) {
-        if (e.target === this || e.target.classList.contains('am-overlay-backdrop')) {
-            this.style.display = 'none';
-            amResetForm();
-        }
-    });
 
     /* ── Reset helper ──────────────────────────────────────────────── */
     function amResetForm() {
