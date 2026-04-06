@@ -15,12 +15,14 @@ namespace PharmaChain.Web.Controllers
         private readonly IPharmaChainDbContext _context;
         private ILogService _logService;
         private readonly IMedicineService _medicineService;
+        private readonly IBatchService _batchService;
         public MedicineController(IUserService userService,
             IPermissionService permissionService,
             IBranchService branchService,
             IPharmaChainDbContext context,
             ILogService logService,
-            IMedicineService medicineService)
+            IMedicineService medicineService,
+            IBatchService batchService)
         {
             _userService = userService;
             _permissionService = permissionService;
@@ -28,6 +30,7 @@ namespace PharmaChain.Web.Controllers
             _context = context;
             _logService = logService;
             _medicineService = medicineService;
+            _batchService = batchService;
         }
 
         [HttpGet]
@@ -37,8 +40,8 @@ namespace PharmaChain.Web.Controllers
         {
             await PopulateCommonViewData();
 
-            ViewBag.FormAction = "/api/Medicine/Create"; 
-            return View("AddMedicine"); 
+            ViewBag.FormAction = "/api/Medicine/Create";
+            return View("AddMedicine");
         }
 
         [HttpGet]
@@ -51,8 +54,8 @@ namespace PharmaChain.Web.Controllers
             var medicine = await _context.Medicines.FindAsync(id);
             if (medicine == null) return NotFound();
 
-            ViewBag.FormAction = $"/api/Medicine/Update?id={id}"; 
-            return View("AddMedicine", medicine); 
+            ViewBag.FormAction = $"/api/Medicine/Update?id={id}";
+            return View("AddMedicine", medicine);
         }
 
         private async Task PopulateCommonViewData()
@@ -73,7 +76,6 @@ namespace PharmaChain.Web.Controllers
             ViewBag.medicineInfos = medicineInfos;
         }
 
-
         [Authorize]
         [HttpGet]
         [Route("Medicine/List")]
@@ -87,7 +89,7 @@ namespace PharmaChain.Web.Controllers
             ViewBag.InactiveUsers = record.InactiveMedicines;
             ViewBag.SuspendedUsers = record.SuspendedMedicines;
             ViewBag.page = page;
-            ViewBag.TotalPages = Convert.ToInt32(record.TotalMedicines)/5;
+            ViewBag.TotalPages = Convert.ToInt32(record.TotalMedicines) / 5;
             ViewBag.size = size;
 
             var username = User.FindFirst(ClaimTypes.Name)?.Value;
@@ -100,6 +102,107 @@ namespace PharmaChain.Web.Controllers
             ViewBag.Username = username;
 
             return View();
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("Medicine/Batch/Create-Batch")]
+        public async Task<IActionResult> CreateBatch()
+        {
+            await PopulateBatchViewData();
+
+            ViewBag.FormAction = "/api/Batch/Create";
+            return View("MedicineBatchForm");
+        }
+
+
+        [Authorize]
+        [HttpGet]
+        [Route("Medicine/Batch/Edit-Batch")]
+        public async Task<IActionResult> EditBatch(string id)
+        {
+            await PopulateBatchViewData();
+
+            var batch = await _context.MedicineBatches
+                .FirstOrDefaultAsync(b => b.BatchId == id);
+
+            if (batch == null) return NotFound();
+
+            ViewBag.FormAction = $"/api/Batch/Update?id={id}";
+            return View("MedicineBatchForm", batch);
+        }
+        private async Task PopulateBatchViewData()
+        {
+            var username = User.FindFirst(ClaimTypes.Name)?.Value;
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            var permissions = await _permissionService.GetAllPermissionsForRolesAsync(role);
+
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            var next30Days = today.AddDays(30);
+
+            var suppliers = await _context.Suppliers
+                .Select(s => new { s.SupplierId, s.SupplierName })
+                .ToListAsync();
+
+            var medicines = await _context.Medicines
+                .Select(m => new { m.MedicineId, m.MedicineName })
+                .ToListAsync();
+
+            var branches = await _context.Branches
+                .Select(b => new { b.BranchId, b.BranchName })
+                .ToListAsync();
+
+            var totalActiveBatches = await _context.MedicineBatches
+                .CountAsync(b => b.ExpDate >= today);
+
+            var expiringSoonBatches = await _context.MedicineBatches
+                .CountAsync(b => b.ExpDate >= today && b.ExpDate <= next30Days);
+
+            var activeSuppliers = await _context.Suppliers
+                .CountAsync(s => s.IsActive);
+
+            ViewBag.Username = username;
+            ViewBag.Role = role;
+            ViewBag.Permissions = permissions;
+
+            ViewBag.Suppliers = suppliers;
+            ViewBag.Medicines = medicines;
+            ViewBag.Branches = branches;
+
+            ViewBag.TotalActiveBatches = totalActiveBatches;
+            ViewBag.ExpiringSoonBatches = expiringSoonBatches;
+            ViewBag.ActiveSuppliers = activeSuppliers;
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("Medicine/Batch/List")]
+        public async Task<IActionResult> BatchList(int page = 1, int size = 10)
+        {
+            var result = await _batchService.GetBatchesAsync(page, size);
+
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            var next30Days = today.AddDays(30);
+
+            ViewBag.Batches = result.Records;
+            ViewBag.TotalBatches = result.TotalBatches;
+            ViewBag.ActiveBatches = result.Records.Count(b => b.ExpDate >= today && b.ExpDate <= next30Days == false);
+            ViewBag.ExpiringSoon = result.Records.Count(b => b.ExpDate >= today && b.ExpDate <= next30Days);
+            ViewBag.ExpiredBatches = result.Records.Count(b => b.ExpDate < today);
+            ViewBag.page = page;
+            ViewBag.size = size;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)result.TotalBatches / size);
+
+            var username = User.FindFirst(ClaimTypes.Name)?.Value;
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+            var permissions = await _permissionService.GetAllPermissionsForRolesAsync(role);
+
+            ViewBag.Username = username;
+            ViewBag.Role = role;
+            ViewBag.Permissions = permissions;
+
+            return View("BatchList");
         }
     }
 }

@@ -504,10 +504,9 @@ namespace PharmaChain.Infrastructure.BackendServices
                 return new SingleMedicineListResponse
                 {
                     Success = false,
-                    Messege = ex.Message //"Something went wrong while fetching medicine."
+                    Messege = ex.Message 
                 };
             }
         }
     }
 }
-

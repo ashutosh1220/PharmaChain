@@ -74,6 +74,8 @@ builder.Services.AddScoped<IBranchService, BranchService>();
 builder.Services.AddScoped<ILogService, LogService>();
 builder.Services.AddScoped<IMedicineService, MedicineService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
+builder.Services.AddScoped<IBatchService, BatchService>();
+builder.Services.AddScoped<IPurchaseStockService, PurchaseStockService>();
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

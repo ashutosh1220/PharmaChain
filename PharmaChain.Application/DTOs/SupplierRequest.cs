@@ -4,6 +4,7 @@
     {
         public class CreateSupplierRequest
         {
+            public string SupplierId { get; set; } = string.Empty;
             public string SupplierName { get; set; }
             public string ContactPerson { get; set; }
             public string Phone { get; set; }
@@ -24,5 +25,19 @@
             public bool Success { get; set; }
             public string Messege { get; set; }
         }
+
+        public class SupplierListResponse
+        {
+            public int TotalSuppliers { get; set; }
+            public int ActiveSuppliers { get; set; }
+            public int InactiveSuppliers { get; set; }
+            public int SuspendedSuppliers { get; set; }
+
+            public List<CreateSupplierRequest> Records { get; set; } = new();
+
+            public bool Success { get; set; }
+            public string Messege { get; set; }
+        }
+
     }
 }

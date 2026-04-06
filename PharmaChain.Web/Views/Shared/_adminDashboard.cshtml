@@ -25,6 +25,8 @@
     <link rel="stylesheet" href="~/assets/static/css/custom-stylings.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/assets/static/css/inventory-stylesheet.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/assets/static/css/supplier-stylesheet.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/assets/static/css/batch-stylesheet.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/assets/static/css/purchase-invoice-stylesheet.css" asp-append-version="true" />
     <style>
 
         *, *::before, *::after {
@@ -1304,7 +1306,7 @@
                                     @if (perms.Contains(23))
                                     {
                                         <li class="submenu-item @(currentPage == "Create" && currentController == "Batches" ? "active" : "")">
-                                            <a href="@Url.Action("Create", "Batches")" class="submenu-link">
+                                            <a href="#" data-url="@Url.Action("CreateBatch", "Medicine")" class="submenu-link ajax-link">
                                                 <i class="bi bi-plus-circle-fill"></i>&nbsp;&nbsp;Add Batch
                                             </a>
                                         </li>
@@ -1312,7 +1314,7 @@
                                     @if (perms.Contains(24))
                                     {
                                         <li class="submenu-item @(currentPage == "Index" && currentController == "Batches" ? "active" : "")">
-                                            <a href="@Url.Action("Index", "Batches")" class="submenu-link">
+                                            <a href="#" data-url="@Url.Action("BatchList", "Medicine")" class="submenu-link ajax-link">
                                                 <i class="bi bi-list-ul"></i>&nbsp;&nbsp;Batch List
                                             </a>
                                         </li>
@@ -1342,7 +1344,7 @@
                                     @if (perms.Contains(28))
                                     {
                                         <li class="submenu-item @(currentPage == "Create" && currentController == "Suppliers" ? "active" : "")">
-                                            <a href="@Url.Action("Create", "Suppliers")" class="submenu-link">
+                                            <a href="@Url.Action("AddSupplier", "Supplier")" class="submenu-link">
                                                 <i class="bi bi-plus-circle-fill"></i>&nbsp;&nbsp;Add Supplier
                                             </a>
                                         </li>

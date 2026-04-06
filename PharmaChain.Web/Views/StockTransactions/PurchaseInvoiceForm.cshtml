@@ -1,0 +1,335 @@
+﻿@{
+    ViewData["Title"] = "PurchaseInvoiceForm";
+    Layout = "~/Views/Shared/_adminDashboard.cshtml";
+}
+
+<div class="pif-toast-wrap" id="pif-toastWrap"></div>
+<div class="pif-page-wrap">
+    <div class="pif-page-header">
+        <div class="pif-page-title-wrap">
+            <h4><i class="bi bi-receipt" style="font-size:14px;margin-right:4px;color:var(--pif-accent)"></i>Create Purchase Invoice</h4>
+            <p>Add supplier invoice details and track inward charges, discounts, and taxes.</p>
+        </div>
+        <div class="pif-page-actions">
+            <a href="#" class="pif-btn pif-btn-outline"><i class="bi bi-arrow-left"></i> Back</a>
+        </div>
+    </div>
+    <form id="invoiceForm" novalidate action="/api/PurchaseInvoice/Create" method="post">
+        <div class="pif-card">
+            <div class="pif-card-header">
+                <div class="pif-card-header-icon" style="background:rgba(79,70,229,.15);color:var(--pif-accent)"><i class="bi bi-receipt"></i></div>
+                <div>
+                    <div class="pif-card-header-title">Invoice Details</div>
+                    <div class="pif-card-header-sub">Supplier &amp; invoice information</div>
+                </div>
+            </div>
+            <div class="pif-card-body">
+                <div class="pif-form-grid">
+                    <div class="pif-form-group pif-col-3">
+                        <label class="pif-form-label">Supplier <span class="pif-req">*</span></label>
+                        <select class="pif-form-select" id="supplierId" name="SupplierId" pif-required>
+                            <option value="" disabled selected>Select supplier</option>
+
+                            @if (ViewBag.Suppliers != null)
+                            {
+                                foreach (var s in ViewBag.Suppliers)
+                                {
+                                    <option value="@s.SupplierId">@s.SupplierName</option>
+                                }
+                            }
+                        </select>
+                        <span class="pif-invalid-feedback">Supplier is pif-required.</span>
+                    </div>
+                    <div class="pif-form-group pif-col-3">
+                        <label class="pif-form-label">Branch <span class="pif-req">*</span></label>
+                        <select class="pif-form-select" id="branchId" name="BranchId" pif-required>
+                            <option value="" disabled selected>Select branch</option>
+
+                            @if (ViewBag.Branches != null)
+                            {
+                                foreach (var b in ViewBag.Branches)
+                                {
+                                    <option value="@b.BranchId">@b.BranchName</option>
+                                }
+                            }
+                        </select>
+                        <span class="pif-invalid-feedback">Branch is pif-required.</span>
+                    </div>
+                    <div class="pif-form-group pif-col-3">
+                        <label class="pif-form-label">Supplier Inv. No. <span class="pif-req">*</span></label>
+                        <input type="text" class="pif-form-control" id="supplierInvoiceNumber" name="SupplierInvoiceNumber" placeholder="e.g. POC-2025-001" pif-required />
+                        <span class="pif-invalid-feedback">Required.</span>
+                    </div>
+                    <div class="pif-form-group pif-col-3">
+                        <label class="pif-form-label">Invoice Date <span class="pif-req">*</span></label>
+                        <input type="date" class="pif-form-control" id="invoiceDate" name="InvoiceDate" pif-required />
+                        <span class="pif-invalid-feedback">Required.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="pif-card">
+            <div class="pif-card-header">
+                <div class="pif-card-header-icon" style="background:rgba(16,185,129,.15);color:var(--pif-success)"><i class="bi bi-table"></i></div>
+                <div>
+                    <div class="pif-card-header-title">Line Items</div>
+                    <div class="pif-card-header-sub">Medicine, batch, pricing &amp; GST per line item</div>
+                </div>
+            </div>
+            <div class="pif-card-body">
+                <div style="overflow-x:auto;margin-bottom:8px;">
+                    <table class="pif-invoice-table">
+                        <thead>
+                            <tr>
+                                <th style="width:16%;">Medicine</th>
+                                <th style="width:10%;">Batch No.</th>
+                                <th style="width:6%;">Qty</th>
+                                <th style="width:9%;">Purchase ₹</th>
+                                <th style="width:9%;">Selling ₹</th>
+                                <th style="width:7%;">GST %</th>
+                                <th style="width:9%;">Mfg Date</th>
+                                <th style="width:9%;">Exp Date</th>
+                                <th style="width:9%;">Line Total</th>
+                                <th style="width:5%;">Del</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsTable"></tbody>
+                    </table>
+                </div>
+                <button type="button" class="pif-btn pif-btn-sm pif-btn-primary" onclick="addItem()" style="width:100%;height:30px;display:flex;align-items:center;justify-content:center"><i class="bi bi-plus-lg"></i> Add Row</button>
+            </div>
+        </div>
+        <div class="pif-card">
+            <div class="pif-card-header">
+                <div class="pif-card-header-icon" style="background:rgba(245,158,11,.15);color:var(--pif-warning)"><i class="bi bi-calculator"></i></div>
+                <div>
+                    <div class="pif-card-header-title">Financial Summary</div>
+                    <div class="pif-card-header-sub">Charges, discounts, and totals</div>
+                </div>
+            </div>
+            <div class="pif-card-body">
+                <div class="pif-form-grid" style="margin-bottom:10px;">
+                    <div class="pif-form-group pif-col-3">
+                        <label class="pif-form-label">Inward Charges</label>
+                        <div style="display:flex;align-items:center;background:var(--pif-bg-input);border:1px solid var(--pif-border);border-radius:3px;overflow:hidden;">
+                            <span style="padding:0 7px;color:var(--pif-text-muted);font-size:12px;font-family:'Fira Code',monospace;flex-shrink:0;border-right:1px solid var(--pif-border);">₹</span>
+                            <input type="number" id="inwardCharges" name="InwardCharges" class="pif-form-control" value="0" min="0" step="0.01" placeholder="0.00"
+                                   style="border:none!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;" />
+                        </div>
+                        <div class="pif-form-hint">Added to grand total</div>
+                    </div>
+                    <div class="pif-form-group pif-col-3">
+                        <label class="pif-form-label">Discount Amount</label>
+                        <div style="display:flex;align-items:center;background:var(--pif-bg-input);border:1px solid var(--pif-border);border-radius:3px;overflow:hidden;">
+                            <span style="padding:0 7px;color:var(--pif-text-muted);font-size:12px;font-family:'Fira Code',monospace;flex-shrink:0;border-right:1px solid var(--pif-border);">₹</span>
+                            <input type="number" id="discountAmount" name="DiscountAmount" class="pif-form-control" value="0" min="0" step="0.01" placeholder="0.00"
+                                   style="border:none!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;" />
+                        </div>
+                        <div class="pif-form-hint">Deducted from subtotal</div>
+                    </div>
+                    <div class="pif-form-group pif-col-6">
+                        <label class="pif-form-label">Notes</label>
+                        <input type="text" class="pif-form-control" id="notes" placeholder="Optional notes..." />
+                    </div>
+                </div>
+                <!-- Hidden computed fields bound to model -->
+                <input type="hidden" id="hSubTotal" name="SubTotal" value="0" />
+                <input type="hidden" id="hTotalTax" name="TotalTax" value="0" />
+                <input type="hidden" id="hGrandTotal" name="GrandTotal" value="0" />
+                <div class="pif-summary-box">
+                    <div class="pif-summary-item"><span class="pif-summary-label">Subtotal</span><span class="pif-summary-value" id="subtotal">&#8377;0.00</span></div>
+                    <div class="pif-summary-item"><span class="pif-summary-label">Total Tax</span><span class="pif-summary-value" id="totalTax">&#8377;0.00</span></div>
+                    <div class="pif-summary-item"><span class="pif-summary-label">After Disc.</span><span class="pif-summary-value" id="afterDiscount">&#8377;0.00</span></div>
+                    <div class="pif-summary-item"><span class="pif-summary-label">Grand Total</span><span class="pif-summary-value" id="grandTotal" style="color:var(--pif-success);">&#8377;0.00</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="pif-card">
+            <div class="pif-form-footer">
+                <div class="pif-footer-left"><span class="pif-req">*</span> Required fields</div>
+                <div class="pif-footer-right">
+                    <button type="button" class="pif-btn pif-btn-outline pif-btn-sm" id="resetBtn"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+                    <button type="submit" class="pif-btn pif-btn-success pif-btn-sm" id="submitBtn"><i class="bi bi-check-lg"></i> Create</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<script>
+    const medicines = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Medicines));
+
+    let pifRowIndex = 1;
+
+    // ── Row HTML ─────────────────────────────────────────
+    function pifRowHTML(idx) {
+
+        let options = '<option value="">Select</option>';
+
+        medicines.forEach(m => {
+            options += `<option value="${m.MedicineId}">${m.MedicineName}</option>`;
+        });
+
+        return `
+            <td>
+                <select class="pif-medicine-select pif-form-select" name="Items[${idx}].MedicineId" required>
+                    ${options}
+                </select>
+            </td>
+            <td><input type="text" class="pif-batch-input" name="Items[${idx}].BatchNumber" required /></td>
+            <td><input type="number" class="pif-quantity-input" name="Items[${idx}].Quantity" value="1" min="1" required /></td>
+            <td><input type="number" class="pif-purchase-price-input" name="Items[${idx}].UnitPurchasePrice" min="0" step="0.01" required /></td>
+            <td><input type="number" class="pif-selling-price-input" name="Items[${idx}].UnitSellingPrice" min="0" step="0.01" required /></td>
+            <td><input type="number" class="pif-gst-input" name="Items[${idx}].GstPercentage" value="5" min="0" max="100" step="0.01" required /></td>
+            <td><input type="date" class="pif-mfg-date-input" name="Items[${idx}].MfgDate" /></td>
+            <td><input type="date" class="pif-exp-date-input" name="Items[${idx}].ExpDate" /></td>
+            <td><div class="pif-item-total">₹0.00</div></td>
+            <td><button type="button" class="pif-btn pif-btn-xs"
+        style="background:rgba(239,68,68,.1);color:var(--pif-danger);border:none"
+        onclick="removeItem(this)" title="Delete">
+    <i class="bi bi-trash"></i>
+</button></td>
+        `;
+    }
+
+    // ── Toast ─────────────────────────────────────────
+    function showToast(msg, type = 'success') {
+        const wrap = document.getElementById('pif-toastWrap');
+        const t = document.createElement('div');
+        t.className = `pif-toast pif-toast-${type}`;
+        t.innerHTML = msg;
+        wrap.appendChild(t);
+        setTimeout(() => t.remove(), 2500);
+    }
+
+    // ── Item total ────────────────────────────────────
+    function updateItemTotal(row) {
+        const qtyEl = row.querySelector('.pif-quantity-input');
+        const priceEl = row.querySelector('.pif-purchase-price-input');
+        const gstEl = row.querySelector('.pif-gst-input');
+
+        const qty = qtyEl ? parseFloat(qtyEl.value) || 0 : 0;
+        const price = priceEl ? parseFloat(priceEl.value) || 0 : 0;
+        const gst = gstEl ? parseFloat(gstEl.value) || 0 : 0;
+
+        const subtotal = qty * price;
+        const tax = subtotal * (gst / 100);
+
+        row.querySelector('.pif-item-total').textContent =
+            `₹${(subtotal + tax).toFixed(2)}`;
+
+        updateSummary();
+    }
+
+    // ── Summary ───────────────────────────────────────
+    function updateSummary() {
+        let subtotal = 0, totalTax = 0;
+
+        document.querySelectorAll('.pif-item-row').forEach(row => {
+            const qty = parseFloat(row.querySelector('.pif-quantity-input')?.value) || 0;
+            const price = parseFloat(row.querySelector('.pif-purchase-price-input')?.value) || 0;
+            const gst = parseFloat(row.querySelector('.pif-gst-input')?.value) || 0;
+
+            const rs = qty * price;
+            subtotal += rs;
+            totalTax += rs * (gst / 100);
+        });
+
+        const inward = parseFloat(document.getElementById('inwardCharges')?.value) || 0;
+        const discount = parseFloat(document.getElementById('discountAmount')?.value) || 0;
+
+        const afterDisc = subtotal + totalTax - discount;
+        const grandTotal = afterDisc + inward;
+
+        document.getElementById('subtotal').textContent = `₹${subtotal.toFixed(2)}`;
+        document.getElementById('totalTax').textContent = `₹${totalTax.toFixed(2)}`;
+        document.getElementById('afterDiscount').textContent = `₹${afterDisc.toFixed(2)}`;
+        document.getElementById('grandTotal').textContent = `₹${grandTotal.toFixed(2)}`;
+
+        document.getElementById('hSubTotal').value = subtotal.toFixed(2);
+        document.getElementById('hTotalTax').value = totalTax.toFixed(2);
+        document.getElementById('hGrandTotal').value = grandTotal.toFixed(2);
+    }
+
+    // ── Add row ───────────────────────────────────────
+    function addItem() {
+        const tbody = document.getElementById('itemsTable');
+        const row = document.createElement('tr');
+        row.className = 'pif-item-row';
+        row.innerHTML = pifRowHTML(pifRowIndex++);
+        tbody.appendChild(row);
+        attachRowListeners(row);
+    }
+
+    // ── Remove row ────────────────────────────────────
+    function removeItem(btn) {
+        const rows = document.querySelectorAll('.pif-item-row');
+        if (rows.length === 1) {
+            showToast('At least one item required', 'danger');
+            return;
+        }
+        btn.closest('.pif-item-row').remove();
+        reindexRows();
+        updateSummary();
+    }
+
+    // ── Reindex ───────────────────────────────────────
+    function reindexRows() {
+        document.querySelectorAll('.pif-item-row').forEach((row, idx) => {
+            row.querySelectorAll('[name]').forEach(el => {
+                el.name = el.name.replace(/Items\[\d+\]/, `Items[${idx}]`);
+            });
+        });
+        pifRowIndex = document.querySelectorAll('.pif-item-row').length;
+    }
+
+    // ── Attach listeners ──────────────────────────────
+    function attachRowListeners(row) {
+        ['pif-quantity-input', 'pif-purchase-price-input', 'pif-gst-input']
+            .forEach(cls => {
+                const el = row.querySelector('.' + cls);
+                if (el) el.addEventListener('input', () => updateItemTotal(row));
+            });
+    }
+
+    // ── Init first row ────────────────────────────────
+    function initFirstRow() {
+        const tbody = document.getElementById('itemsTable');
+        tbody.innerHTML = '';
+
+        const row = document.createElement('tr');
+        row.className = 'pif-item-row';
+        row.innerHTML = pifRowHTML(0);
+
+        tbody.appendChild(row);
+        attachRowListeners(row);
+
+        pifRowIndex = 1;
+    }
+
+    // ── Reset ─────────────────────────────────────────
+    function resetForm() {
+        document.getElementById('invoiceForm').reset();
+        initFirstRow();
+
+        document.getElementById('inwardCharges').value = '0';
+        document.getElementById('discountAmount').value = '0';
+
+        updateSummary();
+    }
+
+    // ── Events ────────────────────────────────────────
+    document.getElementById('inwardCharges').addEventListener('input', updateSummary);
+    document.getElementById('discountAmount').addEventListener('input', updateSummary);
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        resetForm();
+    });
+
+    // ── Init ──────────────────────────────────────────
+    initFirstRow();
+    updateSummary();
+
+    // expose
+    window.addItem = addItem;
+    window.removeItem = removeItem;
+</script>

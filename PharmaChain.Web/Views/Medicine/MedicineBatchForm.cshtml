@@ -1,0 +1,701 @@
+﻿@{
+    ViewData["Title"] = "MedicineBatchForm";
+    Layout = "~/Views/Shared/_adminDashboard.cshtml";
+}
+
+@model PharmaChain.Infrastructure.Models.MedicineBatch
+
+@{
+    var suppliers = ViewBag.Suppliers as IEnumerable<dynamic>;
+    var medicines = ViewBag.Medicines as IEnumerable<dynamic>;
+    var branches = ViewBag.Branches as IEnumerable<dynamic>;
+
+    bool isEdit = Model != null;
+    string formAction = ViewBag.FormAction ?? "/api/Batch/Create";
+    string pageTitle = isEdit ? "Edit Batch" : "Add New Batch";
+    string pageSubtitle = isEdit
+        ? "Update medicine batch details, stock, pricing and supplier."
+        : "Register a new medicine batch with stock, pricing, and supplier details.";
+    string submitLabel = isEdit ? "Update Batch" : "Add Batch";
+    string submitIcon = isEdit ? "bi-pencil-square" : "bi-plus-lg";
+
+    string DateVal(dynamic d)
+    {
+        if (d == null) return "";
+        try { return ((DateOnly)d).ToString("yyyy-MM-dd"); }
+        catch { return d.ToString("yyyy-MM-dd"); }
+    }
+}
+
+<div class="bt-page-wrap">
+    <div class="bt-page-header">
+        <div class="bt-page-title-wrap">
+            <h4>
+                <i class="bi @(isEdit ? "bi-pencil-square" : "bi-layers") bt-text-accent" style="font-size:15px"></i>
+                @pageTitle
+            </h4>
+            <p>@pageSubtitle</p>
+        </div>
+        <div class="bt-page-actions">
+            <a href="#" data-url="@Url.Action("BatchList", "Medicine")" class="bt-btn bt-btn-outline bt-btn-sm ajax-link">
+                <i class="bi bi-list-ul"></i> All Batches
+            </a>
+        </div>
+    </div>
+
+    <div class="bt-layout-grid">
+        <div>
+            <form id="batchForm" novalidate action="@formAction" method="post">
+
+                @if (Model != null)
+                {
+                    <input type="hidden" id="BatchId" name="BatchId" value="@Model.BatchId" />
+                }
+
+                <!-- Card 1: Batch Identity -->
+                <div class="bt-card" style="margin-bottom:10px">
+                    <div class="bt-card-header">
+                        <div class="bt-card-header-icon" style="background:var(--accent-soft)">
+                            <i class="bi bi-layers bt-text-accent" style="position:relative;bottom:4px"></i>
+                        </div>
+                        <div>
+                            <div class="bt-card-header-title">Batch Identity</div>
+                            <div class="bt-card-header-sub">Medicine reference, batch number and branch</div>
+                        </div>
+                        <div class="bt-card-header-right">
+                            <span class="bt-chip bt-chip-accent">
+                                <i class="bi bi-asterisk" style="font-size:8px"></i> Required
+                            </span>
+                        </div>
+                    </div>
+                    <div class="bt-card-body">
+                        <div class="bt-form-section">
+                            <div class="bt-section-label">
+                                <i class="bi bi-capsule" style="position:relative;bottom:3px"></i> Medicine & Batch
+                            </div>
+                            <div class="bt-form-grid">
+
+                                <!-- Medicine -->
+                                <div class="bt-form-group bt-col-6">
+                                    <label class="bt-form-label">Medicine <span class="bt-req">*</span></label>
+                                    <select class="bt-form-select" id="medicineId" name="MedicineId" required>
+                                        @if (!isEdit)
+                                        {
+                                            <option value="" disabled selected>----- Select medicine -----</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="" disabled>----- Select medicine -----</option>
+                                        }
+                                        @if (medicines != null)
+                                        {
+                                            foreach (var m in medicines)
+                                            {
+                                                if (isEdit && Model.MedicineId == m.MedicineId)
+                                                {
+                                                    <option value="@m.MedicineId" selected>@m.MedicineName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@m.MedicineId">@m.MedicineName</option>
+                                                }
+                                            }
+                                        }
+                                    </select>
+                                    <span class="bt-invalid-feedback">Medicine is required.</span>
+                                </div>
+
+                                <!-- Batch Number -->
+                                <div class="bt-form-group bt-col-6">
+                                    <label class="bt-form-label">Batch Number <span class="bt-req">*</span></label>
+                                    <input type="text"
+                                           class="bt-form-control bt-form-control-mono"
+                                           id="batchNumber"
+                                           name="BatchNumber"
+                                           placeholder="e.g. BT-2025-001"
+                                           value="@(isEdit? Model.BatchNumber: "")"
+                                           required />
+                                    <span class="bt-invalid-feedback">Batch number is required.</span>
+                                </div>
+
+                                <!-- GRN Number -->
+                                <div class="bt-form-group bt-col-6">
+                                    <label class="bt-form-label">GRN Number</label>
+                                    <input type="text"
+                                           class="bt-form-control bt-form-control-mono"
+                                           id="grnNumber"
+                                           name="GrnNumber"
+                                           placeholder="e.g. GRN-2025-0042"
+                                           value="@(isEdit? Model.GrnNumber: "")" />
+                                    <div class="bt-form-hint">Goods Receipt Note reference</div>
+                                </div>
+
+                                <!-- Branch -->
+                                <div class="bt-form-group bt-col-6">
+                                    <label class="bt-form-label">Branch <span class="bt-req">*</span></label>
+                                    <select class="bt-form-select" id="branchId" name="BranchId" required>
+                                        @if (!isEdit)
+                                        {
+                                            <option value="" disabled selected>----- Select branch -----</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="" disabled>----- Select branch -----</option>
+                                        }
+                                        @if (branches != null)
+                                        {
+                                            foreach (var b in branches)
+                                            {
+                                                if (isEdit && Model.BranchId == b.BranchId)
+                                                {
+                                                    <option value="@b.BranchId" selected>@b.BranchName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@b.BranchId">@b.BranchName</option>
+                                                }
+                                            }
+                                        }
+                                    </select>
+                                    <span class="bt-invalid-feedback">Branch is required.</span>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Stock & Dates -->
+                <div class="bt-card" style="margin-bottom:10px">
+                    <div class="bt-card-header">
+                        <div class="bt-card-header-icon" style="background:var(--info-soft)">
+                            <i class="bi bi-box-seam" style="color:var(--info);position:relative;bottom:5px"></i>
+                        </div>
+                        <div>
+                            <div class="bt-card-header-title">Stock & Dates</div>
+                            <div class="bt-card-header-sub">Quantity received and validity period</div>
+                        </div>
+                    </div>
+                    <div class="bt-card-body">
+
+                        <!-- Stock Quantity -->
+                        <div class="bt-form-section">
+                            <div class="bt-section-label">
+                                <i class="bi bi-boxes" style="position:relative;bottom:5px"></i> Stock Quantity
+                            </div>
+                            <div class="bt-form-grid">
+                                <div class="bt-form-group bt-col-6">
+                                    <label class="bt-form-label">Total Stock Received <span class="bt-req">*</span></label>
+                                    <div class="bt-input-group">
+                                        <span class="bt-input-prefix">
+                                            <i class="bi bi-box" style="position:relative;bottom:5px"></i>
+                                        </span>
+                                        <input type="number"
+                                               class="bt-form-control"
+                                               id="totalStockReceived"
+                                               name="TotalStockReceived"
+                                               placeholder="0"
+                                               min="1"
+                                               value="@(isEdit? Model.TotalStockReceived: "")"
+                                               required />
+                                    </div>
+                                    <span class="bt-invalid-feedback">Stock quantity is required.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Manufacturing & Expiry -->
+                        <div class="bt-form-section">
+                            <div class="bt-section-label">
+                                <i class="bi bi-calendar3" style="position:relative;bottom:5px"></i> Manufacturing & Expiry
+                            </div>
+                            <div class="bt-form-grid">
+                                <div class="bt-form-group bt-col-6">
+                                    <label class="bt-form-label">Manufacturing Date <span class="bt-req">*</span></label>
+                                    <input type="date"
+                                           class="bt-form-control"
+                                           id="mfgDate"
+                                           name="MfgDate"
+                                           value="@(isEdit? DateVal(Model.MfgDate) : "")"
+                                           required />
+                                    <span class="bt-invalid-feedback">Manufacturing date is required.</span>
+                                </div>
+                                <div class="bt-form-group bt-col-6">
+                                    <label class="bt-form-label">Expiry Date <span class="bt-req">*</span></label>
+                                    <input type="date"
+                                           class="bt-form-control"
+                                           id="expDate"
+                                           name="ExpDate"
+                                           value="@(isEdit? DateVal(Model.ExpDate) : "")"
+                                           required />
+                                    <span class="bt-invalid-feedback">Expiry date must be after manufacturing date.</span>
+                                    <div id="expiryAlert"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Card 3: Pricing -->
+                <div class="bt-card" style="margin-bottom:10px">
+                    <div class="bt-card-header">
+                        <div class="bt-card-header-icon" style="background:var(--warning-soft)">
+                            <i class="bi bi-currency-rupee" style="color:var(--warning);position:relative;bottom:5px"></i>
+                        </div>
+                        <div>
+                            <div class="bt-card-header-title">Pricing</div>
+                            <div class="bt-card-header-sub">Purchase and selling price per unit</div>
+                        </div>
+                        <div class="bt-card-header-right">
+                            <div id="marginBadge" style="display:none"></div>
+                        </div>
+                    </div>
+                    <div class="bt-card-body">
+                        <div class="bt-form-section">
+                            <div class="bt-section-label">
+                                <i class="bi bi-tag" style="position:relative;bottom:5px"></i> Unit Pricing
+                            </div>
+                            <div class="bt-form-grid">
+
+                                <!-- Purchase Price -->
+                                <div class="bt-form-group bt-col-6">
+                                    <label class="bt-form-label">Unit Purchase Price <span class="bt-req">*</span></label>
+                                    <div class="bt-input-group">
+                                        <span class="bt-input-prefix">₹</span>
+                                        <input type="number"
+                                               class="bt-form-control"
+                                               id="unitPurchasePrice"
+                                               name="UnitPurchasePrice"
+                                               placeholder="0.00"
+                                               min="0"
+                                               step="0.01"
+                                               value="@(isEdit? Model.UnitPurchasePrice: "")"
+                                               required />
+                                    </div>
+                                    <span class="bt-invalid-feedback">Purchase price is required.</span>
+                                </div>
+
+                                <!-- Selling Price -->
+                                <div class="bt-form-group bt-col-6">
+                                    <label class="bt-form-label">Unit Selling Price <span class="bt-req">*</span></label>
+                                    <div class="bt-input-group">
+                                        <span class="bt-input-prefix">₹</span>
+                                        <input type="number"
+                                               class="bt-form-control"
+                                               id="unitSellingPrice"
+                                               name="UnitSellingPrice"
+                                               placeholder="0.00"
+                                               min="0"
+                                               step="0.01"
+                                               value="@(isEdit? Model.UnitSellingPrice: "")"
+                                               required />
+                                    </div>
+                                    <span class="bt-invalid-feedback">Selling price is required.</span>
+                                </div>
+
+                                <!-- Pricing Summary -->
+                                <div class="bt-col-12">
+                                    <div class="bt-pricing-summary">
+                                        <div class="bt-ps-item">
+                                            <div class="bt-ps-lbl">Profit / Unit</div>
+                                            <div class="bt-ps-val" id="profitPerUnit">—</div>
+                                        </div>
+                                        <div class="bt-ps-div"></div>
+                                        <div class="bt-ps-item">
+                                            <div class="bt-ps-lbl">Margin %</div>
+                                            <div class="bt-ps-val" id="marginPct">—</div>
+                                        </div>
+                                        <div class="bt-ps-div"></div>
+                                        <div class="bt-ps-item">
+                                            <div class="bt-ps-lbl">Total Value (SP)</div>
+                                            <div class="bt-ps-val" id="totalBatchValue">—</div>
+                                        </div>
+                                        <div class="bt-ps-div"></div>
+                                        <div class="bt-ps-item">
+                                            <div class="bt-ps-lbl">Total Cost (CP)</div>
+                                            <div class="bt-ps-val" id="totalCostValue">—</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4: Supplier & Audit -->
+                <div class="bt-card" style="margin-bottom:10px">
+                    <div class="bt-card-header">
+                        <div class="bt-card-header-icon" style="background:var(--success-soft)">
+                            <i class="bi bi-truck" style="color:var(--success);position:relative;bottom:5px"></i>
+                        </div>
+                        <div>
+                            <div class="bt-card-header-title">Supplier & Audit</div>
+                            <div class="bt-card-header-sub">Supplier reference and creation details</div>
+                        </div>
+                    </div>
+                    <div class="bt-card-body">
+                        <div class="bt-form-section">
+                            <div class="bt-section-label">
+                                <i class="bi bi-building" style="position:relative;bottom:5px"></i> Supplier
+                            </div>
+                            <div class="bt-form-grid">
+                                <div class="bt-form-group bt-col-8">
+                                    <label class="bt-form-label">Supplier <span class="bt-req">*</span></label>
+                                    <select class="bt-form-select" id="supplierId" name="SupplierId" required>
+                                        @if (!isEdit)
+                                        {
+                                            <option value="" disabled selected>----- Select supplier -----</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="" disabled>----- Select supplier -----</option>
+                                        }
+                                        @if (suppliers != null)
+                                        {
+                                            foreach (var s in suppliers)
+                                            {
+                                                if (isEdit && Model.SupplierId == s.SupplierId)
+                                                {
+                                                    <option value="@s.SupplierId" selected>@s.SupplierName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@s.SupplierId">@s.SupplierName</option>
+                                                }
+                                            }
+                                        }
+                                    </select>
+                                    <span class="bt-invalid-feedback">Supplier is required.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="bt-card">
+                    <div class="bt-form-footer">
+                        <div class="bt-footer-left">
+                            <p class="bt-req-legend"><span>*</span> Required fields must be filled</p>
+                        </div>
+                        <div class="bt-footer-right">
+                            <button type="button"
+                                    class="bt-btn bt-btn-outline bt-btn-sm"
+                                    id="resetBtn"
+                                    style="border-radius:3px;border:1px solid gray">
+                                <i class="bi bi-arrow-counterclockwise" style="position:relative;bottom:3px"></i> Reset
+                            </button>
+                            <button type="submit" class="bt-btn bt-btn-success bt-btn-sm" id="submitBtn">
+                                <i class="bi @(Model?.BatchId != null ? "bi-pencil-square" : "bi-plus-lg")"></i>
+                                @(Model?.BatchId != null ? "Update Batch" : "Add Batch")
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="bt-sidebar-stack">
+
+            <div class="bt-mini-stat">
+                <div class="bt-mini-stat-icon" style="background:var(--accent-soft)">
+                    <i class="bi bi-layers" style="color:var(--accent);position:relative;bottom:5px"></i>
+                </div>
+                <div>
+                    <div class="bt-mini-stat-val" id="statBatches">@ViewBag.TotalActiveBatches</div>
+                    <div class="bt-mini-stat-label">Total Batches</div>
+                </div>
+            </div>
+
+            <div class="bt-mini-stat">
+                <div class="bt-mini-stat-icon" style="background:var(--warning-soft)">
+                    <i class="bi bi-exclamation-triangle" style="color:var(--warning);position:relative;bottom:5px"></i>
+                </div>
+                <div>
+                    <div class="bt-mini-stat-val" id="statExpiring">@ViewBag.ExpiringSoonBatches</div>
+                    <div class="bt-mini-stat-label">Expiring in 30 Days</div>
+                </div>
+            </div>
+
+            <div class="bt-mini-stat">
+                <div class="bt-mini-stat-icon" style="background:var(--success-soft)">
+                    <i class="bi bi-truck" style="color:var(--success);position:relative;bottom:5px"></i>
+                </div>
+                <div>
+                    <div class="bt-mini-stat-val" id="statSuppliers">@ViewBag.ActiveSuppliers</div>
+                    <div class="bt-mini-stat-label">Active Suppliers</div>
+                </div>
+            </div>
+
+            <!-- Live Preview Card -->
+            <div class="bt-preview-card">
+                <div class="bt-preview-header">
+                    <div class="bt-batch-icon">
+                        <i class="bi bi-layers" style="position:relative;bottom:5px"></i>
+                    </div>
+                    <div class="bt-batch-number" id="prevBatchNum">Batch Number</div>
+                    <div class="bt-batch-sub" id="prevMedicine">Select a medicine above</div>
+                </div>
+                <div class="bt-preview-body">
+                    <div class="bt-preview-row"><span class="bt-pr-label">GRN No.</span>   <span class="bt-pr-val" id="prevGrn">—</span></div>
+                    <div class="bt-preview-row"><span class="bt-pr-label">Branch</span>     <span class="bt-pr-val" id="prevBranch">—</span></div>
+                    <div class="bt-preview-row"><span class="bt-pr-label">Stock Qty</span>  <span class="bt-pr-val" id="prevStock">—</span></div>
+                    <div class="bt-preview-row"><span class="bt-pr-label">Purchase ₹</span> <span class="bt-pr-val" id="prevPurchase">—</span></div>
+                    <div class="bt-preview-row"><span class="bt-pr-label">Selling ₹</span>  <span class="bt-pr-val" id="prevSelling">—</span></div>
+                    <div class="bt-preview-row"><span class="bt-pr-label">Mfg Date</span>   <span class="bt-pr-val" id="prevMfg">—</span></div>
+                    <div class="bt-preview-row"><span class="bt-pr-label">Exp Date</span>   <span class="bt-pr-val" id="prevExp">—</span></div>
+                    <div class="bt-preview-row"><span class="bt-pr-label">Supplier</span>   <span class="bt-pr-val" id="prevSupplier">—</span></div>
+                    <div class="bt-preview-row">
+                        <span class="bt-pr-label">Expiry Status</span>
+                        <span id="prevExpiryStatus">
+                            <span class="bt-chip bt-chip-info"><i class="bi bi-dot"></i> Not set</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // ── Helpers ───────────────────────────────────────────────────
+    const bt_fmtDate = v => {
+        if (!v) return '—';
+        return new Date(v).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    };
+    const bt_fmt = v => v ? `₹${parseFloat(v).toFixed(2)}` : '—';
+
+    // ── Init preview on page load (populates sidebar in Edit mode) ─
+    (function bt_initPreview() {
+        const batchNum  = document.getElementById('batchNumber').value;
+        const grn       = document.getElementById('grnNumber').value;
+        const stock     = document.getElementById('totalStockReceived').value;
+        const pp        = document.getElementById('unitPurchasePrice').value;
+        const sp        = document.getElementById('unitSellingPrice').value;
+        const mfg       = document.getElementById('mfgDate').value;
+        const exp       = document.getElementById('expDate').value;
+        const medSel    = document.getElementById('medicineId');
+        const branchSel = document.getElementById('branchId');
+        const suppSel   = document.getElementById('supplierId');
+
+        if (batchNum) document.getElementById('prevBatchNum').textContent  = batchNum;
+        if (grn)      document.getElementById('prevGrn').textContent        = grn;
+        if (stock)    document.getElementById('prevStock').textContent      = `${stock} units`;
+        if (pp)       document.getElementById('prevPurchase').textContent   = bt_fmt(pp);
+        if (sp)       document.getElementById('prevSelling').textContent    = bt_fmt(sp);
+        if (mfg)      document.getElementById('prevMfg').textContent        = bt_fmtDate(mfg);
+        if (exp)    { document.getElementById('prevExp').textContent        = bt_fmtDate(exp); bt_checkExpiry(exp); }
+
+        if (medSel.value) {
+            document.getElementById('prevMedicine').textContent = medSel.options[medSel.selectedIndex].text;
+        }
+        if (branchSel.value) {
+            document.getElementById('prevBranch').textContent =
+                branchSel.options[branchSel.selectedIndex].text.split('—')[0].trim();
+        }
+        if (suppSel.value) {
+            const t = suppSel.options[suppSel.selectedIndex].text;
+            document.getElementById('prevSupplier').textContent = t.length > 22 ? t.substring(0, 22) + '…' : t;
+        }
+
+        if (pp && sp) bt_updatePricing();
+    })();
+
+    // ── Live preview bindings ─────────────────────────────────────
+    document.getElementById('batchNumber').addEventListener('input', function () {
+        document.getElementById('prevBatchNum').textContent = this.value || 'Batch Number';
+    });
+
+    document.getElementById('medicineId').addEventListener('change', function () {
+        const o = this.options[this.selectedIndex];
+        document.getElementById('prevMedicine').textContent = o.value ? o.text : 'Select a medicine above';
+    });
+
+    document.getElementById('grnNumber').addEventListener('input', function () {
+        document.getElementById('prevGrn').textContent = this.value || '—';
+    });
+
+    document.getElementById('branchId').addEventListener('change', function () {
+        const o = this.options[this.selectedIndex];
+        document.getElementById('prevBranch').textContent = o.value ? o.text.split('—')[0].trim() : '—';
+    });
+
+    document.getElementById('totalStockReceived').addEventListener('input', function () {
+        document.getElementById('prevStock').textContent = this.value ? `${this.value} units` : '—';
+        bt_updatePricing();
+    });
+
+    document.getElementById('unitPurchasePrice').addEventListener('input', function () {
+        document.getElementById('prevPurchase').textContent = bt_fmt(this.value);
+        bt_updatePricing();
+    });
+
+    document.getElementById('unitSellingPrice').addEventListener('input', function () {
+        document.getElementById('prevSelling').textContent = bt_fmt(this.value);
+        bt_updatePricing();
+    });
+
+    document.getElementById('mfgDate').addEventListener('change', function () {
+        document.getElementById('prevMfg').textContent = bt_fmtDate(this.value);
+    });
+
+    document.getElementById('expDate').addEventListener('change', function () {
+        document.getElementById('prevExp').textContent = bt_fmtDate(this.value);
+        bt_checkExpiry(this.value);
+    });
+
+    document.getElementById('supplierId').addEventListener('change', function () {
+        const t = this.options[this.selectedIndex].text;
+        document.getElementById('prevSupplier').textContent =
+            this.value ? (t.length > 22 ? t.substring(0, 22) + '…' : t) : '—';
+    });
+
+    // ── Pricing calculator ────────────────────────────────────────
+    function bt_updatePricing() {
+        const pp  = parseFloat(document.getElementById('unitPurchasePrice').value)  || 0;
+        const sp  = parseFloat(document.getElementById('unitSellingPrice').value)   || 0;
+        const qty = parseFloat(document.getElementById('totalStockReceived').value) || 0;
+
+        if (pp > 0 && sp > 0) {
+            const profit = sp - pp;
+            const margin = ((profit / sp) * 100).toFixed(2);
+
+            const pEl = document.getElementById('profitPerUnit');
+            const mEl = document.getElementById('marginPct');
+            const tEl = document.getElementById('totalBatchValue');
+            const cEl = document.getElementById('totalCostValue');
+            const bEl = document.getElementById('marginBadge');
+
+            pEl.textContent = `₹${profit.toFixed(2)}`;
+            pEl.style.color = profit >= 0 ? 'var(--success)' : 'var(--danger)';
+
+            mEl.textContent = `${margin}%`;
+            mEl.style.color = profit >= 0 ? 'var(--success)' : 'var(--danger)';
+
+            tEl.textContent = qty > 0 ? `₹${(sp * qty).toFixed(2)}` : '—';
+            cEl.textContent = qty > 0 ? `₹${(pp * qty).toFixed(2)}` : '—';
+
+            bEl.style.display = 'block';
+            const neg = profit < 0;
+            bEl.innerHTML = `<div class="profit-badge${neg ? ' bt-negative' : ''}">
+                <i class="bi bi-arrow-${neg ? 'down' : 'up'}"></i>
+                ${neg ? 'Loss' : 'Margin'}: ${margin}%
+            </div>`;
+        }
+    }
+
+    // ── Expiry checker ────────────────────────────────────────────
+    function bt_checkExpiry(val) {
+        const alertEl  = document.getElementById('expiryAlert');
+        const statusEl = document.getElementById('prevExpiryStatus');
+        const inputEl  = document.getElementById('expDate');
+
+        inputEl.classList.remove('bt-expiry-near', 'bt-expiry-expired');
+        alertEl.innerHTML = '';
+
+        if (!val) return;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const diff = Math.ceil((new Date(val) - today) / (1000 * 60 * 60 * 24));
+
+        if (diff < 0) {
+            inputEl.classList.add('bt-expiry-expired');
+            alertEl.innerHTML = `<div class="bt-alert-box bt-alert-danger">
+                <i class="bi bi-x-circle"></i>
+                <div><strong>Expired!</strong> ${Math.abs(diff)} day(s) ago.</div>
+            </div>`;
+            statusEl.innerHTML = `<span class="bt-chip bt-chip-danger">Expired</span>`;
+        } else if (diff <= 90) {
+            inputEl.classList.add('bt-expiry-near');
+            alertEl.innerHTML = `<div class="bt-alert-box bt-alert-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                <div><strong>Expiring soon!</strong> ${diff} day(s).</div>
+            </div>`;
+            statusEl.innerHTML = `<span class="bt-chip bt-chip-warning">Expiring Soon</span>`;
+        } else {
+            statusEl.innerHTML = `<span class="bt-chip bt-chip-success">Valid (${diff}d left)</span>`;
+        }
+    }
+
+    // ── Validation ────────────────────────────────────────────────
+    function bt_validate() {
+        let valid = true;
+
+        const requiredIds = [
+            'medicineId', 'batchNumber', 'branchId',
+            'totalStockReceived', 'mfgDate', 'expDate',
+            'unitPurchasePrice', 'unitSellingPrice', 'supplierId'
+        ];
+
+        requiredIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el.value.trim()) {
+                el.classList.add('bt-is-invalid');
+                valid = false;
+            } else {
+                el.classList.remove('bt-is-invalid');
+            }
+        });
+
+        const mfg = document.getElementById('mfgDate').value;
+        const exp = document.getElementById('expDate').value;
+        if (mfg && exp && new Date(mfg) >= new Date(exp)) {
+            document.getElementById('expDate').classList.add('bt-is-invalid');
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    // ── Submit ────────────────────────────────────────────────────
+    const isEdit = @(isEdit ? "true" : "false");
+
+    document.getElementById('batchForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!bt_validate()) return;
+
+        const btn = document.getElementById('submitBtn');
+        btn.innerHTML = isEdit ? 'Updating…' : 'Saving…';
+        btn.disabled  = true;
+    });
+
+    // ── Reset ─────────────────────────────────────────────────────
+    document.getElementById('resetBtn').addEventListener('click', function () {
+        bt_resetForm();
+    });
+
+    function bt_resetForm() {
+        document.getElementById('batchForm').reset();
+
+        document.querySelectorAll('.bt-is-invalid')
+            .forEach(el => el.classList.remove('bt-is-invalid'));
+        document.querySelectorAll('.bt-expiry-near,.bt-expiry-expired')
+            .forEach(el => el.classList.remove('bt-expiry-near', 'bt-expiry-expired'));
+
+        document.getElementById('expiryAlert').innerHTML      = '';
+        document.getElementById('marginBadge').style.display  = 'none';
+
+        document.getElementById('prevBatchNum').textContent    = 'Batch Number';
+        document.getElementById('prevMedicine').textContent    = 'Select a medicine above';
+        document.getElementById('prevGrn').textContent         = '—';
+        document.getElementById('prevBranch').textContent      = '—';
+        document.getElementById('prevStock').textContent       = '—';
+        document.getElementById('prevPurchase').textContent    = '—';
+        document.getElementById('prevSelling').textContent     = '—';
+        document.getElementById('prevMfg').textContent         = '—';
+        document.getElementById('prevExp').textContent         = '—';
+        document.getElementById('prevSupplier').textContent    = '—';
+        document.getElementById('prevExpiryStatus').innerHTML  =
+            `<span class="bt-chip bt-chip-info"><i class="bi bi-dot"></i> Not set</span>`;
+        document.getElementById('profitPerUnit').textContent   = '—';
+        document.getElementById('marginPct').textContent       = '—';
+        document.getElementById('totalBatchValue').textContent = '—';
+        document.getElementById('totalCostValue').textContent  = '—';
+    }
+</script>

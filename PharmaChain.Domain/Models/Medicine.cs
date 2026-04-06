@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace PharmaChain.Infrastructure.Models;
+﻿namespace PharmaChain.Infrastructure.Models;
 
 public partial class Medicine
 {

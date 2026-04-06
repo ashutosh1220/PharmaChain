@@ -1,5 +1,6 @@
-﻿@model PharmaChain.Infrastructure.Models.Medicine
-@{
+﻿@{
+    @model PharmaChain.Infrastructure.Models.Medicine
+
     ViewData["Title"] = "AddMedicine";
     Layout = "~/Views/Shared/_adminDashboard.cshtml";
 
@@ -18,7 +19,10 @@
 
     <div class="am-page-header">
         <div class="am-page-title">
-            <h4><i class="bi bi-plus-circle" style="position: relative; top: -4px;"></i> Add New Medicine</h4>
+            <h4>
+                <i class="bi bi-plus-circle" style="position: relative; top: -4px;"></i>
+                @(Model != null ? "Edit Medicine" : "Add New Medicine")
+            </h4>
             <p>Fill in the details below to register a new medicine in the system.</p>
         </div>
         <div class="am-page-actions"></div>
@@ -29,7 +33,10 @@
             <form id="amMedicineForm" novalidate action="@FormAction" method="post">
 
                 <!-- Hidden fields -->
-                
+                @if (Model != null)
+                {
+                    <input type="hidden" id="MedicineId" name="MedicineId" value="@Model.MedicineId" />
+                }
 
                 <div class="am-card">
                     <div class="am-card-header">

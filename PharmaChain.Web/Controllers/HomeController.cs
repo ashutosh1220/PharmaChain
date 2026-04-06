@@ -2,8 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PharmaChain.Application.Interfaces;
-using PharmaChain.Infrastructure.Models;
-using PharmaChain.Infrastructure.Services;
 using System.Security.Claims;
 
 namespace PharmaChain.Web.Controllers

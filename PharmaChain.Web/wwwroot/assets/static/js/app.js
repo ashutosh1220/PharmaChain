@@ -1,7 +1,7 @@
 ﻿// ─────────────────────────────────────────────────────────────
 // 1. SIDEBAR TOGGLE
 // ─────────────────────────────────────────────────────────────
-$(function () {
+$(function() {
 
     var $toggleBtn = $('#sidebarToggleBtn');
     var $toggleIcon = $('#sidebarToggleIcon');
@@ -34,7 +34,7 @@ $(function () {
         }
     }
 
-    $toggleBtn.on("click", function (e) {
+    $toggleBtn.on("click", function(e) {
         e.stopPropagation();
         isSidebarOpen() ? closeSidebar() : openSidebar();
     });
@@ -125,23 +125,23 @@ function showToast(opts) {
     $container.append($toast);
 
     // Close button
-    $toast.find('.mz-toast-close').on('click', function () {
+    $toast.find('.mz-toast-close').on('click', function() {
         removeToast($toast);
     });
 
     // Action buttons
-    $toast.find('.mz-toast-action-btn').each(function (i) {
+    $toast.find('.mz-toast-action-btn').each(function(i) {
         if (actions[i] && actions[i].onClick) {
             $(this).on('click', actions[i].onClick);
         }
-        $(this).on('click', function () {
+        $(this).on('click', function() {
             removeToast($toast);
         });
     });
 
     // Auto remove
     if (duration > 0) {
-        setTimeout(function () {
+        setTimeout(function() {
             removeToast($toast);
         }, duration);
     }
@@ -152,7 +152,7 @@ function removeToast($toast) {
 
     $toast.addClass('removing');
 
-    setTimeout(function () {
+    setTimeout(function() {
         $toast.remove();
     }, 300);
 }
@@ -312,13 +312,13 @@ function initRegistrationWizard() {
 
     var validators = [null, validateStep1, validateStep2, validateStep3, validateStep4, validateStep5];
 
-    $('#nextBtn').off('click').on('click', function () {
+    $('#nextBtn').off('click').on('click', function() {
         if (!validators[currentStep]()) return;
         if (currentStep < totalSteps) { currentStep++; updateWizard(); }
         else { $('#submitBtn').trigger('click'); }
     });
 
-    $('#prevBtn').off('click').on('click', function () {
+    $('#prevBtn').off('click').on('click', function() {
         if (currentStep > 1) { currentStep--; updateWizard(); }
     });
 
@@ -332,7 +332,7 @@ function initRegistrationWizard() {
         var remaining = seconds;
         $('#sendOtpBtn').html('<i class="bi bi-clock"></i> Resend in ' + formatTime(remaining));
         $('#otpTimer').text('Resend OTP in ' + formatTime(remaining));
-        otpTimerInterval = setInterval(function () {
+        otpTimerInterval = setInterval(function() {
             remaining--;
             $('#sendOtpBtn').html('<i class="bi bi-clock"></i> Resend in ' + formatTime(remaining));
             $('#otpTimer').text('Resend OTP in ' + formatTime(remaining));
@@ -344,7 +344,7 @@ function initRegistrationWizard() {
         }, 1000);
     }
 
-    $('#sendOtpBtn').off('click').on('click', function () {
+    $('#sendOtpBtn').off('click').on('click', function() {
         clearError('err-email');
         var email = $('#email').val().trim();
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -355,23 +355,23 @@ function initRegistrationWizard() {
         showOverlay('primary', 'Sending OTP…');
         $.ajax({
             url: '/api/send-otp', type: 'POST', data: { email: email },
-            success: function () {
+            success: function() {
                 $('#otpLabelCol').removeClass('d-none');
                 $('#otpFieldCol').removeClass('d-none');
                 $('#emailVerifiedBadge').addClass('d-none');
                 startOtpTimer(120);
             },
-            error: function (xhr) {
+            error: function(xhr) {
                 showError('err-email', parseError(xhr, 'Failed to send OTP. Please try again.'));
                 $btn.prop('disabled', false).html('<i class="bi bi-envelope-fill"></i> Send OTP');
             },
-            complete: function () {
+            complete: function() {
                 hideOverlay();
             }
         });
     });
 
-    $('#verifyOtpBtn').off('click').on('click', function () {
+    $('#verifyOtpBtn').off('click').on('click', function() {
         clearError('err-otp');
         var entered = $('#otpInput').val().trim();
         if (entered.length !== 6) { showError('err-otp', 'Enter the 6-digit OTP.'); return; }
@@ -381,7 +381,7 @@ function initRegistrationWizard() {
         showOverlay('info', 'Verifying OTP…');
         $.ajax({
             url: '/api/verify-otp', type: 'POST', data: { Email: email, Otp: entered },
-            success: function () {
+            success: function() {
                 emailVerified = true;
                 clearInterval(otpTimerInterval);
                 $('#otpTimer').text('');
@@ -393,11 +393,11 @@ function initRegistrationWizard() {
                     .html('<i class="bi bi-check-circle-fill" style="position: relative; bottom: 120px; left: -5px;"></i> Verified')
                     .attr('class', 'btn btn-success');
             },
-            error: function (xhr) {
+            error: function(xhr) {
                 showError('err-otp', parseError(xhr, 'Incorrect OTP. Please try again.'));
                 $btn.prop('disabled', false).html('<i class="bi bi-patch-check-fill" style="position: relative; bottom: 12px; left: -5px;"></i> Verify OTP');
             },
-            complete: function () {
+            complete: function() {
                 hideOverlay();
             }
         });
@@ -410,7 +410,7 @@ function initRegistrationWizard() {
         $('#captchaText').text(currentCaptcha);
     }
 
-    $('#refreshCaptcha').off('click').on('click', function () {
+    $('#refreshCaptcha').off('click').on('click', function() {
         generateCaptcha(); $('#captchaInput').val(''); clearError('err-captcha');
     });
 
@@ -420,21 +420,21 @@ function initRegistrationWizard() {
         $('#' + iconId).toggleClass('bi-eye bi-eye-slash');
     }
 
-    $('#togglePassword').off('click').on('click', function () { toggleVisibility('password', 'togglePasswordIcon'); });
-    $('#toggleConfirmPassword').off('click').on('click', function () { toggleVisibility('confirmPassword', 'toggleConfirmPasswordIcon'); });
+    $('#togglePassword').off('click').on('click', function() { toggleVisibility('password', 'togglePasswordIcon'); });
+    $('#toggleConfirmPassword').off('click').on('click', function() { toggleVisibility('confirmPassword', 'toggleConfirmPasswordIcon'); });
 
-    $('#confirmPassword').off('input').on('input', function () {
+    $('#confirmPassword').off('input').on('input', function() {
         var match = $(this).val() === $('#password').val();
         $('#passwordMatchMsg')
             .text(match ? '✓ Passwords match.' : '✗ Passwords do not match.')
             .attr('class', match ? 'text-success' : 'text-danger').show();
     });
 
-    $('#profileImage').off('change').on('change', function () {
+    $('#profileImage').off('change').on('change', function() {
         var file = this.files[0];
         if (file) {
             var reader = new FileReader();
-            reader.onload = function (e) { $('#profilePreview').attr('src', e.target.result).removeClass('d-none'); };
+            reader.onload = function(e) { $('#profilePreview').attr('src', e.target.result).removeClass('d-none'); };
             reader.readAsDataURL(file);
         }
     });
@@ -443,7 +443,7 @@ function initRegistrationWizard() {
     generateCaptcha();
 }
 
-$(document).ready(function () {
+$(document).ready(function() {
     initRegistrationWizard();
 });
 
@@ -492,14 +492,12 @@ function renderPagination() {
     var $pagination = $('#tableFooter').find('.pagination');
     if (!$pagination.length) return;
 
-    var route = getCurrentRoute();
-
     $pagination.empty();
 
     var prevPage = Math.max(1, currentPage - 1);
     $pagination.append(
         `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-            <a class="page-link" href="${route}?page=${prevPage}&size=${pageSize}">Prev</a>
+            <a class="page-link" href="#" data-page="${prevPage}">Prev</a>
         </li>`
     );
 
@@ -507,7 +505,7 @@ function renderPagination() {
         for (var i = 1; i <= totalPages; i++) {
             $pagination.append(
                 `<li class="page-item ${i === currentPage ? 'active' : ''}">
-                    <a class="page-link" href="${route}?page=${i}&size=${pageSize}">${i}</a>
+                    <a class="page-link" href="#" data-page="${i}">${i}</a>
                 </li>`
             );
         }
@@ -515,40 +513,40 @@ function renderPagination() {
         for (var i = 1; i <= 7; i++) {
             $pagination.append(
                 `<li class="page-item ${i === currentPage ? 'active' : ''}">
-                    <a class="page-link" href="${route}?page=${i}&size=${pageSize}">${i}</a>
+                    <a class="page-link" href="#" data-page="${i}">${i}</a>
                 </li>`
             );
         }
         $pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
-        $pagination.append(`<li class="page-item"><a class="page-link" href="${route}?page=${totalPages}&size=${pageSize}">${totalPages}</a></li>`);
+        $pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`);
     } else if (currentPage >= totalPages - 3) {
-        $pagination.append(`<li class="page-item"><a class="page-link" href="${route}?page=1&size=${pageSize}">1</a></li>`);
+        $pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`);
         $pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
         for (var i = totalPages - 6; i <= totalPages; i++) {
             $pagination.append(
                 `<li class="page-item ${i === currentPage ? 'active' : ''}">
-                    <a class="page-link" href="${route}?page=${i}&size=${pageSize}">${i}</a>
+                    <a class="page-link" href="#" data-page="${i}">${i}</a>
                 </li>`
             );
         }
     } else {
-        $pagination.append(`<li class="page-item"><a class="page-link" href="${route}?page=1&size=${pageSize}">1</a></li>`);
+        $pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`);
         $pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
         for (var i = currentPage - 2; i <= currentPage + 2; i++) {
             $pagination.append(
                 `<li class="page-item ${i === currentPage ? 'active' : ''}">
-                    <a class="page-link" href="${route}?page=${i}&size=${pageSize}">${i}</a>
+                    <a class="page-link" href="#" data-page="${i}">${i}</a>
                 </li>`
             );
         }
         $pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
-        $pagination.append(`<li class="page-item"><a class="page-link" href="${route}?page=${totalPages}&size=${pageSize}">${totalPages}</a></li>`);
+        $pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`);
     }
 
     var nextPage = Math.min(totalPages, currentPage + 1);
     $pagination.append(
         `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-            <a class="page-link" href="${route}?page=${nextPage}&size=${pageSize}">Next</a>
+            <a class="page-link" href="#" data-page="${nextPage}">Next</a>
         </li>`
     );
 }
@@ -556,7 +554,7 @@ function renderPagination() {
 // ─────────────────────────────────────────────────────────────
 // 4. TABLE — column toggles + init pagination
 // ─────────────────────────────────────────────────────────────
-$(document).ready(function () {
+$(document).ready(function() {
 
     if (!$('#tableFooter').length) return;
 
@@ -567,12 +565,12 @@ $(document).ready(function () {
 
     renderPagination();
 
-    $('.col-toggle').on('change', function () {
+    $('.col-toggle').on('change', function() {
         var colClass = $(this).data('col');
         $(this).is(':checked') ? $('.' + colClass).show() : $('.' + colClass).hide();
     });
 
-    $('.col-toggle').each(function () {
+    $('.col-toggle').each(function() {
         if (!$(this).is(':checked')) $('.' + $(this).data('col')).hide();
     });
 });
@@ -610,16 +608,16 @@ function simulateBtn(id, loadingText) {
 // ─────────────────────────────────────────────────────────────
 // 6. AJAX LINK — sidebar navigation
 // ─────────────────────────────────────────────────────────────
-$(document).on('click', '.ajax-link', function (e) {
+$(document).on('click', '.ajax-link', function(e) {
     e.preventDefault();
-    var url = $(this).data('url');
+    var url = $(this).attr('data-url') || $(this).attr('href');
 
     $('#mzPageLoader').addClass('show');
 
     $.ajax({
         url: url,
         method: 'GET',
-        success: function (response) {
+        success: function(response) {
             var title = $(response).filter('title').text() || $(response).find('title').text();
             var content = $(response).find('#mainContent').html();
             if (!content) content = response;
@@ -632,9 +630,6 @@ $(document).on('click', '.ajax-link', function (e) {
                 $('.top-bar-title').text(title);
             }
 
-            // ── Page specific init after AJAX load ────
-            // Use attr() not data() — after a DOM swap jQuery.data() returns
-            // stale cached values; attr() always reads the live attribute.
             if ($('#tableFooter').length) {
                 var $footer = $('#tableFooter');
                 totalPages = parseInt($footer.attr('data-total-pages')) || 1;
@@ -656,21 +651,26 @@ $(document).on('click', '.ajax-link', function (e) {
                 initRegistrationWizard();
             }
 
-            $(document).ready(function () {
-                if ($("#managePermissionsPage").length) {
-                    buildPermGrid();
-                }
-            });
+            if ($('#managePermissionsPage').length) {
+                buildPermGrid();
+            }
+
+            if ($('#batchTableBody').length) {
+                BatchPage.init();
+            }
+
+            if ($('#medicineTableBody').length) {
+                MedicinePage.init();
+            }
         },
-        error: function () {
+        error: function() {
             showToast({ type: 'danger', title: 'Error', message: 'Page load karne mein error aaya.' });
         },
-        complete: function () {
+        complete: function() {
             $('#mzPageLoader').removeClass('show');
         }
     });
 });
-
 
 // ─────────────────────────────────────────────────────────────
 // 7. CONFIRM ACTION — generic popup + AJAX
@@ -682,12 +682,12 @@ function confirmAction(options) {
         message: options.message || 'Please confirm this action.',
         okText: options.okText || 'Yes',
         cancelText: options.cancelText || 'Cancel',
-        onOk: function () {
+        onOk: function() {
             if (!options.url) return;
             $.ajax({
                 url: options.url,
                 type: options.method || 'POST',
-                success: function (res) {
+                success: function(res) {
                     if (res.success) {
                         if (options.onSuccess) { options.onSuccess(res); }
                         else { MzPopup.show({ type: 'success', title: 'Success', message: res.message || 'Action completed', okText: 'OK' }); }
@@ -695,7 +695,7 @@ function confirmAction(options) {
                         MzPopup.show({ type: 'danger', title: 'Error', message: res.message || 'Failed', okText: 'OK' });
                     }
                 },
-                error: function (xhr) {
+                error: function(xhr) {
                     let errorMsg = "Something went wrong";
                     try { let res = JSON.parse(xhr.responseText); errorMsg = res.message || errorMsg; } catch (e) { }
                     MzPopup.show({ type: 'danger', title: 'Error', message: errorMsg, okText: 'OK' });
@@ -709,9 +709,9 @@ function confirmAction(options) {
 // ─────────────────────────────────────────────────────────────
 // 8. FORM SUBMIT + USER ACTIONS
 // ─────────────────────────────────────────────────────────────
-$(document).ready(function () {
+$(document).ready(function() {
 
-    $(document).on('submit', 'form', function (e) {
+    $(document).on('submit', 'form', function(e) {
         e.preventDefault();
         var form = this;
         var formData = new FormData(form);
@@ -725,7 +725,7 @@ $(document).ready(function () {
                 processData: false,
                 contentType: false,
 
-                success: function (response) {
+                success: function(response) {
                     let msg = response.message || response.messege || "No message";
 
                     if (response.success) {
@@ -734,7 +734,7 @@ $(document).ready(function () {
                             title: 'Success',
                             message: msg,
                             okText: 'OK',
-                            onOk: function () {
+                            onOk: function() {
                                 form.reset();
                                 window.location.reload();
                             }
@@ -749,7 +749,7 @@ $(document).ready(function () {
                     }
                 },
 
-                error: function (xhr) {
+                error: function(xhr) {
                     let errorMsg = "Something went wrong";
 
                     try {
@@ -770,20 +770,20 @@ $(document).ready(function () {
         if (confirmMessage) {
             MzPopup.show({
                 type: 'warning', title: 'Confirm Action', message: confirmMessage, okText: 'Yes', cancelText: 'Cancel',
-                onOk: function () { submitForm(); }
+                onOk: function() { submitForm(); }
             });
         } else {
             submitForm();
         }
     });
 
-    $(document).on("click", ".toggle-status", function () {
+    $(document).on("click", ".toggle-status", function() {
         let row = $(this).closest("tr");
         let userId = row.find("td:eq(1) small").text().trim();
         confirmAction({
             title: "Change Status", message: "Do you want to toggle this user's status?",
             url: "/api/toggle-user-status?id=" + encodeURIComponent(userId), method: "PATCH",
-            onSuccess: function (res) {
+            onSuccess: function(res) {
                 let badge = row.find("td:eq(6) span");
                 if (res.data) { badge.removeClass("bg-danger").addClass("bg-success").text("Active"); }
                 else { badge.removeClass("bg-success").addClass("bg-danger").text("Inactive"); }
@@ -792,13 +792,13 @@ $(document).ready(function () {
         });
     });
 
-    $(document).on("click", ".delete-user", function () {
+    $(document).on("click", ".delete-user", function() {
         let row = $(this).closest("tr");
         let userId = row.find("td:eq(1) small").text().trim();
         confirmAction({
             title: "Delete User", message: "Are you sure you want to delete this user?",
             url: "/api/delete-user?id=" + encodeURIComponent(userId), method: "DELETE",
-            onSuccess: function (res) {
+            onSuccess: function(res) {
                 row.remove();
                 MzPopup.show({ type: 'success', title: 'Deleted', message: 'User deleted successfully', okText: 'OK' });
             }
@@ -817,13 +817,13 @@ var UsersPage = {
         sort: 'createdAt-desc', status: 'All'
     },
 
-    fetch: function () {
+    fetch: function() {
         $('#mzPageLoader').addClass('show');
         $.ajax({
             url: '/Users-List',
             method: 'GET',
             data: UsersPage.state,
-            success: function (response) {
+            success: function(response) {
                 var $res = $(response);
 
                 var newBody = $res.find('#userTableBody').html();
@@ -846,50 +846,30 @@ var UsersPage = {
 
                 renderPagination();
                 UsersPage.updateResultsInfo();
-                UsersPage.bindRowsPerPage();
 
                 history.pushState(null, '', '/Users-List?' + $.param(UsersPage.state));
             },
-            error: function () {
+            error: function() {
                 showToast({ type: 'danger', title: 'Error', message: 'Users load karne mein error aaya.' });
             },
-            complete: function () {
+            complete: function() {
                 $('#mzPageLoader').removeClass('show');
             }
         });
     },
 
-    applyFilters: function () {
-        UsersPage.state.search = $('#searchInput').val();
-        UsersPage.state.role = $('#filterRole').val();
-        UsersPage.state.branch = $('#filterBranch').val();
-        UsersPage.state.sort = $('#sortField').val();
-        UsersPage.state.page = 1;
-        UsersPage.fetch();
+    bindRowsPerPage: function() {
+        // Now handled by delegated event handler at document level
     },
 
-    filterByStatus: function (status) {
-        UsersPage.state.status = status;
-        UsersPage.state.page = 1;
-        UsersPage.fetch();
-    },
-
-    bindRowsPerPage: function () {
-        $('#rowsPerPage').off('change').on('change', function () {
-            UsersPage.state.size = $(this).val();
-            UsersPage.state.page = 1;
-            UsersPage.fetch();
-        });
-    },
-
-    updateResultsInfo: function () {
+    updateResultsInfo: function() {
         var showing = $('#userTableBody tr').length;
         var tp = parseInt($('#tableFooter').data('total-pages')) || 1;
         var total = tp * parseInt(UsersPage.state.size);
         $('#resultsInfo').text('Showing ' + showing + ' of ' + total + ' users');
     },
 
-    resetFilters: function () {
+    resetFilters: function() {
         UsersPage.state = {
             page: 1, size: 10, search: '',
             role: '', branch: '',
@@ -902,16 +882,15 @@ var UsersPage = {
         UsersPage.fetch();
     },
 
-    init: function () {
+    init: function() {
         UsersPage.state.page = parseInt($('#tableFooter').data('current-page')) || 1;
         UsersPage.state.size = parseInt($('#tableFooter').data('page-size')) || 10;
-        UsersPage.bindRowsPerPage();
         UsersPage.updateResultsInfo();
         // NOTE: pagination click is handled by the single delegated handler below
     }
 };
 
-$(function () {
+$(function() {
     if ($('#userTableBody').length) {
         UsersPage.init();
     }
@@ -925,7 +904,7 @@ function exportExcel() {
 
     rows.push(['Name', 'User ID', 'Phone', 'Email', 'Role', 'Branch', 'Status', 'Created At']);
 
-    $('#userTableBody tr').each(function () {
+    $('#userTableBody tr').each(function() {
         var $tds = $(this).find('td');
         rows.push([
             $tds.eq(1).find('strong').text().trim(),
@@ -966,7 +945,7 @@ function exportExcel() {
 }
 
 
-$(document).on('click', '.fsb', function () {
+$(document).on('click', '.fsb', function() {
     var $btn = $(this);
     $btn.prop('disabled', true);
 
@@ -989,7 +968,7 @@ $(document).on('click', '.fsb', function () {
         contentType: 'application/json',
         data: JSON.stringify(payload),
 
-        success: function (res) {
+        success: function(res) {
             if (dispId) {
                 $('#' + dispId).text(value);
             }
@@ -1004,7 +983,7 @@ $(document).on('click', '.fsb', function () {
             });
         },
 
-        error: function (xhr) {
+        error: function(xhr) {
             console.log(xhr.responseText);
 
             showToast({
@@ -1015,7 +994,7 @@ $(document).on('click', '.fsb', function () {
             });
         },
 
-        complete: function () {
+        complete: function() {
             $btn.prop('disabled', false);
         }
     });
@@ -1048,8 +1027,6 @@ let activeRole = 'SuperAdmin';
 let PERMISSIONS = [];
 const rolePerms = {};
 
-const fmt = s => s.replace(/([A-Z])/g, ' $1').trim();
-
 // ── API FETCH ─────────────────────────────────────
 function fetchPermissionsForRole(roleName) {
     showLoader(true);
@@ -1060,17 +1037,17 @@ function fetchPermissionsForRole(roleName) {
         data: { roleName: roleName },
         dataType: 'json',
     })
-        .done(function (response) {
+        .done(function(response) {
             const grantedIds = new Set();
 
-            $.each(response, function (i, item) {
+            $.each(response, function(i, item) {
                 const perm = {
                     id: item.permissionId,
                     action: item.permissionName,
                     module: item.module,
                 };
 
-                const exists = $.grep(PERMISSIONS, function (x) { return x.id === perm.id; }).length > 0;
+                const exists = $.grep(PERMISSIONS, function(x) { return x.id === perm.id; }).length > 0;
                 if (!exists) PERMISSIONS.push(perm);
 
                 if (item.isActive === true) {
@@ -1080,10 +1057,10 @@ function fetchPermissionsForRole(roleName) {
 
             rolePerms[roleName] = grantedIds;
         })
-        .fail(function (xhr, status, error) {
+        .fail(function(xhr, status, error) {
             showToast({ type: 'danger', title: 'Error', message: `Failed to load permissions for ${roleName}: ${error}` });
         })
-        .always(function () {
+        .always(function() {
             showLoader(false);
         });
 }
@@ -1091,12 +1068,12 @@ function fetchPermissionsForRole(roleName) {
 // ── BUILD ROLE PILLS ──────────────────────────────
 function buildRolePills() {
     const $c = $('#rolePills').empty();
-    $.each(ROLES, function (i, r) {
+    $.each(ROLES, function(i, r) {
         const isActive = r.id === activeRole;
         const $btn = $('<button>', {
             class: 'btn btn-sm role-pill ' + (isActive ? 'btn-primary active' : 'btn-light-secondary'),
             html: `<i class="bi ${r.icon} me-1"></i>${r.label}`,
-            click: function () { selectRole(r.id); }
+            click: function() { selectRole(r.id); }
         });
         $c.append($btn);
     });
@@ -1108,7 +1085,7 @@ function buildPermGrid() {
     const perms = rolePerms[activeRole] || new Set();
 
     const groups = {};
-    $.each(PERMISSIONS, function (i, p) {
+    $.each(PERMISSIONS, function(i, p) {
         if (!groups[p.module]) groups[p.module] = [];
         groups[p.module].push(p);
     });
@@ -1119,9 +1096,9 @@ function buildPermGrid() {
         return;
     }
 
-    $.each(groups, function (mod, items) {
-        const ids = $.map(items, function (p) { return p.id; });
-        const grantedCount = $.grep(items, function (p) { return perms.has(p.id); }).length;
+    $.each(groups, function(mod, items) {
+        const ids = $.map(items, function(p) { return p.id; });
+        const grantedCount = $.grep(items, function(p) { return perms.has(p.id); }).length;
         const icon = GROUP_ICONS[mod] || 'bi-circle';
 
         const $card = $('<div>', { class: 'card' });
@@ -1138,13 +1115,13 @@ function buildPermGrid() {
                     `
         });
 
-        $header.find('.toggle-all-link').on('click', function () {
+        $header.find('.toggle-all-link').on('click', function() {
             toggleGroup(mod, ids);
         });
 
         const $wrap = $('<div>', { class: 'perm-items-grid', id: `grp-${mod}` });
 
-        $.each(items, function (i, p) {
+        $.each(items, function(i, p) {
             const granted = perms.has(p.id);
 
             const $row = $('<div>', {
@@ -1163,15 +1140,15 @@ function buildPermGrid() {
                         `
             });
 
-            $row.on('click', function () {
+            $row.on('click', function() {
                 togglePerm(p.id, mod);
             });
 
-            $row.find('.perm-toggle').on('click', function (e) {
+            $row.find('.perm-toggle').on('click', function(e) {
                 e.stopPropagation();
             });
 
-            $row.find(`#tog-${p.id}`).on('change', function () {
+            $row.find(`#tog-${p.id}`).on('change', function() {
                 togglePerm(p.id, mod);
             });
 
@@ -1190,14 +1167,14 @@ function selectRole(id) {
     activeRole = id;
     buildRolePills();
 
-    const r = $.grep(ROLES, function (x) { return x.id === id; })[0];
+    const r = $.grep(ROLES, function(x) { return x.id === id; })[0];
     $('#currentRoleLabel').text(r.label);
     $('#roleBadge').text(r.label);
 
     if (rolePerms[id]) {
         buildPermGrid();
     } else {
-        fetchPermissionsForRole(id).done(function () {
+        fetchPermissionsForRole(id).done(function() {
             buildPermGrid();
         });
     }
@@ -1224,9 +1201,9 @@ function togglePerm(id, mod) {
 
 function toggleGroup(mod, ids) {
     const perms = rolePerms[activeRole];
-    const allGranted = ids.every(function (id) { return perms.has(id); });
+    const allGranted = ids.every(function(id) { return perms.has(id); });
 
-    $.each(ids, function (i, id) {
+    $.each(ids, function(i, id) {
         const $row = $(`#pr-${id}`);
         const $cb = $(`#tog-${id}`);
 
@@ -1246,7 +1223,7 @@ function toggleGroup(mod, ids) {
 }
 
 function grantAll() {
-    const r = $.grep(ROLES, function (x) { return x.id === activeRole; })[0];
+    const r = $.grep(ROLES, function(x) { return x.id === activeRole; })[0];
 
     MzPopup.show({
         type: 'confirm',
@@ -1255,10 +1232,10 @@ function grantAll() {
         okText: 'Yes',
         cancelText: 'Cancel',
 
-        onOk: function () {
+        onOk: function() {
             const perms = rolePerms[activeRole];
 
-            $.each(PERMISSIONS, function (i, p) {
+            $.each(PERMISSIONS, function(i, p) {
                 perms.add(p.id);
                 $(`#pr-${p.id}`).addClass('granted');
                 $(`#tog-${p.id}`).prop('checked', true);
@@ -1278,7 +1255,7 @@ function grantAll() {
 }
 
 function clearAll() {
-    const r = $.grep(ROLES, function (x) { return x.id === activeRole; })[0];
+    const r = $.grep(ROLES, function(x) { return x.id === activeRole; })[0];
 
     MzPopup.show({
         type: 'confirm',
@@ -1287,10 +1264,10 @@ function clearAll() {
         okText: 'Yes',
         cancelText: 'Cancel',
 
-        onOk: function () {
+        onOk: function() {
             const perms = rolePerms[activeRole];
 
-            $.each(PERMISSIONS, function (i, p) {
+            $.each(PERMISSIONS, function(i, p) {
                 perms.delete(p.id);
                 $(`#pr-${p.id}`).removeClass('granted');
                 $(`#tog-${p.id}`).prop('checked', false);
@@ -1310,7 +1287,7 @@ function clearAll() {
 }
 
 function savePermissions() {
-    const r = $.grep(ROLES, function (x) { return x.id === activeRole; })[0];
+    const r = $.grep(ROLES, function(x) { return x.id === activeRole; })[0];
     const grantedIds = [...rolePerms[activeRole]];
 
     MzPopup.show({
@@ -1320,7 +1297,7 @@ function savePermissions() {
         okText: 'Yes',
         cancelText: 'Cancel',
 
-        onOk: function () {
+        onOk: function() {
 
             $.ajax({
                 url: 'api/Permissions/save',
@@ -1331,7 +1308,7 @@ function savePermissions() {
                     permissionIds: grantedIds,
                 }),
             })
-                .done(function () {
+                .done(function() {
                     MzPopup.show({
                         type: 'success',
                         title: 'Updated',
@@ -1339,7 +1316,7 @@ function savePermissions() {
                         okText: 'OK'
                     });
                 })
-                .fail(function (xhr, status, error) {
+                .fail(function(xhr, status, error) {
                     MzPopup.show({
                         type: 'danger',
                         title: 'Error',
@@ -1364,14 +1341,14 @@ function updateStats() {
 
 function updateGroupCount(mod) {
     const perms = rolePerms[activeRole] || new Set();
-    const items = $.grep(PERMISSIONS, function (p) { return p.module === mod; });
-    const g = $.grep(items, function (p) { return perms.has(p.id); }).length;
+    const items = $.grep(PERMISSIONS, function(p) { return p.module === mod; });
+    const g = $.grep(items, function(p) { return perms.has(p.id); }).length;
     $(`#gc-${mod}`).text(`${g}/${items.length} granted`);
 }
 
 function refreshAllGroupCounts() {
-    const mods = [...new Set($.map(PERMISSIONS, function (p) { return p.module; }))];
-    $.each(mods, function (i, m) { updateGroupCount(m); });
+    const mods = [...new Set($.map(PERMISSIONS, function(p) { return p.module; }))];
+    $.each(mods, function(i, m) { updateGroupCount(m); });
 }
 
 function showLoader(visible) {
@@ -1392,7 +1369,7 @@ function showToast(msg) {
         $('#toastMsg').html(msg);
         $toast.addClass('show');
         clearTimeout(toastTimer);
-        toastTimer = setTimeout(function () {
+        toastTimer = setTimeout(function() {
             $toast.removeClass('show');
         }, 3000);
         return;
@@ -1456,33 +1433,32 @@ function showToast(msg) {
     var $toast = $(toastHTML);
     $container.append($toast);
 
-    $toast.find('.mz-toast-close').on('click', function () {
+    $toast.find('.mz-toast-close').on('click', function() {
         removeToast($toast);
     });
 
-    $toast.find('.mz-toast-action-btn').each(function (i) {
+    $toast.find('.mz-toast-action-btn').each(function(i) {
         if (actions[i] && actions[i].onClick) {
             $(this).on('click', actions[i].onClick);
         }
-        $(this).on('click', function () {
+        $(this).on('click', function() {
             removeToast($toast);
         });
     });
 
     if (duration > 0) {
-        setTimeout(function () {
+        setTimeout(function() {
             removeToast($toast);
         }, duration);
     }
 }
 
-$(function () {
+$(function() {
     if ($("#managePermissionsPage").length) {
         buildRolePills();
         selectRole('SuperAdmin');
     }
 });
-
 
 
 
@@ -1501,7 +1477,7 @@ var LogsPage = {
         date: ''
     },
 
-    fetch: function () {
+    fetch: function() {
         $('#mzPageLoader').addClass('show');
 
         $.ajax({
@@ -1509,7 +1485,7 @@ var LogsPage = {
             method: 'GET',
             data: LogsPage.state,
 
-            success: function (response) {
+            success: function(response) {
                 var $res = $(response);
 
                 var newBody = $res.find('tbody').html();
@@ -1534,22 +1510,21 @@ var LogsPage = {
 
                 renderPagination();
                 LogsPage.updateResultsInfo();
-                LogsPage.bindRowsPerPage();
 
                 history.pushState(null, '', '/Logs?' + $.param(LogsPage.state));
             },
 
-            error: function () {
+            error: function() {
                 showToast({ type: 'danger', title: 'Error', message: 'Logs load karne mein error aaya.' });
             },
 
-            complete: function () {
+            complete: function() {
                 $('#mzPageLoader').removeClass('show');
             }
         });
     },
 
-    applyFilters: function () {
+    applyFilters: function() {
         LogsPage.state.search = $('input[name="search"]').val();
         LogsPage.state.module = $('select[name="module"]').val();
         LogsPage.state.actionType = $('select[name="actionType"]').val();
@@ -1560,15 +1535,11 @@ var LogsPage = {
         LogsPage.fetch();
     },
 
-    bindRowsPerPage: function () {
-        $('#rowsPerPage').off('change').on('change', function () {
-            LogsPage.state.size = $(this).val();
-            LogsPage.state.page = 1;
-            LogsPage.fetch();
-        });
+    bindRowsPerPage: function() {
+        // Now handled by delegated event handler at document level
     },
 
-    updateResultsInfo: function () {
+    updateResultsInfo: function() {
         var showing = $('table tbody tr').length;
         var tp = parseInt($('#tableFooter').data('total-pages')) || 1;
         var total = tp * parseInt(LogsPage.state.size);
@@ -1576,7 +1547,7 @@ var LogsPage = {
         $('#resultsInfo').text('Showing ' + showing + ' of ' + total + ' logs');
     },
 
-    resetFilters: function () {
+    resetFilters: function() {
         LogsPage.state = {
             page: 1,
             size: 10,
@@ -1596,53 +1567,94 @@ var LogsPage = {
         LogsPage.fetch();
     },
 
-    init: function () {
+    init: function() {
 
         if (!$('#logPage').length) return;
 
         LogsPage.state.page = parseInt($('#tableFooter').data('current-page')) || 1;
         LogsPage.state.size = parseInt($('#tableFooter').data('page-size')) || 10;
 
-        LogsPage.bindRowsPerPage();
         LogsPage.updateResultsInfo();
 
         // NOTE: pagination click is handled by the single delegated handler above
         // Filter submit button
-        $(document).off('click.logsFilter').on('click.logsFilter', '#logPage button[type="submit"]', function (e) {
+        $(document).off('click.logsFilter').on('click.logsFilter', '#logPage button[type="submit"]', function(e) {
             e.preventDefault();
             LogsPage.applyFilters();
         });
     }
 };
 
-$(document).ready(function () {
+$(document).ready(function() {
     LogsPage.init();
 });
 
 
-// ─────────────────────────────────────────────────────────────
-// PAGINATION — single delegated handler
-// Routes by reading the current window.location.pathname so
-// Medicine/List, Branch/List, etc. never accidentally trigger
-// UsersPage or LogsPage.
-// ─────────────────────────────────────────────────────────────
-$(document).off('click.pagination').on('click.pagination', '.pagination .page-link', function (e) {
+// ═══════════════════════════════════════════════════════════════════
+// FIX: UNIFIED ROWS PER PAGE HANDLER
+// ═══════════════════════════════════════════════════════════════════
+// Single handler that detects the current page and loads only that page's data
+$(document).ready(function() {
+
+    // Single unified handler for all pages
+    $(document).off('change.rowsPerPage').on('change.rowsPerPage', '#rowsPerPage', function() {
+        var newSize = $(this).val();
+        
+        console.log('Rows per page changed to:', newSize);
+
+        // DETECT WHICH PAGE WE'RE ON
+        var isUsersPage = $('#userTableBody').length > 0;
+        var isLogsPage = $('#logPage').length > 0;
+        var isBatchPage = $('#batchTableBody').length > 0;
+        var isBatchPage = $('#batchTableBody').length > 0;
+        var isMedicinePage = $('#medicineTableBody').length > 0;
+
+        // PREVENT MULTIPLE TRIGGERS - Only one page should load
+        if (isUsersPage && !isLogsPage && !isBatchPage) {
+            console.log('→ Loading USERS page data');
+            UsersPage.state.size = newSize;
+            UsersPage.state.page = 1;
+            UsersPage.fetch();
+            return;
+        }
+
+        if (isLogsPage && !isUsersPage && !isBatchPage) {
+            console.log('→ Loading LOGS page data');
+            LogsPage.state.size = newSize;
+            LogsPage.state.page = 1;
+            LogsPage.fetch();
+            return;
+        }
+
+        if (isBatchPage && !isUsersPage && !isLogsPage) {
+            console.log('→ Loading BATCH page data');
+            BatchPage.state.size = newSize;
+            BatchPage.state.page = 1;
+            BatchPage.fetch();
+            return;
+        }
+
+        if (isMedicinePage) {
+            console.log('→ Loading BATCH page data');
+            MedicinePage.state.size = newSize;
+            MedicinePage.state.page = 1;
+            MedicinePage.fetch();
+            return;
+        }
+    });
+
+});
+
+
+$(document).off('click.pagination').on('click.pagination', '.pagination .page-link', function(e) {
     e.preventDefault();
 
-    // Skip disabled items (ellipsis dots, already-active page)
-    if ($(this).closest('.page-item').hasClass('disabled')) return;
+    var $li = $(this).closest('.page-item');
+    if ($li.hasClass('disabled') || $li.hasClass('active')) return;
 
-    var href = $(this).attr('href');
-    if (!href || href === '#') return;
-
-    // Extract page number from the link href
-    var qs = href.indexOf('?') !== -1 ? href.split('?')[1] : '';
-    var p = parseInt(new URLSearchParams(qs).get('page'));
+    var p = parseInt($(this).attr('data-page'));
     if (!p || p < 1) return;
 
-    // Route based on the CURRENT page URL — not DOM element presence.
-    // This prevents Medicine/List pagination from triggering UsersPage.fetch()
-    // just because #userTableBody happens to still be in the DOM.
     var currentPath = window.location.pathname.toLowerCase();
 
     if (currentPath.indexOf('/users') !== -1 && $('#userTableBody').length) {
@@ -1651,15 +1663,17 @@ $(document).off('click.pagination').on('click.pagination', '.pagination .page-li
     } else if (currentPath.indexOf('/logs') !== -1 && $('#logPage').length) {
         LogsPage.state.page = p;
         LogsPage.fetch();
-    } else {
-        // Generic pages (Medicine, Branch, Supplier, etc.) — follow the href normally
-        // but as an AJAX navigation so the layout stays intact
-        var url = href;
+    } else if (currentPath.indexOf('/medicine/batch') !== -1 && $('#batchTableBody').length) {
+        BatchPage.state.page = p;
+        BatchPage.fetch();
+    } else if (currentPath.indexOf('/medicine') !== -1 && $('#userTableBody').length) {
+        // medicine list or other generic table pages — re-fetch via AJAX
+        var url = window.location.pathname + '?page=' + p + '&size=' + pageSize;
         $('#mzPageLoader').addClass('show');
         $.ajax({
             url: url,
             method: 'GET',
-            success: function (response) {
+            success: function(response) {
                 var $res = $(response);
                 var title = $res.filter('title').text() || $res.find('title').text();
                 var content = $res.find('#mainContent').html();
@@ -1669,9 +1683,6 @@ $(document).off('click.pagination').on('click.pagination', '.pagination .page-li
                 history.pushState(null, title || document.title, url);
                 if (title) { document.title = title; $('.top-bar-title').text(title); }
 
-                // Re-init pagination globals from the freshly loaded footer.
-                // Use attr() not data() — jQuery.data() caches on first read and
-                // won't reflect the new value after a DOM swap.
                 if ($('#tableFooter').length) {
                     var $footer = $('#tableFooter');
                     totalPages = parseInt($footer.attr('data-total-pages')) || 1;
@@ -1680,16 +1691,14 @@ $(document).off('click.pagination').on('click.pagination', '.pagination .page-li
                     renderPagination();
                 }
 
-                // Re-init column toggles
-                $('.col-toggle').each(function () {
+                $('.col-toggle').each(function() {
                     if (!$(this).is(':checked')) $('.' + $(this).data('col')).hide();
                 });
             },
-            error: function () {
-                // Fallback: let the browser navigate normally
+            error: function() {
                 window.location.href = url;
             },
-            complete: function () {
+            complete: function() {
                 $('#mzPageLoader').removeClass('show');
             }
         });
@@ -1700,14 +1709,6 @@ $(document).off('click.pagination').on('click.pagination', '.pagination .page-li
 // ── helpers ────────────────────────────────────────────────────────────────
 function esc(s) {
     return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-function fmtDate(d) {
-    if (!d) return '—';
-    return new Date(d).toLocaleString('en-IN', {
-        day: '2-digit', month: 'short', year: 'numeric',
-        hour: '2-digit', minute: '2-digit', second: '2-digit'
-    });
 }
 
 function di(label, val, full = false) {
@@ -1843,6 +1844,23 @@ function buildDeviceBlock(ua) {
 }
 
 // ── main drawer HTML builder ─────────────────────────────────────────────────
+
+function fmtDate(dateString) {
+    if (!dateString) return '-';
+
+    const date = new Date(dateString);
+
+    if (isNaN(date)) return '-';
+
+    return date.toLocaleString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    });
+}
 function buildDrawerHTML(l) {
     return (
         `<div class="d-flex align-items-center flex-wrap gap-2 p-2 rounded mb-3"
@@ -1904,7 +1922,7 @@ function buildDrawerHTML(l) {
 }
 
 // ── drawer open ──────────────────────────────────────────────────────────────
-$(document).on("click", "tbody tr[data-log-id]", function () {
+$(document).on("click", "tbody tr[data-log-id]", function() {
     const logId = $(this).data("log-id");
 
     $("#drawerLogId").text(`#${logId}`);
@@ -1917,7 +1935,7 @@ $(document).on("click", "tbody tr[data-log-id]", function () {
     $("#drawerOverlay, #logDrawer").addClass("open");
 
     $.getJSON(`/api/get-log-by-id?LogId=${logId}`)
-        .done(function (res) {
+        .done(function(res) {
             const l = res.logs?.[0];
             if (!l) {
                 $("#drawerBody").html(`<div class="alert alert-warning m-3">No log data found.</div>`);
@@ -1925,7 +1943,7 @@ $(document).on("click", "tbody tr[data-log-id]", function () {
             }
             $("#drawerBody").html(buildDrawerHTML(l));
 
-            $("#drExportBtn").off("click").on("click", function () {
+            $("#drExportBtn").off("click").on("click", function() {
                 const blob = new Blob([JSON.stringify(l, null, 2)], { type: "application/json" });
                 const a = Object.assign(document.createElement("a"), {
                     href: URL.createObjectURL(blob),
@@ -1934,22 +1952,20 @@ $(document).on("click", "tbody tr[data-log-id]", function () {
                 a.click();
             });
         })
-        .fail(function () {
+        .fail(function() {
             $("#drawerBody").html(`<div class="alert alert-danger m-3">Failed to load log details.</div>`);
         });
 });
 
 // ── drawer close ─────────────────────────────────────────────────────────────
-$(document).on("click", ".logdrawerclosebtn, #drawerOverlay", function () {
+$(document).on("click", ".logdrawerclosebtn, #drawerOverlay", function() {
     $("#drawerOverlay, #logDrawer").removeClass("open");
 });
 
 
-
-
 /*********************************************** Medicine List **************************************************/
 
-$(document).ready(function () {
+$(document).ready(function() {
 
     function di(label, val, full) {
         return '<div class="detail-item' + (full ? ' detail-full' : '') + '">'
@@ -1969,7 +1985,7 @@ $(document).ready(function () {
     }
 
     // Close drawer
-    $(document).on('click', '.med-drawer-close-btn, #medDrawerOverlay', function () {
+    $(document).on('click', '.med-drawer-close-btn, #medDrawerOverlay', function() {
         closeMedDrawer();
     });
 
@@ -1989,13 +2005,13 @@ $(document).ready(function () {
         $.ajax({
             url: '/api/Medicine/Get?id=' + id,
             method: 'GET',
-            success: function (res) {
+            success: function(res) {
 
                 var medicine = res.records;
 
                 $('#medDrawerId').text('#' + medicine.medicineId);
 
-                $('#medExportBtn').off('click').on('click', function () {
+                $('#medExportBtn').off('click').on('click', function() {
                     exportMedJSON(medicine);
                 });
 
@@ -2052,7 +2068,7 @@ $(document).ready(function () {
                     + '</div>'
                 );
             },
-            error: function () {
+            error: function() {
                 $('#medDrawerBody').html(
                     '<div class="text-center py-5">'
                     + '<i class="bi bi-exclamation-circle fs-3 text-danger d-block mb-2"></i>'
@@ -2064,7 +2080,7 @@ $(document).ready(function () {
     }
 
     // Row click
-    $(document).on('click', 'tr.med-row', function (e) {
+    $(document).on('click', 'tr.med-row', function(e) {
 
         if ($(e.target).closest('button, a').length) return;
 
@@ -2074,7 +2090,7 @@ $(document).ready(function () {
         openMedDrawer(id);
     });
 
-    $(document).on('click', '.medicineViewBtn', function () {
+    $(document).on('click', '.medicineViewBtn', function() {
         const id = $(this).data('id');
 
         console.log('Medicine ID:', id);
@@ -2115,3 +2131,139 @@ $(document).ready(function () {
     }
 
 });
+
+var MedicinePage = {
+        state: {
+            page: 1, size: 10
+        },
+
+        fetch: function() {
+            $('#mzPageLoader').addClass('show');
+            $.ajax({
+                url: '/Medicine/List',
+                method: 'GET',
+                data: MedicinePage.state,
+                success: function(response) {
+                    var $res = $(response);
+
+                    var newBody = $res.find('#medicineTableBody').html();
+                    if (newBody) $('#medicineTableBody').html(newBody);
+
+                    var $newFooter = $res.find('#tableFooter');
+                    if ($newFooter.length) {
+                        $('#tableFooter')
+                            .attr('data-total-pages', $newFooter.attr('data-total-pages'))
+                            .attr('data-current-page', $newFooter.attr('data-current-page'))
+                            .attr('data-page-size', $newFooter.attr('data-page-size'));
+                    }
+
+                    var newStats = $res.find('#statCards').html();
+                    if (newStats) $('#statCards').html(newStats);
+
+                    totalPages = parseInt($('#tableFooter').attr('data-total-pages')) || 1;
+                    currentPage = MedicinePage.state.page;
+                    pageSize = parseInt(MedicinePage.state.size);
+
+                    renderPagination();
+                    MedicinePage.updateResultsInfo();
+
+                    history.pushState(null, '', '/Medicine/List?' + $.param(MedicinePage.state));
+                },
+                error: function() {
+                    showToast({ type: 'danger', title: 'Error', message: 'Medicines load karne mein error aaya.' });
+                },
+                complete: function() {
+                    $('#mzPageLoader').removeClass('show');
+                }
+            });
+        },
+
+        updateResultsInfo: function() {
+            var showing = $('#medicineTableBody tr').length;
+            var tp = parseInt($('#tableFooter').attr('data-total-pages')) || 1;
+            var total = tp * parseInt(MedicinePage.state.size);
+            $('#resultsInfo').text('Showing ' + showing + ' of ' + total + ' medicines');
+        },
+
+        resetFilters: function() {
+            MedicinePage.state = { page: 1, size: 10 };
+            MedicinePage.fetch();
+        },
+
+        init: function() {
+            MedicinePage.state.page = parseInt($('#tableFooter').attr('data-current-page')) || 1;
+            MedicinePage.state.size = parseInt($('#tableFooter').attr('data-page-size')) || 10;
+            MedicinePage.updateResultsInfo();
+        }
+    };
+
+/********************************************Batch List************************************ */
+
+var BatchPage = {
+    state: {
+        page: 1, size: 10
+    },
+
+    fetch: function() {
+        $('#mzPageLoader').addClass('show');
+        $.ajax({
+            url: '/Medicine/Batch/List',
+            method: 'GET',
+            data: BatchPage.state,
+            success: function(response) {
+                var $res = $(response);
+
+                var newBody = $res.find('#batchTableBody').html();
+                if (newBody) $('#batchTableBody').html(newBody);
+
+                var $newFooter = $res.find('#tableFooter');
+                if ($newFooter.length) {
+                    $('#tableFooter')
+                        .attr('data-total-pages', $newFooter.attr('data-total-pages'))
+                        .attr('data-current-page', $newFooter.attr('data-current-page'))
+                        .attr('data-page-size', $newFooter.attr('data-page-size'));
+                }
+
+                var newStats = $res.find('#statCards').html();
+                if (newStats) $('#statCards').html(newStats);
+
+                totalPages = parseInt($('#tableFooter').attr('data-total-pages')) || 1;
+                currentPage = BatchPage.state.page;
+                pageSize = parseInt(BatchPage.state.size);
+
+                renderPagination();
+                BatchPage.updateResultsInfo();
+
+                history.pushState(null, '', '/Medicine/Batch/List?' + $.param(BatchPage.state));
+            },
+            error: function() {
+                showToast({ type: 'danger', title: 'Error', message: 'Batches load karne mein error aaya.' });
+            },
+            complete: function() {
+                $('#mzPageLoader').removeClass('show');
+            }
+        });
+    },
+
+    bindRowsPerPage: function() {
+        // Now handled by delegated event handler at document level
+    },
+
+    updateResultsInfo: function() {
+        var showing = $('#batchTableBody tr').length;
+        var tp = parseInt($('#tableFooter').attr('data-total-pages')) || 1;
+        var total = tp * parseInt(BatchPage.state.size);
+        $('#resultsInfo').text('Showing ' + showing + ' of ' + total + ' batches');
+    },
+
+    resetFilters: function() {
+        BatchPage.state = { page: 1, size: 10 };
+        BatchPage.fetch();
+    },
+
+    init: function() {
+        BatchPage.state.page = parseInt($('#tableFooter').attr('data-current-page')) || 1;
+        BatchPage.state.size = parseInt($('#tableFooter').attr('data-page-size')) || 10;
+        BatchPage.updateResultsInfo();
+    }
+};

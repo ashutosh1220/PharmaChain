@@ -25,6 +25,8 @@ namespace PharmaChain.Web.ApiController
         private readonly ILogService _logService;
         private readonly IMedicineService _medicineService;
         private readonly ISupplierService _supplierService;
+        private readonly IBatchService _batchService;
+        private readonly IPurchaseStockService _purchaseStockService;
 
         public BackendApiController(IPharmaChainDbContext context,
             IAuthService authService, IOtpService otpService,
@@ -33,7 +35,9 @@ namespace PharmaChain.Web.ApiController
             IJwtService jwtService,
             ILogService logService,
             IMedicineService medicineService,
-            ISupplierService supplierService
+            ISupplierService supplierService,
+            IBatchService batchService,
+            IPurchaseStockService purchaseStockService
             )
         {
             _context = context;
@@ -46,6 +50,8 @@ namespace PharmaChain.Web.ApiController
             _logService = logService;
             _medicineService = medicineService;
             _supplierService = supplierService;
+            _batchService = batchService;
+            _purchaseStockService = purchaseStockService;
         }
 
         [HttpGet]
@@ -582,6 +588,146 @@ namespace PharmaChain.Web.ApiController
                 return BadRequest(result);
 
             return Ok(result);
+        }
+
+        [HttpPost("Supplier/Update")]
+        public async Task<IActionResult> UpdateSupplier([FromForm] CreateSupplierRequest request)
+        {
+            var result = await _supplierService.UpdateSupplierAsync(request);
+
+            if (!result.Success)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+        [HttpGet("Suppliers/List")]
+        public async Task<IActionResult> GetSuppliers(int page = 1, int size = 10)
+        {
+            var result = await _supplierService.GetSuppliersAsync(page, size);
+
+            if (!result.Success)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+        /*************************************** Batch ***********************************************/
+
+        [HttpPost("Batch/Create")]
+        public async Task<IActionResult> CreateBatch([FromForm] MedicineBatchRequest request)
+        {
+            if (!string.IsNullOrEmpty(request.BatchId))
+                return BadRequest(new { success = false, message = "BatchId should not be provided for new batch" });
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                                       .SelectMany(v => v.Errors)
+                                       .Select(e => e.ErrorMessage)
+                                       .ToList();
+
+                return new JsonResult(new { success = false, message = string.Join(", ", errors) });
+            }
+
+            var result = await _batchService.CreateBatch(request);
+
+            if (!result.Success)
+                return BadRequest(new {Messege = "Failed to create batch!", Err = result});
+
+            return Ok(result);
+        }
+
+        [HttpPost("Batch/Update")]
+        public async Task<IActionResult> UpdateBatch([FromForm] MedicineBatchRequest request)
+        {
+            var result = await _batchService.UpdateBatch(request);
+
+            if (!result.Success)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+        [HttpDelete("Batch/Delete")]
+        public async Task<IActionResult> DeleteBatch(string id)
+        {
+            var result = await _batchService.DeleteBatch(id);
+
+            if (!result.Success)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
+        [HttpGet("Batch/GetAll")]
+        public async Task<IActionResult> GetBatches(int page = 1, int size = 10)
+        {
+            var result = await _batchService.GetBatchesAsync(page, size);
+
+            if (!result.Success)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+        [HttpGet("Batch/GetById")]
+        public async Task<IActionResult> GetBatchById(string id)
+        {
+            var result = await _batchService.GetBatchByIdAsync(id);
+
+            if (!result.Success)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
+        /********************************* Purchase Stock *******************************************/
+        [HttpPost("PurchaseInvoice/Create")]
+        public async Task<IActionResult> CreatePurchaseInvoice([FromForm] PurchaseEntryDto request)
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(request.PurchaseInvoiceId))
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "PurchaseInvoiceId should not be provided for new invoice"
+                    });
+
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                                           .SelectMany(v => v.Errors)
+                                           .Select(e => e.ErrorMessage)
+                                           .ToList();
+
+                    return new JsonResult(new
+                    {
+                        success = false,
+                        message = string.Join(", ", errors)
+                    });
+                }
+
+                var result = await _purchaseStockService.CreatePurchaseInvoice(request);
+
+                if (!result.Success)
+                    return BadRequest(new
+                    {
+                        Messege = "Failed to create purchase invoice!",
+                        Err = result
+                    });
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Something went wrong while creating purchase invoice.",
+                    error = ex.InnerException?.Message ?? ex.Message
+                });
+            }
         }
     }
 }
