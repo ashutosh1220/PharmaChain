@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using MimeKit;
 using PharmaChain.Application.DTOs;
 using PharmaChain.Application.Interfaces;
-using PharmaChain.Infrastructure.BackendServices;
 using PharmaChain.Infrastructure.Models;
 using static PharmaChain.Application.DTOs.SupplierRequest;
 
@@ -27,6 +26,7 @@ namespace PharmaChain.Web.ApiController
         private readonly ISupplierService _supplierService;
         private readonly IBatchService _batchService;
         private readonly IPurchaseStockService _purchaseStockService;
+        private readonly ILogger<BackendApiController> _logger;
 
         public BackendApiController(IPharmaChainDbContext context,
             IAuthService authService, IOtpService otpService,
@@ -37,7 +37,8 @@ namespace PharmaChain.Web.ApiController
             IMedicineService medicineService,
             ISupplierService supplierService,
             IBatchService batchService,
-            IPurchaseStockService purchaseStockService
+            IPurchaseStockService purchaseStockService,
+            ILogger<BackendApiController> logger
             )
         {
             _context = context;
@@ -52,6 +53,7 @@ namespace PharmaChain.Web.ApiController
             _supplierService = supplierService;
             _batchService = batchService;
             _purchaseStockService = purchaseStockService;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -726,6 +728,148 @@ namespace PharmaChain.Web.ApiController
                     success = false,
                     message = "Something went wrong while creating purchase invoice.",
                     error = ex.InnerException?.Message ?? ex.Message
+                });
+            }
+        }
+
+
+
+
+
+
+
+        [HttpGet("Batch/Report")]
+        [Produces("application/json")]
+        public async Task<IActionResult> BatchDetail(string? id)
+        {
+            try
+            {
+                // 1. Validate input
+                if (string.IsNullOrWhiteSpace(id))
+                {
+                    _logger.LogWarning("BatchDetail requested with null or empty ID");
+
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Batch ID is required."
+                    });
+                }
+
+                // 2. Fetch data with joins
+                var batch = await (
+                    from b in _context.MedicineBatches
+                    join m in _context.Medicines
+                        on b.MedicineId equals m.MedicineId
+                    where b.BatchId == id
+                    select new
+                    {
+                        b.BatchId,
+                        b.BatchNumber,
+                        b.GrnNumber,
+
+                        m.MedicineId,
+                        m.MedicineName,
+                        m.GenericName,
+                        m.Category,
+                        m.Strength,
+                        m.Manufacturer,
+                        m.IsPrescriptionRequired,
+                        m.HsnCode,
+                        m.GstPercentage,
+
+                        b.BranchId,
+                        b.SupplierId,
+                        b.MfgDate,
+                        b.ExpDate,
+                        b.TotalStockReceived,
+                        b.UnitPurchasePrice,
+                        b.UnitSellingPrice,
+                        b.CreatedBy,
+                        b.CreatedAt
+                    }
+                ).FirstOrDefaultAsync();
+
+                if (batch == null)
+                {
+                    _logger.LogWarning("Batch not found with ID: {BatchId}", id);
+
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = "Batch not found."
+                    });
+                }
+
+                // 4. Calculate days left (FIXED DateOnly issue)
+                var today = DateTime.Today;
+
+                var expDateTime = batch.ExpDate.ToDateTime(TimeOnly.MinValue);
+
+                var daysLeft = (expDateTime - today).Days;
+
+                var status = daysLeft < 0 ? "Expired"
+                           : daysLeft <= 90 ? "Soon"
+                           : "Good";
+
+                var response = new
+                {
+                    success = true,
+
+                    batchId = batch.BatchId,
+                    batchNumber = batch.BatchNumber ?? "—",
+                    grnNumber = batch.GrnNumber ?? "—",
+
+                    medicineId = batch.MedicineId,
+                    medicineName = batch.MedicineName ?? "—",
+                    genericName = batch.GenericName ?? "—",
+                    category = batch.Category ?? "—",
+                    strength = batch.Strength ?? "—",
+                    manufacturer = batch.Manufacturer ?? "—",
+
+                    branchId = batch.BranchId?.ToString() ?? "—",
+                    supplierId = batch.SupplierId?.ToString() ?? "—",
+
+                    mfgDate = batch.MfgDate.ToString("dd MMM yyyy"),
+                    expDate = batch.ExpDate.ToString("dd MMM yyyy"),
+
+                    DaysLeft = daysLeft,
+                    Status = status,
+
+                    totalStockReceived = batch.TotalStockReceived,
+
+                    unitPurchasePrice = decimal.Round(batch.UnitPurchasePrice, 2),
+                    unitSellingPrice = decimal.Round(batch.UnitSellingPrice, 2),
+
+                    isPrescriptionRequired = batch.IsPrescriptionRequired,
+
+                    hsnCode = batch.HsnCode ?? "—",
+                    gstPercentage = batch.GstPercentage ?? 0m, 
+
+                    createdBy = batch.CreatedBy ?? "System",
+                    createdAt = batch.CreatedAt.ToString("dd MMM yyyy, hh:mm tt")
+                };
+
+                return Ok(response);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogError(ex, "Invalid operation in BatchDetail");
+
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while retrieving batch details."
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error in BatchDetail");
+
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An unexpected error occurred while retrieving batch details."
                 });
             }
         }

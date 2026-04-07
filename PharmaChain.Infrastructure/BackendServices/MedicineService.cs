@@ -416,7 +416,7 @@ namespace PharmaChain.Infrastructure.BackendServices
                         IsPrescriptionRequired = x.IsPrescriptionRequired,
                         MinimumStockLevel = x.MinimumStockLevel,
                         HsnCode = x.HsnCode,
-                        GstPercentage = x.GstPercentage,
+                        GstPercentage = x.GstPercentage ?? 0m,
                         IsActive = x.IsActive,
                         CreatedAt = x.CreatedAt
                     })
@@ -481,7 +481,7 @@ namespace PharmaChain.Infrastructure.BackendServices
                     IsPrescriptionRequired = entity.IsPrescriptionRequired,
                     MinimumStockLevel = entity.MinimumStockLevel,
                     HsnCode = entity.HsnCode,
-                    GstPercentage = entity.GstPercentage,
+                    GstPercentage = entity.GstPercentage ?? 0m,
                     IsActive = entity.IsActive,
                     CreatedAt = entity.CreatedAt,
                     UpdatedAt = entity.UpdatedAt,

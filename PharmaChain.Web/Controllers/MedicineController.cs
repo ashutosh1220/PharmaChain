@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using PharmaChain.Application.DTOs;
 using PharmaChain.Application.Interfaces;
 using System.Security.Claims;
-using Microsoft.EntityFrameworkCore;
 
 namespace PharmaChain.Web.Controllers
 {
@@ -16,13 +17,15 @@ namespace PharmaChain.Web.Controllers
         private ILogService _logService;
         private readonly IMedicineService _medicineService;
         private readonly IBatchService _batchService;
+        private readonly ILogger<MedicineController> _logger;
         public MedicineController(IUserService userService,
             IPermissionService permissionService,
             IBranchService branchService,
             IPharmaChainDbContext context,
             ILogService logService,
             IMedicineService medicineService,
-            IBatchService batchService)
+            IBatchService batchService,
+            ILogger<MedicineController> logger)
         {
             _userService = userService;
             _permissionService = permissionService;
@@ -31,6 +34,7 @@ namespace PharmaChain.Web.Controllers
             _logService = logService;
             _medicineService = medicineService;
             _batchService = batchService;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -202,7 +206,120 @@ namespace PharmaChain.Web.Controllers
             ViewBag.Role = role;
             ViewBag.Permissions = permissions;
 
-            return View("BatchList");
+            return View();
+        }
+
+        [HttpGet]
+        [Route("Batch/Expiry/Report")]
+        public async Task<IActionResult> ExpiryTracker(int page = 1, int size = 10)
+        {
+            try
+            {
+                var today = DateOnly.FromDateTime(DateTime.Today);
+                var next90 = today.AddDays(90);
+
+                var query = from b in _context.MedicineBatches
+                            join m in _context.Medicines
+                                on b.MedicineId equals m.MedicineId
+                            join br in _context.Branches
+                                on b.BranchId equals br.BranchId into brg
+                            from br in brg.DefaultIfEmpty()
+                            join s in _context.Suppliers
+                                on b.SupplierId equals s.SupplierId into sg
+                            from s in sg.DefaultIfEmpty()
+                            select new ExpiryBatchRequest
+                            {
+                                BatchId = b.BatchId,
+                                BatchNumber = b.BatchNumber,
+                                GrnNumber = b.GrnNumber,
+
+                                MedicineId = m.MedicineId,
+                                MedicineName = m.MedicineName,
+                                GenericName = m.GenericName,
+                                Category = m.Category,
+
+                                Strength = m.Strength,
+                                Manufacturer = m.Manufacturer,
+
+                                BranchId = b.BranchId,
+                                BranchName = br != null ? br.BranchName : "—",
+
+                                SupplierId = b.SupplierId,
+                                SupplierName = s != null ? s.SupplierName : "—",
+
+                                MfgDate = b.MfgDate,
+                                ExpDate = b.ExpDate,
+
+                                TotalStockReceived = b.TotalStockReceived,
+
+                                UnitPurchasePrice = b.UnitPurchasePrice,
+                                UnitSellingPrice = b.UnitSellingPrice,
+
+                                IsPrescriptionRequired = m.IsPrescriptionRequired,
+
+                                HsnCode = m.HsnCode,
+                                GstPercentage = m.GstPercentage ?? 0m, //
+
+                                CreatedBy = b.CreatedBy,
+                                CreatedAt = b.CreatedAt
+                            };
+
+                var totalBatches = await query.CountAsync();
+
+                var records = await query
+                    .OrderBy(x => x.ExpDate)
+                    .Skip((page - 1) * size)
+                    .Take(size)
+                    .ToListAsync();
+
+                // Status grouping
+                var expired = records.Where(b => b.ExpDate < today).ToList();
+                var expiringSoon = records.Where(b => b.ExpDate >= today && b.ExpDate <= next90).ToList();
+                var good = records.Where(b => b.ExpDate > next90).ToList();
+
+                // Stats
+                ViewBag.TotalBatches = totalBatches;
+                ViewBag.ExpiredCount = expired.Count;
+                ViewBag.ExpiringSoonCount = expiringSoon.Count;
+                ViewBag.GoodCount = good.Count;
+
+                // Paging
+                ViewBag.Batches = records;
+                ViewBag.page = page;
+                ViewBag.size = size;
+                ViewBag.TotalPages = (int)Math.Ceiling((double)totalBatches / size);
+
+                ViewBag.Branches = records
+                    .Select(b => new { b.BranchId, b.BranchName })
+                    .Distinct()
+                    .ToList();
+
+                ViewBag.Categories = records
+                    .Select(b => b.Category)
+                    .Where(c => !string.IsNullOrEmpty(c))
+                    .Distinct()
+                    .OrderBy(c => c)
+                    .ToList();
+
+                var username = User.FindFirst(ClaimTypes.Name)?.Value;
+                var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+                var permissions = string.IsNullOrEmpty(role)
+                    ? new List<PermissionResponse>()
+                    : await _permissionService.GetAllPermissionsForRolesAsync(role);
+
+                ViewBag.Username = username;
+                ViewBag.Role = role;
+                ViewBag.Permissions = permissions;
+
+                return View();
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Something went wrong while loading expiry list.";
+                _logger.LogError(ex, "Error in ExpiryList");
+                return View("Error");
+            }
         }
     }
 }

@@ -4318,83 +4318,64 @@ body {
     }
 }
 
-/* ── Log Drawer Scrollbar ───────────────────────────────────────────────── */
+/* ── Log Drawer Scrollbar ───────────────────────────────────────────── */
+
+/* Ensure it scrolls */
+.log-drawer {
+    overflow-y: auto;
+}
 
 /* Firefox */
-#logDrawer {
+.log-drawer {
     scrollbar-width: thin;
     scrollbar-color: #495057 transparent;
 }
 
     /* Chrome / Edge / Safari */
-    #logDrawer::-webkit-scrollbar {
+    .log-drawer::-webkit-scrollbar {
         width: 5px;
     }
 
-    #logDrawer::-webkit-scrollbar-track {
+    .log-drawer::-webkit-scrollbar-track {
         background: transparent;
     }
 
-    #logDrawer::-webkit-scrollbar-thumb {
+    .log-drawer::-webkit-scrollbar-thumb {
         background-color: #495057;
         border-radius: 10px;
     }
 
-        #logDrawer::-webkit-scrollbar-thumb:hover {
-            background-color: #343a40;
-        }
-
-/* drawer body bhi scroll hoti ho toh */
-#drawerBody {
-    scrollbar-width: thin;
-    scrollbar-color: #495057 transparent;
-}
-
-    #drawerBody::-webkit-scrollbar {
-        width: 5px;
-    }
-
-    #drawerBody::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    #drawerBody::-webkit-scrollbar-thumb {
-        background-color: #495057;
-        border-radius: 10px;
-    }
-
-        #drawerBody::-webkit-scrollbar-thumb:hover {
+        .log-drawer::-webkit-scrollbar-thumb:hover {
             background-color: #343a40;
         }
 
 /* Light mode */
-[data-bs-theme="light"] #logDrawer,
-[data-bs-theme="light"] #drawerBody {
+[data-bs-theme="light"] .log-drawer {
     scrollbar-color: #adb5bd transparent;
 }
 
-    [data-bs-theme="light"] #logDrawer::-webkit-scrollbar-thumb,
-    [data-bs-theme="light"] #drawerBody::-webkit-scrollbar-thumb {
+    [data-bs-theme="light"] .log-drawer::-webkit-scrollbar-thumb {
         background-color: #adb5bd;
     }
 
-        [data-bs-theme="light"] #logDrawer::-webkit-scrollbar-thumb:hover,
-        [data-bs-theme="light"] #drawerBody::-webkit-scrollbar-thumb:hover {
+        [data-bs-theme="light"] .log-drawer::-webkit-scrollbar-thumb:hover {
             background-color: #6c757d;
         }
 
 /* Dark mode */
-[data-bs-theme="dark"] #logDrawer,
-[data-bs-theme="dark"] #drawerBody {
+[data-bs-theme="dark"] .log-drawer {
     scrollbar-color: #495057 transparent;
 }
 
-    [data-bs-theme="dark"] #logDrawer::-webkit-scrollbar-thumb,
-    [data-bs-theme="dark"] #drawerBody::-webkit-scrollbar-thumb {
+    [data-bs-theme="dark"] .log-drawer::-webkit-scrollbar-thumb {
         background-color: #495057;
     }
 
-        [data-bs-theme="dark"] #logDrawer::-webkit-scrollbar-thumb:hover,
-        [data-bs-theme="dark"] #drawerBody::-webkit-scrollbar-thumb:hover {
+        [data-bs-theme="dark"] .log-drawer::-webkit-scrollbar-thumb:hover {
             background-color: #343a40;
         }
+
+.log-drawer::-webkit-scrollbar-thumb {
+    background: rgba(73, 80, 87, 0.7);
+    backdrop-filter: blur(4px);
+}

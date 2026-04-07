@@ -20,7 +20,7 @@ public partial class Medicine
 
     public string? HsnCode { get; set; }
 
-    public decimal GstPercentage { get; set; }
+    public decimal? GstPercentage { get; set; }
 
     public bool IsActive { get; set; }
 

@@ -1,0 +1,1032 @@
+﻿@{
+    ViewData["Title"] = "Pharma Chain - Expiry Tracker";
+    Layout = "~/Views/Shared/_adminDashboard.cshtml";
+}
+
+@{
+    int currentPage = ViewBag.page ?? 1;
+    int totalPages  = ViewBag.TotalPages ?? 1;
+    int CurrentPageSize = ViewBag.size ?? 10;
+}
+
+<div class="drawer-overlay" id="expDrawerOverlay"></div>
+
+<div class="log-drawer" id="expDrawer">
+    <div class="drawer-head">
+        <span class="live-dot"></span>
+        <h6>Batch Detail</h6>
+        <span class="badge bg-success bg-opacity-10 text-success" id="expDrawerId" style="font-size:10.5px;">#—</span>
+        <button class="drawer-close exp-drawer-close-btn"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="drawer-body" id="expDrawerBody"></div>
+    <div class="drawer-foot">
+        <button class="btn btn-outline-secondary btn-sm exp-drawer-close-btn">
+            <i class="bi bi-x me-1"></i> Close
+        </button>
+        <button class="btn btn-primary btn-sm" id="expExportBtn" hidden>
+            <i class="bi bi-download me-1"></i> Export JSON
+        </button>
+    </div>
+</div>
+
+<div class="page-heading">
+    <div class="page-title">
+        <div class="row">
+            <div class="col-12 col-md-6 order-md-1 order-last">
+                <h3>Expiry Tracker</h3>
+                <p class="text-subtitle text-muted">
+                    Monitor medicine batch expiry, flag near-expiry and expired stock.
+                </p>
+            </div>
+            <div class="col-12 col-md-6 order-md-2 order-first">
+                <nav aria-label="breadcrumb" class="breadcrumb-header float-start float-lg-end">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Expiry Tracker</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Stat Cards ── -->
+    <section class="row stats-row mb-3" id="statCards">
+        <div class="col-6 col-lg-2 col-md-6">
+            <div class="card" style="cursor:pointer;" onclick="etFilterByStatus('All')" id="card-All">
+                <div class="card-body px-3 py-3">
+                    <div class="row">
+                        <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start">
+                            <div class="stats-icon blue mb-2">
+                                <i class="bi bi-boxes"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                            <h6 class="text-muted font-semibold">Total Batches</h6>
+                            <h6 class="font-extrabold mb-0" id="etCountAll">@ViewBag.TotalBatches</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2 col-md-6">
+            <div class="card" style="cursor:pointer;" onclick="etFilterByStatus('Expired')" id="card-Expired">
+                <div class="card-body px-3 py-3">
+                    <div class="row">
+                        <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start">
+                            <div class="stats-icon red mb-2">
+                                <i class="bi bi-x-circle-fill"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                            <h6 class="text-muted font-semibold">Expired</h6>
+                            <h6 class="font-extrabold mb-0" id="etCountExpired">@ViewBag.ExpiredCount</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2 col-md-6">
+            <div class="card" style="cursor:pointer;" onclick="etFilterByStatus('Soon')" id="card-Soon">
+                <div class="card-body px-3 py-3">
+                    <div class="row">
+                        <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start">
+                            <div class="stats-icon yellow mb-2">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                            <h6 class="text-muted font-semibold">Expiring Soon</h6>
+                            <h6 class="font-extrabold mb-0" id="etCountSoon">@ViewBag.ExpiringSoonCount</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2 col-md-6">
+            <div class="card" style="cursor:pointer;" onclick="etFilterByStatus('Good')" id="card-Good">
+                <div class="card-body px-3 py-3">
+                    <div class="row">
+                        <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start">
+                            <div class="stats-icon green mb-2">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                            <h6 class="text-muted font-semibold">Good Stock</h6>
+                            <h6 class="font-extrabold mb-0" id="etCountGood">@ViewBag.GoodCount</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<section class="section">
+    <div class="card">
+
+        <!-- Card Header -->
+        <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2"
+             style="position: relative;">
+            <span class="live-dot"></span>
+            <h4 class="card-title mb-0" style="position: absolute; left: 30px;">
+                Batch Expiry Records -
+            </h4>
+            <span class="badge bg-primary bg-opacity-10 text-primary"
+                  id="etResultCount"
+                  style="font-size:11px; font-weight:600; position: absolute; left: 170px;">— records</span>
+            <!-- Right-side header actions -->
+            <div class="ms-auto d-flex gap-2">
+                <select class="form-select form-select-sm" id="etWindowSelect"
+                        style="width:auto;" onchange="etApplyFilters()">
+                    <option value="30">Within 30 days</option>
+                    <option value="60">Within 60 days</option>
+                    <option value="90">Within 90 days</option>
+                    <option value="180">Within 180 days</option>
+                    <option value="0" selected>All Batches</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card-body">
+
+            <!-- ── Toolbar ── -->
+            <div class="row mb-3 g-2 align-items-center">
+
+                <!-- Search -->
+                <div class="col-12 col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" id="etSearchInput" class="form-control"
+                               placeholder="Search medicine, batch no., GRN…"
+                               oninput="etApplyFilters()" />
+                    </div>
+                </div>
+
+                <!-- Branch Filter -->
+                <div class="col-6 col-md-2">
+                    <select id="etFilterBranch" class="form-select" onchange="etApplyFilters()">
+                        <option value="">All Branches</option>
+                        @foreach (var branch in ViewBag.Branches ?? new List<dynamic>())
+                        {
+                            <option value="@branch.BranchId">@branch.BranchName</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Category Filter -->
+                <div class="col-6 col-md-2">
+                    <select id="etFilterCategory" class="form-select" onchange="etApplyFilters()">
+                        <option value="">All Categories</option>
+                        @foreach (var cat in ViewBag.Categories ?? new List<string>())
+                        {
+                            <option value="@cat">@cat</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Sort -->
+                <div class="col-6 col-md-2">
+                    <select id="etSortField" class="form-select" onchange="etApplyFilters()">
+                        <option value="expDate_asc">Exp Date ↑ Soonest</option>
+                        <option value="expDate_desc">Exp Date ↓ Latest</option>
+                        <option value="name_asc">Name A→Z</option>
+                        <option value="daysLeft_asc">Days Left ↑</option>
+                    </select>
+                </div>
+
+                <!-- Right buttons -->
+                <div class="col-6 col-md-2 d-flex gap-2 justify-content-end">
+
+                    <!-- Column toggle -->
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false" title="Toggle Columns">
+                            <i class="bi bi-layout-three-columns"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end p-2" style="min-width:170px;">
+                            <li class="px-1 py-1">
+                                <label class="col-toggle-label">
+                                    <input type="checkbox" class="form-check-input et-col-toggle"
+                                           data-col="etColGeneric" checked> Generic Name
+                                </label>
+                            </li>
+                            <li class="px-1 py-1">
+                                <label class="col-toggle-label">
+                                    <input type="checkbox" class="form-check-input et-col-toggle"
+                                           data-col="etColMfg" checked> Mfg Date
+                                </label>
+                            </li>
+                            <li class="px-1 py-1">
+                                <label class="col-toggle-label">
+                                    <input type="checkbox" class="form-check-input et-col-toggle"
+                                           data-col="etColGrn" checked> GRN
+                                </label>
+                            </li>
+                            <li class="px-1 py-1">
+                                <label class="col-toggle-label">
+                                    <input type="checkbox" class="form-check-input et-col-toggle"
+                                           data-col="etColSupplier"> Supplier
+                                </label>
+                            </li>
+                            <li class="px-1 py-1">
+                                <label class="col-toggle-label">
+                                    <input type="checkbox" class="form-check-input et-col-toggle"
+                                           data-col="etColPrice"> Unit Price
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Export -->
+                    <button class="btn btn-outline-success btn-sm" onclick="etExportExcel()" title="Export Excel">
+                        <i class="bi bi-download"></i>
+                    </button>
+
+                    <!-- Reset -->
+                    <button class="btn btn-outline-secondary btn-sm" onclick="etResetFilters()" title="Reset Filters">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── Table ── -->
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0" id="etTable">
+                    <thead>
+                        <tr>
+                            <th style="width:40px;">
+                                <input type="checkbox" class="form-check-input" id="etSelectAll"
+                                       onchange="etToggleSelectAll(this)">
+                            </th>
+                            <th class="sortable" onclick="etSortByCol('name')"
+                                style="cursor:pointer; white-space:nowrap;">
+                                Medicine <i class="bi bi-chevron-expand text-muted ms-1" style="font-size:0.7rem;"></i>
+                            </th>
+                            <th class="etColGeneric sortable" onclick="etSortByCol('generic')"
+                                style="cursor:pointer; white-space:nowrap;">
+                                Generic Name <i class="bi bi-chevron-expand text-muted ms-1" style="font-size:0.7rem;"></i>
+                            </th>
+                            <th class="sortable" onclick="etSortByCol('batch')"
+                                style="cursor:pointer; white-space:nowrap;">
+                                Batch No. <i class="bi bi-chevron-expand text-muted ms-1" style="font-size:0.7rem;"></i>
+                            </th>
+                            <th class="etColGrn sortable" onclick="etSortByCol('grn')"
+                                style="cursor:pointer; white-space:nowrap;">
+                                GRN <i class="bi bi-chevron-expand text-muted ms-1" style="font-size:0.7rem;"></i>
+                            </th>
+                            <th class="etColMfg sortable" onclick="etSortByCol('mfg')"
+                                style="cursor:pointer; white-space:nowrap;">
+                                Mfg Date <i class="bi bi-chevron-expand text-muted ms-1" style="font-size:0.7rem;"></i>
+                            </th>
+                            <th class="sortable" onclick="etSortByCol('exp')"
+                                style="cursor:pointer; white-space:nowrap;">
+                                Exp Date <i class="bi bi-chevron-expand text-muted ms-1" style="font-size:0.7rem;"></i>
+                            </th>
+                            <th class="sortable" onclick="etSortByCol('days')"
+                                style="cursor:pointer; white-space:nowrap;">
+                                Days Left <i class="bi bi-chevron-expand text-muted ms-1" style="font-size:0.7rem;"></i>
+                            </th>
+                            <th class="sortable" onclick="etSortByCol('stock')"
+                                style="cursor:pointer; white-space:nowrap;">
+                                Stock Qty <i class="bi bi-chevron-expand text-muted ms-1" style="font-size:0.7rem;"></i>
+                            </th>
+                            <th class="etColPrice" style="white-space:nowrap;">Unit Price</th>
+                            <th class="etColSupplier" style="white-space:nowrap;">Supplier</th>
+                            <th class="sortable" onclick="etSortByCol('status')"
+                                style="cursor:pointer; white-space:nowrap;">
+                                Status <i class="bi bi-chevron-expand text-muted ms-1" style="font-size:0.7rem;"></i>
+                            </th>
+                            <th class="text-center" style="white-space:nowrap;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="etTableBody">
+                        @foreach (var batch in ViewBag.Batches ?? new List<dynamic>())
+                        {
+                            var today = DateTime.Today;
+
+                            var expDateTime = batch.ExpDate.ToDateTime(TimeOnly.MinValue);
+                            var daysLeft = (expDateTime - today).Days;
+
+                            var status = daysLeft < 0 ? "Expired" : daysLeft <= 90 ? "Soon" : "Good";
+                            var rowClass = status == "Expired" ? "" : status == "Soon" ? "table-warning" : "";
+                            var badgeClass = status == "Expired" ? "bg-danger" : status == "Soon" ? "bg-warning text-dark" : "bg-success";
+                            var badgeText = status == "Expired" ? "Expired" : status == "Soon" ? "Expiring Soon" : "Good";
+                            var daysTxt = daysLeft < 0 ? Math.Abs(daysLeft) + "d ago" : daysLeft + " days";
+
+                            <tr class="et-row @rowClass"
+                                data-status="@status"
+                                data-days="@daysLeft"
+                                data-name="@batch.MedicineName"
+                                data-generic="@batch.GenericName"
+                                data-batch="@batch.BatchNumber"
+                                data-grn="@batch.GrnNumber"
+                                data-category="@batch.Category"
+                                data-branch="@batch.BranchId"
+                                data-expdate="@batch.ExpDate.ToString("yyyy-MM-dd")"
+                                data-mfgdate="@batch.MfgDate.ToString("yyyy-MM-dd")"
+                                data-stock="@batch.TotalStockReceived"
+                                style="cursor:pointer;">
+                                <td>
+                                    <input type="checkbox" class="form-check-input et-row-check">
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>@batch.MedicineName</strong><br />
+                                        <small class="text-muted">@batch.MedicineId</small>
+                                    </div>
+                                </td>
+                                <td class="etColGeneric">@batch.GenericName</td>
+                                <td><code style="font-size:12px;">@batch.BatchNumber</code></td>
+                                <td class="etColGrn"><code style="font-size:12px;">@batch.GrnNumber</code></td>
+                                <td class="etColMfg">@batch.MfgDate.ToString("dd MMM yyyy")</td>
+                                <td><strong>@batch.ExpDate.ToString("dd MMM yyyy")</strong></td>
+                                <td>
+                                    @if (daysLeft < 0)
+                                    {
+                                        <span class="badge bg-danger bg-opacity-10 text-danger"
+                                              style="font-size:11px;">@daysTxt</span>
+                                    }
+                                    else if (daysLeft <= 90)
+                                    {
+                                        <span class="badge bg-warning bg-opacity-20 text-warning"
+                                              style="font-size:11px; color:#92600a !important;">@daysTxt</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-opacity-15 text-success"
+                                              style="font-size:11px;">@daysTxt</span>
+                                    }
+                                </td>
+                                <td>@batch.TotalStockReceived.ToString("N0")</td>
+                                <td class="etColPrice">₹@batch.UnitSellingPrice.ToString("N2")</td>
+                                <td class="etColSupplier">@batch.SupplierName</td>
+                                <td>
+                                    <span class="badge @badgeClass">@badgeText</span>
+                                </td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-primary px-2 py-1 et-view-btn"
+                                            title="View Detail" data-id="@batch.BatchId">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty state -->
+            <div id="etEmptyState" class="d-none text-center py-5">
+                <i class="bi bi-box-seam fs-1 text-muted d-block mb-2"></i>
+                <p class="text-muted mb-2">No batches found matching your filters.</p>
+                <button class="btn btn-sm btn-outline-secondary" onclick="etResetFilters()">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
+                </button>
+            </div>
+
+        </div>
+
+        <!-- ── Footer / Pagination ── -->
+        <div class="card-footer d-flex align-items-center justify-content-between flex-wrap gap-2"
+             id="etTableFooter"
+             data-total-pages="@ViewBag.TotalPages"
+             data-current-page="@ViewBag.page"
+             data-page-size="@ViewBag.size">
+            <div class="d-flex align-items-center gap-2">
+                <small class="text-muted" id="etResultsInfo">Showing 0 of 0 batches</small>
+                <select class="form-select form-select-sm" id="etRowsPerPage" style="width:auto;"
+                        onchange="etChangePageSize(this.value)">
+                    <option value="5" selected="@(CurrentPageSize == 100 ? "selected" : null)">100</option>
+                    <option value="10"  selected="@(CurrentPageSize == 10  ? "selected" : null)">10</option>
+                    <option value="25"  selected="@(CurrentPageSize == 25  ? "selected" : null)">25</option>
+                    <option value="50"  selected="@(CurrentPageSize == 50  ? "selected" : null)">50</option>
+                </select>
+                <small class="text-muted">per page</small>
+            </div>
+            <nav>
+                <ul class="pagination pagination-sm mb-0" id="etPagination"></ul>
+            </nav>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     JAVASCRIPT  (all identifiers prefixed et_)
+     ════════════════════════════════════════════ -->
+@section Scripts {
+<script>
+(function () {
+  "use strict";
+
+  /* ── helpers ── */
+  const $ = id => document.getElementById(id);
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  /* ── state ── */
+  let et_currentStatusFilter = "All";
+  let et_currentPage         = 1;
+  let et_pageSize            = parseInt($("etRowsPerPage").value) || 10;
+  let et_sortKey             = "expDate_asc";
+  let et_sortDir             = 1;  /* 1 = asc, -1 = desc  */
+
+  /* collect all rows once */
+  const et_allRows = Array.from(document.querySelectorAll("#etTableBody .et-row"));
+
+  /* ── stat card click ── */
+  window.etFilterByStatus = function (status) {
+    et_currentStatusFilter = status;
+    document.querySelectorAll("#statCards .card").forEach(c => c.classList.remove("border-primary"));
+    const card = $("card-" + status);
+    if (card) card.querySelector(".card").classList.add("border-primary");
+    et_currentPage = 1;
+    etApplyFilters();
+  };
+
+  /* ── column toggles ── */
+  document.querySelectorAll(".et-col-toggle").forEach(cb => {
+    /* apply initial hidden state if unchecked */
+    if (!cb.checked) etToggleCol(cb.dataset.col, false);
+    cb.addEventListener("change", () => etToggleCol(cb.dataset.col, cb.checked));
+  });
+
+  function etToggleCol(cls, show) {
+    document.querySelectorAll("." + cls).forEach(el => {
+      el.style.display = show ? "" : "none";
+    });
+  }
+
+  /* ── select-all ── */
+  window.etToggleSelectAll = function (master) {
+    document.querySelectorAll(".et-row-check").forEach(cb => {
+      const row = cb.closest("tr");
+      if (row && row.style.display !== "none") cb.checked = master.checked;
+    });
+  };
+
+  /* ── sort by column header click ── */
+  window.etSortByCol = function (key) {
+    const map = {
+      name:"name", generic:"generic", batch:"batch", grn:"grn",
+      mfg:"mfgdate", exp:"expdate", days:"days", stock:"stock", status:"status"
+    };
+    const field = map[key] || key;
+    if (et_sortKey === field) { et_sortDir *= -1; }
+    else { et_sortKey = field; et_sortDir = 1; }
+    et_currentPage = 1;
+    etApplyFilters();
+  };
+
+  /* ── main filter + sort + paginate ── */
+  window.etApplyFilters = function () {
+    const search   = $("etSearchInput").value.trim().toLowerCase();
+    const branch   = $("etFilterBranch").value;
+    const category = $("etFilterCategory").value;
+    const sortVal  = $("etSortField").value;
+    const window_  = parseInt($("etWindowSelect").value) || 0;
+
+    /* sort key from dropdown if no column header clicked */
+    if (sortVal === "expDate_asc")  { et_sortKey = "expdate"; et_sortDir =  1; }
+    if (sortVal === "expDate_desc") { et_sortKey = "expdate"; et_sortDir = -1; }
+    if (sortVal === "name_asc")     { et_sortKey = "name";    et_sortDir =  1; }
+    if (sortVal === "daysLeft_asc") { et_sortKey = "days";    et_sortDir =  1; }
+
+    let visible = et_allRows.filter(row => {
+      const d         = row.dataset;
+      const status    = d.status;                             /* "Expired"|"Soon"|"Good" */
+      const daysLeft  = parseInt(d.days);
+      const haystack  = (d.name + " " + d.generic + " " + d.batch + " " + d.grn).toLowerCase();
+
+      if (et_currentStatusFilter !== "All" && status !== et_currentStatusFilter) return false;
+      if (window_ > 0 && daysLeft > window_) return false;
+      if (branch && d.branch !== branch)     return false;
+      if (category && d.category !== category) return false;
+      if (search && !haystack.includes(search)) return false;
+      return true;
+    });
+
+    /* sort */
+    visible.sort((a, b) => {
+      let va, vb;
+      const ad = a.dataset, bd = b.dataset;
+      switch (et_sortKey) {
+        case "expdate":  va = ad.expdate;  vb = bd.expdate;  break;
+        case "mfgdate":  va = ad.mfgdate;  vb = bd.mfgdate;  break;
+        case "days":     va = parseInt(ad.days); vb = parseInt(bd.days); return (va - vb) * et_sortDir;
+        case "stock":    va = parseInt(ad.stock); vb = parseInt(bd.stock); return (va - vb) * et_sortDir;
+        case "name":     va = ad.name;    vb = bd.name;    break;
+        case "generic":  va = ad.generic; vb = bd.generic; break;
+        case "status":   va = ad.status;  vb = bd.status;  break;
+        default:         va = ad.expdate; vb = bd.expdate;
+      }
+      return va < vb ? -et_sortDir : va > vb ? et_sortDir : 0;
+    });
+
+
+    /* empty state */
+    const empty = $("etEmptyState");
+    if (total === 0) empty.classList.remove("d-none");
+    else             empty.classList.add("d-none");
+
+    /* result count badge */
+    $("etResultCount").textContent = total + " record" + (total !== 1 ? "s" : "");
+
+    /* results info */
+    const s = Math.min(start + 1, total);
+    const e = Math.min(end, total);
+    $("etResultsInfo").textContent = `Showing ${s}–${e} of ${total} batches`;
+  };
+  
+
+  window.etGoPage = function (p) {
+    const pageCount = Math.max(1, Math.ceil(
+      et_allRows.filter(r => r.style.display !== "none" || true).length / et_pageSize
+    ));
+    if (p < 1) return;
+    et_currentPage = p;
+  };
+
+  window.etChangePageSize = function (val) {
+    et_pageSize    = parseInt(val) || 10;
+    et_currentPage = 1;
+  };
+
+  /* ── reset ── */
+  window.etResetFilters = function () {
+    $("etSearchInput").value    = "";
+    $("etFilterBranch").value   = "";
+    $("etFilterCategory").value = "";
+    $("etSortField").value      = "expDate_asc";
+    $("etWindowSelect").value   = "90";
+    et_currentStatusFilter      = "All";
+    et_currentPage              = 1;
+    document.querySelectorAll("#statCards .card").forEach(c => c.classList.remove("border-primary"));
+  };
+
+  /* ── export ── */
+  window.etExportExcel = function () {
+    const visibleRows = et_allRows.filter(r => r.style.display !== "none");
+    const headers = ["Medicine","Batch No","GRN","Mfg Date","Exp Date","Days Left","Stock","Status"];
+    const rows = visibleRows.map(r => {
+      const d = r.dataset;
+      const daysLeft = parseInt(d.days);
+      return [
+        d.name, d.batch, d.grn, d.mfgdate, d.expdate,
+        daysLeft < 0 ? Math.abs(daysLeft) + "d ago" : daysLeft + " days",
+        d.stock, d.status
+      ];
+    });
+    const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(",")).join("\n");
+    const a   = document.createElement("a");
+    a.href    = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+    a.download = "expiry-tracker-" + new Date().toISOString().slice(0,10) + ".csv";
+    a.click();
+  };
+
+  /* ── drawer ── */
+  document.querySelectorAll(".et-view-btn").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const batchId = btn.dataset.id;
+      etOpenDrawer(batchId);
+    });
+  });
+
+  document.querySelectorAll(".et-row").forEach(row => {
+    row.addEventListener("click", () => {
+      const btn = row.querySelector(".et-view-btn");
+      if (btn) etOpenDrawer(btn.dataset.id);
+    });
+  });
+
+  function etOpenDrawer(batchId) {
+    /* Show loading state */
+    $("expDrawerId").textContent = "#" + batchId;
+    $("expDrawerBody").innerHTML = `
+      <div class="text-center py-5">
+        <div class="spinner-border text-primary spinner-border-sm" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="text-muted mt-2 mb-0">Loading batch details...</p>
+      </div>
+    `;
+    $("expDrawer").classList.add("open");
+    $("expDrawerOverlay").classList.add("active");
+
+    /* Fetch from API */
+    fetch(`/api/Batch/Report?id=${encodeURIComponent(batchId)}`)
+      .then(response => {
+        if (!response.ok) {
+          if (response.status === 404) throw new Error("Batch not found");
+          throw new Error(`Server error: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        /* Populate drawer with real data */
+        $("expDrawerId").textContent = "#" + (data.batchNumber || batchId);
+        $("expDrawerBody").innerHTML = etDrawerHtml(data);
+        $("expExportBtn").hidden = false;
+      })
+      .catch(error => {
+        console.error("Error fetching batch details:", error);
+        $("expDrawerBody").innerHTML = `
+          <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-circle me-2"></i>
+            <strong>Error</strong><br>
+            ${error.message || "Failed to load batch details. Please try again."}
+          </div>
+          <button class="btn btn-sm btn-outline-secondary" onclick="etCloseDrawer()">
+            <i class="bi bi-x me-1"></i> Close
+          </button>
+        `;
+      });
+
+              document.getElementById('expDrawerOverlay').classList.add('open');
+  }
+
+          function etDrawerHtml(data) {
+          const statusClass = data.status === "Expired" ? "danger" : data.status === "Soon" ? "warning" : "success";
+          const daysLeft = data.daysLeft;
+          const daysText = daysLeft < 0 ? `${Math.abs(daysLeft)} days ago` : `${daysLeft} days`;
+
+          // Helper: Detail item
+          const di = (label, value, fullWidth = false) => `
+            <div class="detail-item ${fullWidth ? 'full-width' : ''}">
+              <span class="detail-label">${label}</span>
+              <span class="detail-value">${value || "—"}</span>
+            </div>
+          `;
+
+          // Helper: Badge pills
+          const statusBadge = (text, variant) => `
+            <span class="badge-pill badge-${variant}">${text}</span>
+          `;
+
+          // Helper: Code block
+          const code = (text) => `<code class="code-block">${text || "—"}</code>`;
+
+          // Helper: Highlight badge
+          const highlightBadge = (text, variant) => `
+            <span class="badge bg-${variant} bg-opacity-10 text-${variant}" style="border: 1px solid currentColor;">
+              ${text}
+            </span>
+          `;
+
+          return `
+            <style>
+              .drawer-container {
+                padding: 0;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                color: var(--bs-body-color, #212529);
+              }
+
+              /* Header Pills */
+              .drawer-header {
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                padding: 1rem;
+                background: var(--bs-tertiary-bg, #f8f9fa);
+                border: 1px solid var(--bs-border-color, #dee2e6);
+                border-radius: 0.375rem;
+                margin-bottom: 1rem;
+              }
+
+              .badge-pill {
+                display: inline-block;
+                padding: 0.35rem 0.75rem;
+                border-radius: 50px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                border: 1px solid;
+                white-space: nowrap;
+              }
+
+              .badge-success {
+                background: #d4edda;
+                color: #155724;
+                border-color: #c3e6cb;
+              }
+
+              .badge-warning {
+                background: #fff3cd;
+                color: #856404;
+                border-color: #ffeaa7;
+              }
+
+              .badge-danger {
+                background: #f8d7da;
+                color: #721c24;
+                border-color: #f5c6cb;
+              }
+
+              /* Dark mode badge adjustments */
+              @@media (prefers-color-scheme: dark) {
+                .badge-success {
+                  background: rgba(25, 135, 84, 0.25);
+                  color: #75b798;
+                  border-color: rgba(25, 135, 84, 0.5);
+                }
+
+                .badge-warning {
+                  background: rgba(255, 193, 7, 0.25);
+                  color: #ffc107;
+                  border-color: rgba(255, 193, 7, 0.5);
+                }
+
+                .badge-danger {
+                  background: rgba(220, 53, 69, 0.25);
+                  color: #ea868f;
+                  border-color: rgba(220, 53, 69, 0.5);
+                }
+              }
+
+              .drawer-header-date {
+                margin-left: auto;
+                color: var(--bs-secondary-color, #6c757d);
+                font-size: 0.75rem;
+                white-space: nowrap;
+              }
+
+              /* Section Title */
+              .drawer-section-title {
+                margin: 1.5rem 0 0.75rem 0;
+                padding: 0;
+                font-size: 0.8rem;
+                font-weight: 700;
+                color: var(--bs-secondary-color, #495057);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+              }
+
+              .drawer-section-title i {
+                font-size: 1rem;
+                opacity: 0.7;
+              }
+
+              /* Detail Grid */
+              .detail-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1rem 2rem;
+                margin-bottom: 1rem;
+              }
+
+              .detail-item {
+                display: flex;
+                flex-direction: column;
+                gap: 0.25rem;
+              }
+
+              .detail-item.full-width {
+                grid-column: 1 / -1;
+              }
+
+              .detail-label {
+                font-size: 0.8rem;
+                color: var(--bs-secondary-color, #6c757d);
+                font-weight: 500;
+              }
+
+              .detail-value {
+                font-size: 0.95rem;
+                color: var(--bs-body-color, #212529);
+                line-height: 1.4;
+              }
+
+              .detail-value strong {
+                font-weight: 700;
+                color: var(--bs-body-color, #212529);
+              }
+
+              .detail-value small {
+                font-size: 0.85rem;
+                color: var(--bs-secondary-color, #6c757d);
+              }
+
+              /* Code Block */
+              .code-block {
+                background: var(--bs-secondary-bg, #f8f9fa);
+                padding: 0.35rem 0.6rem;
+                border-radius: 4px;
+                font-size: 0.85rem;
+                border: 1px solid var(--bs-border-color, #e9ecef);
+                color: #d63031;
+                font-weight: 500;
+                font-family: 'Courier New', monospace;
+              }
+
+              @@media (prefers-color-scheme: dark) {
+                .code-block {
+                  color: #ff6b6b;
+                }
+              }
+
+              /* Diff Box */
+              .diff-box {
+                background: var(--bs-secondary-bg, #f8f9fa);
+                border: 1px solid var(--bs-border-color, #e9ecef);
+                border-radius: 6px;
+                overflow: hidden;
+                margin-bottom: 1rem;
+              }
+
+              .diff-row {
+                display: flex;
+                padding: 0.75rem;
+                border-bottom: 1px solid var(--bs-border-color, #e9ecef);
+                font-size: 0.9rem;
+                align-items: flex-start;
+                gap: 0.75rem;
+              }
+
+              .diff-row:last-child {
+                border-bottom: none;
+              }
+
+              .diff-sign {
+                flex-shrink: 0;
+                font-weight: 700;
+                font-size: 1rem;
+                width: 20px;
+                text-align: center;
+              }
+
+              .diff-sign.old {
+                color: #dc3545;
+              }
+
+              .diff-sign.new {
+                color: #198754;
+              }
+
+              @@media (prefers-color-scheme: dark) {
+                .diff-sign.old {
+                  color: #ea868f;
+                }
+
+                .diff-sign.new {
+                  color: #75b798;
+                }
+              }
+
+              .diff-content {
+                word-break: break-word;
+                white-space: pre-wrap;
+                color: var(--bs-body-color, #212529);
+                font-family: 'Courier New', monospace;
+                font-size: 0.85rem;
+              }
+
+              /* Pre/JSON Block */
+              pre {
+                background: var(--bs-secondary-bg, #f8f9fa);
+                padding: 0.75rem;
+                border-radius: 4px;
+                border: 1px solid var(--bs-border-color, #e9ecef);
+                font-size: 0.8rem;
+                color: #198754;
+                font-family: 'Courier New', monospace;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+              }
+
+              @@media (prefers-color-scheme: dark) {
+                pre {
+                  color: #75b798;
+                }
+              }
+
+              /* Highlight Info */
+              .highlight-info {
+                background: #fffbf0;
+                border-left: 3px solid #ff9800;
+              }
+
+              @@media (prefers-color-scheme: dark) {
+                .highlight-info {
+                  background: rgba(255, 152, 0, 0.1);
+                  border-left-color: #ff9800;
+                }
+              }
+
+              .highlight-info .detail-value {
+                color: #d84315;
+                font-weight: 600;
+              }
+
+              @@media (prefers-color-scheme: dark) {
+                .highlight-info .detail-value {
+                  color: #ffb74d;
+                }
+              }
+
+              /* Changed Fields Container */
+              .changed-fields {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+              }
+
+              .changed-field-badge {
+                display: inline-block;
+                padding: 0.4rem 0.7rem;
+                border-radius: 4px;
+                font-size: 0.8rem;
+                background: #cfe2ff;
+                color: #084298;
+                border: 1px solid #b6d4fe;
+                font-weight: 500;
+              }
+
+              @@media (prefers-color-scheme: dark) {
+                .changed-field-badge {
+                  background: rgba(13, 110, 253, 0.25);
+                  color: #6ea8fe;
+                  border-color: rgba(13, 110, 253, 0.5);
+                }
+              }
+            </style>
+
+            <div class="drawer-container">
+              <!-- Header with Status Pills -->
+              <div class="drawer-header">
+                ${statusBadge(data.status || "—", statusClass)}
+                <span class="drawer-header-date">${data.createdAt || "—"}</span>
+              </div>
+
+              <!-- Core Info Section -->
+              <p class="drawer-section-title">
+                <i class="bi bi-capsule"></i> Medicine Info
+              </p>
+              <div class="detail-grid">
+                ${di('Medicine Name', `<strong>${data.medicineName || "—"}</strong>`)}
+                ${di('Medicine ID', code(data.medicineId || "—"))}
+                ${di('Generic Name', data.genericName || "—")}
+                ${di('Strength', data.strength || "—")}
+                ${di('Manufacturer', data.manufacturer || "—")}
+              </div>
+
+              <!-- Batch Info Section -->
+              <p class="drawer-section-title">
+                <i class="bi bi-box-seam"></i> Batch Information
+              </p>
+              <div class="detail-grid">
+                ${di('Batch No.', code(data.batchNumber || "—"))}
+                ${di('GRN', code(data.grnNumber || "—"))}
+                ${di('Category', data.category || "—")}
+                ${di('HSN Code', data.hsnCode || "—")}
+              </div>
+
+              <!-- Expiry Section -->
+              <p class="drawer-section-title">
+                <i class="bi bi-hourglass-split"></i> Expiry Details
+              </p>
+              <div class="detail-grid highlight-info">
+                ${di('Mfg Date', data.mfgDate || "—")}
+                ${di('Exp Date', `<strong>${data.expDate || "—"}</strong>`)}
+                ${di('Days Left', highlightBadge(daysText, statusClass))}
+              </div>
+
+              <!-- Stock & Pricing Section -->
+              <p class="drawer-section-title">
+                <i class="bi bi-currency-rupee"></i> Stock & Pricing
+              </p>
+              <div class="detail-grid">
+                ${di('Stock Quantity', `<strong>${parseInt(data.totalStockReceived || 0).toLocaleString()}</strong>`)}
+                ${di('Purchase Price', `₹${parseFloat(data.unitPurchasePrice || 0).toFixed(2)}`)}
+                ${di('Selling Price', `₹${parseFloat(data.unitSellingPrice || 0).toFixed(2)}`)}
+                ${di('GST %', `${data.gstPercentage || "—"}%`)}
+                ${di('Rx Required', highlightBadge(data.isPrescriptionRequired ? 'Yes' : 'No', data.isPrescriptionRequired ? 'warning' : 'success'))}
+              </div>
+
+              <!-- Audit Info Section -->
+              <p class="drawer-section-title">
+                <i class="bi bi-clock-history"></i> Audit Information
+              </p>
+              <div class="detail-grid">
+                ${di('Created By', data.createdBy || "—")}
+                ${di('Created At', data.createdAt || "—")}
+              </div>
+            </div>
+          `;
+        }
+
+  document.querySelectorAll(".exp-drawer-close-btn").forEach(btn => {
+    btn.addEventListener("click", etCloseDrawer);
+  });
+  $("expDrawerOverlay").addEventListener("click", etCloseDrawer);
+
+  function etCloseDrawer() {
+    $("expDrawer").classList.remove("open");
+    $("expDrawerOverlay").classList.remove("open");
+  }
+
+})();
+</script>
+}

@@ -1322,7 +1322,7 @@
                                     @if (perms.Contains(27))
                                     {
                                         <li class="submenu-item @(currentPage == "ExpiryTracking" ? "active" : "")">
-                                            <a href="@Url.Action("ExpiryTracking", "Batches")" class="submenu-link">
+                                            <a href="#" data-url="@Url.Action("ExpiryTracker", "Medicine")" class="submenu-link ajax-link">
                                                 <i class="bi bi-calendar2-x-fill"></i>&nbsp;&nbsp;Expiry Tracking
                                             </a>
                                         </li>

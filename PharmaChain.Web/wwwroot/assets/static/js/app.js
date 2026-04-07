@@ -662,6 +662,10 @@ $(document).on('click', '.ajax-link', function(e) {
             if ($('#medicineTableBody').length) {
                 MedicinePage.init();
             }
+
+            if ($('#etTableBody').length) {
+                ExpiryPage.init();
+            }
         },
         error: function() {
             showToast({ type: 'danger', title: 'Error', message: 'Page load karne mein error aaya.' });
@@ -2267,3 +2271,700 @@ var BatchPage = {
         BatchPage.updateResultsInfo();
     }
 };
+
+
+
+
+var ExpiryPage = {
+    state: {
+        page: 1,
+        size: 10,
+        search: '',
+        branch: '',
+        category: '',
+        sort: 'expDate_asc',
+        window: '0',
+        status: 'All'
+    },
+
+    fetch: function () {
+        $('#mzPageLoader').addClass('show');
+        $.ajax({
+            url: '/Batch/Expiry/Report',
+            method: 'GET',
+            data: ExpiryPage.state,
+            success: function (response) {
+                var $res = $(response);
+
+                /* ── Table body ── */
+                var newBody = $res.find('#etTableBody').html();
+                if (newBody) $('#etTableBody').html(newBody);
+
+                /* ── Footer / pagination attrs ── */
+                var $newFooter = $res.find('#etTableFooter');
+                if ($newFooter.length) {
+                    $('#etTableFooter')
+                        .attr('data-total-pages', $newFooter.attr('data-total-pages'))
+                        .attr('data-current-page', $newFooter.attr('data-current-page'))
+                        .attr('data-page-size', $newFooter.attr('data-page-size'));
+                }
+
+                /* ── Stat cards ── */
+                var newStats = $res.find('#statCards').html();
+                if (newStats) $('#statCards').html(newStats);
+
+                /* ── Sync local vars & re-render UI ── */
+                ExpiryPage.renderPagination();
+                ExpiryPage.updateResultsInfo();
+                ExpiryPage.highlightActiveCard();
+                ExpiryPage.reapplyColVisibility();
+
+                history.pushState(null, '', '/Batch/Expiry/Report?' + $.param(ExpiryPage.state));
+            },
+            error: function () {
+                showToast({ type: 'danger', title: 'Error', message: 'Expiry records load karne mein error aaya.' });
+            },
+            complete: function () {
+                $('#mzPageLoader').removeClass('show');
+            }
+        });
+    },
+    reapplyColVisibility: function () {
+        $('.et-col-toggle').each(function () {
+            var cls = $(this).data('col');
+            $('.' + cls).toggle(this.checked);
+        });
+    },
+
+    /* ── Pagination renderer ── */
+    renderPagination: function () {
+        var totalPages = parseInt($('#etTableFooter').attr('data-total-pages')) || 1;
+        var currentPage = parseInt($('#etTableFooter').attr('data-current-page')) || 1;
+        var $ul = $('#etPagination').empty();
+
+        /* Prev */
+        $ul.append(
+            '<li class="page-item ' + (currentPage <= 1 ? 'disabled' : '') + '">' +
+            '<a class="page-link" href="#" data-page="' + (currentPage - 1) + '">«</a></li>'
+        );
+
+        /* Page numbers — show window of 5 */
+        var start = Math.max(1, currentPage - 2);
+        var end = Math.min(totalPages, start + 4);
+        if (end - start < 4) start = Math.max(1, end - 4);
+
+        for (var i = start; i <= end; i++) {
+            $ul.append(
+                '<li class="page-item ' + (i === currentPage ? 'active' : '') + '">' +
+                '<a class="page-link" href="#" data-page="' + i + '">' + i + '</a></li>'
+            );
+        }
+
+        /* Next */
+        $ul.append(
+            '<li class="page-item ' + (currentPage >= totalPages ? 'disabled' : '') + '">' +
+            '<a class="page-link" href="#" data-page="' + (currentPage + 1) + '">»</a></li>'
+        );
+    },
+
+    /* ── Results info label ── */
+    updateResultsInfo: function () {
+        var showing = $('#etTableBody tr').length;
+        var totalPages = parseInt($('#etTableFooter').attr('data-total-pages')) || 1;
+        var size = parseInt(ExpiryPage.state.size) || 10;
+        var currentPage = parseInt(ExpiryPage.state.page) || 1;
+
+        var start = (currentPage - 1) * size + 1;
+        var end = Math.min(currentPage * size, totalPages * size);
+
+        $('#etResultsInfo').text('Showing ' + start + '–' + end + ' of ~' + (totalPages * size) + ' batches');
+        $('#etResultCount').text(showing + ' record' + (showing !== 1 ? 's' : ''));
+    },
+
+    /* ── Highlight active stat card ── */
+    highlightActiveCard: function () {
+        $('#statCards .card').removeClass('border-primary');
+        var $card = $('#card-' + ExpiryPage.state.status);
+        if ($card.length) $card.find('.card').addClass('border-primary');
+    },
+
+    /* ── Filter by status card click ── */
+    filterByStatus: function (status) {
+        ExpiryPage.state.status = status;
+        ExpiryPage.state.page = 1;
+        ExpiryPage.fetch();
+    },
+
+    /* ── Apply all toolbar filters ── */
+    applyFilters: function () {
+        ExpiryPage.state.search = $('#etSearchInput').val().trim();
+        ExpiryPage.state.branch = $('#etFilterBranch').val();
+        ExpiryPage.state.category = $('#etFilterCategory').val();
+        ExpiryPage.state.sort = $('#etSortField').val();
+        ExpiryPage.state.window = $('#etWindowSelect').val();
+        ExpiryPage.state.page = 1;
+        ExpiryPage.fetch();
+    },
+
+    /* ── Reset all filters ── */
+    resetFilters: function () {
+        $('#etSearchInput').val('');
+        $('#etFilterBranch').val('');
+        $('#etFilterCategory').val('');
+        $('#etSortField').val('expDate_asc');
+        $('#etWindowSelect').val('0');
+
+        ExpiryPage.state = {
+            page: 1, size: ExpiryPage.state.size,
+            search: '', branch: '', category: '',
+            sort: 'expDate_asc', window: '0', status: 'All'
+        };
+
+        ExpiryPage.fetch();
+    },
+
+    /* ── Rows-per-page change ── */
+    changePageSize: function (val) {
+        ExpiryPage.state.size = parseInt(val) || 10;
+        ExpiryPage.state.page = 1;
+        ExpiryPage.fetch();
+    },
+
+    /* ── Re-bind row click + view-btn after each fetch ── */
+    rebindRowEvents: function () {
+        /* View button */
+        $('#etTableBody').off('click', '.et-view-btn').on('click', '.et-view-btn', function (e) {
+            e.stopPropagation();
+            ExpiryPage.openDrawer($(this).data('id'));
+        });
+
+        /* Row click */
+        $('#etTableBody').off('click', '.et-row').on('click', '.et-row', function () {
+            var id = $(this).find('.et-view-btn').data('id');
+            if (id) ExpiryPage.openDrawer(id);
+        });
+    },
+
+    /* ── Drawer open / close ── */
+    openDrawer: function (batchId) {
+        $('#expDrawerId').text('#' + batchId);
+        $('#expDrawerBody').html(
+            '<div class="text-center py-5">' +
+            '<div class="spinner-border text-primary spinner-border-sm" role="status"></div>' +
+            '<p class="text-muted mt-2 mb-0">Loading batch details...</p></div>'
+        );
+        $('#expDrawer').addClass('open');
+        $('#expDrawerOverlay').addClass('active open');
+
+        $.ajax({
+            url: '/api/Batch/Report',
+            method: 'GET',
+            data: { id: batchId },
+            success: function (data) {
+                $('#expDrawerId').text('#' + (data.batchNumber || batchId));
+                $('#expDrawerBody').html(ExpiryPage.drawerHtml(data));
+                $('#expExportBtn').prop('hidden', false)
+                    .off('click').on('click', function () {
+                        ExpiryPage.exportDrawerJson(data);
+                    });
+            },
+            error: function (xhr) {
+                var msg = xhr.status === 404 ? 'Batch not found.' : 'Server error: ' + xhr.status;
+                $('#expDrawerBody').html(
+                    '<div class="alert alert-danger"><i class="bi bi-exclamation-circle me-2"></i>' +
+                    '<strong>Error</strong><br>' + msg + '</div>'
+                );
+            }
+        });
+    },
+
+    closeDrawer: function () {
+        $('#expDrawer').removeClass('open');
+        $('#expDrawerOverlay').removeClass('active open');
+        $('#expExportBtn').prop('hidden', true);
+    },
+
+    /* ── Export visible rows as CSV ── */
+    exportExcel: function () {
+        var headers = ['Medicine', 'Batch No', 'GRN', 'Mfg Date', 'Exp Date', 'Days Left', 'Stock', 'Status'];
+        var rows = [];
+
+        $('#etTableBody .et-row:visible').each(function () {
+            var d = $(this).data();
+            var daysLeft = parseInt(d.days);
+            rows.push([
+                d.name, d.batch, d.grn, d.mfgdate, d.expdate,
+                daysLeft < 0 ? Math.abs(daysLeft) + 'd ago' : daysLeft + ' days',
+                d.stock, d.status
+            ]);
+        });
+
+        var csv = [headers].concat(rows)
+            .map(function (r) { return r.map(function (v) { return '"' + v + '"'; }).join(','); })
+            .join('\n');
+
+        var a = document.createElement('a');
+        a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+        a.download = 'expiry-tracker-' + new Date().toISOString().slice(0, 10) + '.csv';
+        a.click();
+    },
+
+    /* ── Export drawer data as JSON ── */
+    exportDrawerJson: function (data) {
+        var a = document.createElement('a');
+        a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data, null, 2));
+        a.download = 'batch-' + (data.batchNumber || 'detail') + '.json';
+        a.click();
+    },
+
+    /* ── Column visibility toggle ── */
+    initColToggles: function () {
+        $(document).on('change', '.et-col-toggle', function () {
+            var cls = $(this).data('col');
+            $('.' + cls).toggle(this.checked);
+        });
+
+        /* Apply initial state for unchecked boxes */
+        $('.et-col-toggle').each(function () {
+            if (!this.checked) $('.' + $(this).data('col')).hide();
+        });
+    },
+
+    /* ── Select-all checkbox ── */
+    toggleSelectAll: function (master) {
+        $('#etTableBody .et-row-check').prop('checked', master.checked);
+    },
+
+    /* ── Build drawer HTML (kept identical to original) ── */
+    drawerHtml: function (data) {
+        const statusClass = data.status === "Expired" ? "danger" : data.status === "Soon" ? "warning" : "success";
+        const daysLeft = data.daysLeft;
+        const daysText = daysLeft < 0 ? `${Math.abs(daysLeft)} days ago` : `${daysLeft} days`;
+
+        // Helper: Detail item
+        const di = (label, value, fullWidth = false) => `
+            <div class="detail-item ${fullWidth ? 'full-width' : ''}">
+              <span class="detail-label">${label}</span>
+              <span class="detail-value">${value || "—"}</span>
+            </div>
+          `;
+
+        // Helper: Badge pills
+        const statusBadge = (text, variant) => `
+            <span class="badge-pill badge-${variant}">${text}</span>
+          `;
+
+        // Helper: Code block
+        const code = (text) => `<code class="code-block">${text || "—"}</code>`;
+
+        // Helper: Highlight badge
+        const highlightBadge = (text, variant) => `
+            <span class="badge bg-${variant} bg-opacity-10 text-${variant}" style="border: 1px solid currentColor;">
+              ${text}
+            </span>
+          `;
+
+        return `
+            <style>
+              .drawer-container {
+                padding: 0;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                color: var(--bs-body-color, #212529);
+              }
+
+              /* Header Pills */
+              .drawer-header {
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                padding: 1rem;
+                background: var(--bs-tertiary-bg, #f8f9fa);
+                border: 1px solid var(--bs-border-color, #dee2e6);
+                border-radius: 0.375rem;
+                margin-bottom: 1rem;
+              }
+
+              .badge-pill {
+                display: inline-block;
+                padding: 0.35rem 0.75rem;
+                border-radius: 50px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                border: 1px solid;
+                white-space: nowrap;
+              }
+
+              .badge-success {
+                background: #d4edda;
+                color: #155724;
+                border-color: #c3e6cb;
+              }
+
+              .badge-warning {
+                background: #fff3cd;
+                color: #856404;
+                border-color: #ffeaa7;
+              }
+
+              .badge-danger {
+                background: #f8d7da;
+                color: #721c24;
+                border-color: #f5c6cb;
+              }
+
+              /* Dark mode badge adjustments */
+              @media (prefers-color-scheme: dark) {
+                .badge-success {
+                  background: rgba(25, 135, 84, 0.25);
+                  color: #75b798;
+                  border-color: rgba(25, 135, 84, 0.5);
+                }
+
+                .badge-warning {
+                  background: rgba(255, 193, 7, 0.25);
+                  color: #ffc107;
+                  border-color: rgba(255, 193, 7, 0.5);
+                }
+
+                .badge-danger {
+                  background: rgba(220, 53, 69, 0.25);
+                  color: #ea868f;
+                  border-color: rgba(220, 53, 69, 0.5);
+                }
+              }
+
+              .drawer-header-date {
+                margin-left: auto;
+                color: var(--bs-secondary-color, #6c757d);
+                font-size: 0.75rem;
+                white-space: nowrap;
+              }
+
+              /* Section Title */
+              .drawer-section-title {
+                margin: 1.5rem 0 0.75rem 0;
+                padding: 0;
+                font-size: 0.8rem;
+                font-weight: 700;
+                color: var(--bs-secondary-color, #495057);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+              }
+
+              .drawer-section-title i {
+                font-size: 1rem;
+                opacity: 0.7;
+              }
+
+              /* Detail Grid */
+              .detail-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1rem 2rem;
+                margin-bottom: 1rem;
+              }
+
+              .detail-item {
+                display: flex;
+                flex-direction: column;
+                gap: 0.25rem;
+              }
+
+              .detail-item.full-width {
+                grid-column: 1 / -1;
+              }
+
+              .detail-label {
+                font-size: 0.8rem;
+                color: var(--bs-secondary-color, #6c757d);
+                font-weight: 500;
+              }
+
+              .detail-value {
+                font-size: 0.95rem;
+                color: var(--bs-body-color, #212529);
+                line-height: 1.4;
+              }
+
+              .detail-value strong {
+                font-weight: 700;
+                color: var(--bs-body-color, #212529);
+              }
+
+              .detail-value small {
+                font-size: 0.85rem;
+                color: var(--bs-secondary-color, #6c757d);
+              }
+
+              /* Code Block */
+              .code-block {
+                background: var(--bs-secondary-bg, #f8f9fa);
+                padding: 0.35rem 0.6rem;
+                border-radius: 4px;
+                font-size: 0.85rem;
+                border: 1px solid var(--bs-border-color, #e9ecef);
+                color: #d63031;
+                font-weight: 500;
+                font-family: 'Courier New', monospace;
+              }
+
+              @media (prefers-color-scheme: dark) {
+                .code-block {
+                  color: #ff6b6b;
+                }
+              }
+
+              /* Diff Box */
+              .diff-box {
+                background: var(--bs-secondary-bg, #f8f9fa);
+                border: 1px solid var(--bs-border-color, #e9ecef);
+                border-radius: 6px;
+                overflow: hidden;
+                margin-bottom: 1rem;
+              }
+
+              .diff-row {
+                display: flex;
+                padding: 0.75rem;
+                border-bottom: 1px solid var(--bs-border-color, #e9ecef);
+                font-size: 0.9rem;
+                align-items: flex-start;
+                gap: 0.75rem;
+              }
+
+              .diff-row:last-child {
+                border-bottom: none;
+              }
+
+              .diff-sign {
+                flex-shrink: 0;
+                font-weight: 700;
+                font-size: 1rem;
+                width: 20px;
+                text-align: center;
+              }
+
+              .diff-sign.old {
+                color: #dc3545;
+              }
+
+              .diff-sign.new {
+                color: #198754;
+              }
+
+              @media (prefers-color-scheme: dark) {
+                .diff-sign.old {
+                  color: #ea868f;
+                }
+
+                .diff-sign.new {
+                  color: #75b798;
+                }
+              }
+
+              .diff-content {
+                word-break: break-word;
+                white-space: pre-wrap;
+                color: var(--bs-body-color, #212529);
+                font-family: 'Courier New', monospace;
+                font-size: 0.85rem;
+              }
+
+              /* Pre/JSON Block */
+              pre {
+                background: var(--bs-secondary-bg, #f8f9fa);
+                padding: 0.75rem;
+                border-radius: 4px;
+                border: 1px solid var(--bs-border-color, #e9ecef);
+                font-size: 0.8rem;
+                color: #198754;
+                font-family: 'Courier New', monospace;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+              }
+
+              @media (prefers-color-scheme: dark) {
+                pre {
+                  color: #75b798;
+                }
+              }
+
+              /* Highlight Info */
+              .highlight-info {
+                background: #fffbf0;
+                border-left: 3px solid #ff9800;
+              }
+
+              @media (prefers-color-scheme: dark) {
+                .highlight-info {
+                  background: rgba(255, 152, 0, 0.1);
+                  border-left-color: #ff9800;
+                }
+              }
+
+              .highlight-info .detail-value {
+                color: #d84315;
+                font-weight: 600;
+              }
+
+              @media (prefers-color-scheme: dark) {
+                .highlight-info .detail-value {
+                  color: #ffb74d;
+                }
+              }
+
+              /* Changed Fields Container */
+              .changed-fields {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+              }
+
+              .changed-field-badge {
+                display: inline-block;
+                padding: 0.4rem 0.7rem;
+                border-radius: 4px;
+                font-size: 0.8rem;
+                background: #cfe2ff;
+                color: #084298;
+                border: 1px solid #b6d4fe;
+                font-weight: 500;
+              }
+
+              @media (prefers-color-scheme: dark) {
+                .changed-field-badge {
+                  background: rgba(13, 110, 253, 0.25);
+                  color: #6ea8fe;
+                  border-color: rgba(13, 110, 253, 0.5);
+                }
+              }
+            </style>
+
+            <div class="drawer-container">
+              <!-- Header with Status Pills -->
+              <div class="drawer-header">
+                ${statusBadge(data.status || "—", statusClass)}
+                <span class="drawer-header-date">${data.createdAt || "—"}</span>
+              </div>
+
+              <!-- Core Info Section -->
+              <p class="drawer-section-title">
+                <i class="bi bi-capsule"></i> Medicine Info
+              </p>
+              <div class="detail-grid">
+                ${di('Medicine Name', `<strong>${data.medicineName || "—"}</strong>`)}
+                ${di('Medicine ID', code(data.medicineId || "—"))}
+                ${di('Generic Name', data.genericName || "—")}
+                ${di('Strength', data.strength || "—")}
+                ${di('Manufacturer', data.manufacturer || "—")}
+              </div>
+
+              <!-- Batch Info Section -->
+              <p class="drawer-section-title">
+                <i class="bi bi-box-seam"></i> Batch Information
+              </p>
+              <div class="detail-grid">
+                ${di('Batch No.', code(data.batchNumber || "—"))}
+                ${di('GRN', code(data.grnNumber || "—"))}
+                ${di('Category', data.category || "—")}
+                ${di('HSN Code', data.hsnCode || "—")}
+              </div>
+
+              <!-- Expiry Section -->
+              <p class="drawer-section-title">
+                <i class="bi bi-hourglass-split"></i> Expiry Details
+              </p>
+              <div class="detail-grid highlight-info">
+                ${di('Mfg Date', data.mfgDate || "—")}
+                ${di('Exp Date', `<strong>${data.expDate || "—"}</strong>`)}
+                ${di('Days Left', highlightBadge(daysText, statusClass))}
+              </div>
+
+              <!-- Stock & Pricing Section -->
+              <p class="drawer-section-title">
+                <i class="bi bi-currency-rupee"></i> Stock & Pricing
+              </p>
+              <div class="detail-grid">
+                ${di('Stock Quantity', `<strong>${parseInt(data.totalStockReceived || 0).toLocaleString()}</strong>`)}
+                ${di('Purchase Price', `₹${parseFloat(data.unitPurchasePrice || 0).toFixed(2)}`)}
+                ${di('Selling Price', `₹${parseFloat(data.unitSellingPrice || 0).toFixed(2)}`)}
+                ${di('GST %', `${data.gstPercentage || "—"}%`)}
+                ${di('Rx Required', highlightBadge(data.isPrescriptionRequired ? 'Yes' : 'No', data.isPrescriptionRequired ? 'warning' : 'success'))}
+              </div>
+
+              <!-- Audit Info Section -->
+              <p class="drawer-section-title">
+                <i class="bi bi-clock-history"></i> Audit Information
+              </p>
+              <div class="detail-grid">
+                ${di('Created By', data.createdBy || "—")}
+                ${di('Created At', data.createdAt || "—")}
+              </div>
+            </div>
+          `;
+    },
+
+    /* ── Init ── */
+    init: function () {
+        ExpiryPage.state.page = parseInt($('#etTableFooter').attr('data-current-page')) || 1;
+        ExpiryPage.state.size = parseInt($('#etTableFooter').attr('data-page-size')) || 10;
+
+        ExpiryPage.renderPagination();
+        ExpiryPage.updateResultsInfo();
+        ExpiryPage.initColToggles();
+
+        /* ── Row events — document pe delegate, ek baar bind ── */
+        $(document).on('click', '#etTableBody .et-view-btn', function (e) {
+            e.stopPropagation();
+            ExpiryPage.openDrawer($(this).attr('data-id'));
+        });
+
+        $(document).on('click', '#etTableBody .et-row', function () {
+            var id = $(this).find('.et-view-btn').attr('data-id');
+            if (id) ExpiryPage.openDrawer(id);
+        });
+
+        /* Pagination clicks */
+        $(document).on('click', '#etPagination .page-link', function (e) {
+            e.preventDefault();
+            var p = parseInt($(this).data('page'));
+            var total = parseInt($('#etTableFooter').attr('data-total-pages')) || 1;
+            if (!p || p < 1 || p > total) return;
+            ExpiryPage.state.page = p;
+            ExpiryPage.fetch();
+        });
+
+        /* Rows-per-page */
+        $(document).on('change', '#etRowsPerPage', function () {
+            ExpiryPage.changePageSize($(this).val());
+        });
+
+        /* Debounced search */
+        var debounceTimer;
+        $('#etSearchInput').on('input', function () {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(ExpiryPage.applyFilters, 350);
+        });
+
+        $('#etFilterBranch, #etFilterCategory, #etSortField, #etWindowSelect').on('change', ExpiryPage.applyFilters);
+
+        /* Drawer close */
+        $('#expDrawerOverlay, .exp-drawer-close-btn').on('click', ExpiryPage.closeDrawer);
+
+        /* Select-all */
+        $('#etSelectAll').on('change', function () { ExpiryPage.toggleSelectAll(this); });
+    }
+};
+
+function etFilterByStatus(s) { ExpiryPage.filterByStatus(s); }
+function etApplyFilters() { ExpiryPage.applyFilters(); }
+function etResetFilters() { ExpiryPage.resetFilters(); }
+function etExportExcel() { ExpiryPage.exportExcel(); }
+function etChangePageSize(v) { ExpiryPage.changePageSize(v); }
+function etToggleSelectAll(el) { ExpiryPage.toggleSelectAll(el); }
+
+$(document).ready(function () { ExpiryPage.init(); });
