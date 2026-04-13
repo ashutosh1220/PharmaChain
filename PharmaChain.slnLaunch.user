@@ -1,0 +1,11 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "PharmaChain.Web\\PharmaChain.Web.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

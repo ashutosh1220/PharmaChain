@@ -2,22 +2,22 @@
 {
     public class ExpiryBatchRequest
     {
-        public string BatchId { get; set; }
-        public string BatchNumber { get; set; }
-        public string GrnNumber { get; set; }
+        public string BatchId { get; set; } = string.Empty;
+        public string BatchNumber { get; set; } = string.Empty;
+        public string GrnNumber { get; set; } = string.Empty;
 
-        public string MedicineId { get; set; }
-        public string MedicineName { get; set; }
-        public string GenericName { get; set; }
-        public string Category { get; set; }
-        public string Strength { get; set; }
-        public string Manufacturer { get; set; }
+        public string MedicineId { get; set; } = string.Empty;
+        public string MedicineName { get; set; } = string.Empty;
+        public string GenericName { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+        public string Strength { get; set; } = string.Empty;
+        public string Manufacturer { get; set; } = string.Empty;
 
-        public string BranchId { get; set; }
-        public string BranchName { get; set; }
+        public string BranchId { get; set; } = string.Empty;
+        public string BranchName { get; set; } = string.Empty;
 
-        public string SupplierId { get; set; }
-        public string SupplierName { get; set; }
+        public string SupplierId { get; set; } = string.Empty;
+        public string SupplierName { get; set; } = string.Empty;
 
         public DateOnly MfgDate { get; set; }
         public DateOnly ExpDate { get; set; }
@@ -29,10 +29,10 @@
 
         public bool IsPrescriptionRequired { get; set; }
 
-        public string HsnCode { get; set; }
+        public string HsnCode { get; set; } = string.Empty;
         public decimal GstPercentage { get; set; }
 
-        public string CreatedBy { get; set; }
+        public string CreatedBy { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
     }
 }

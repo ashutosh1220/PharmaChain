@@ -1,0 +1,744 @@
+﻿@{
+    ViewData["Title"] = "StockTransfers";
+    Layout = "~/Views/Shared/_adminDashboard.cshtml";
+}
+
+<div class="srq__wrap">
+    <div class="srq__page">
+
+        <!-- Page Header with integrated Pending + History buttons -->
+        <div class="srq__pg-header" style="position: absolute;z-index: 1000;top: 10px;left: 80%;">
+            <div class="srq__pg-brand">
+            </div>
+            <div class="srq__pg-actions">
+                <button class="srq__hdr-btn" id="srq-pendBtn">
+                    <i class="bi bi-hourglass-split"></i>
+                    Pending
+                    <span class="srq__hdr-dot" id="srq-pendBadge" style="color: darkorange !important;">12</span>
+                </button>
+                <button class="srq__hdr-btn" id="srq-histBtn">
+                    <i class="bi bi-file-earmark-text"></i>
+                    History
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="srq__stats">
+            <div class="srq__sc srq__sc--pend">
+                <div class="srq__sc-top">
+                    <div>
+                        <div class="srq__sc-num" id="srq-sc-pend">12</div>
+                        <div class="srq__sc-lbl" style="color: #ff9d00">Pending</div>
+                    </div>
+                    <i class="bi bi-hourglass-split srq__sc-ico"></i>
+                </div>
+                <svg class="srq__sc-spark" viewBox="0 0 80 28" preserveAspectRatio="none">
+                    <polyline points="0,22 10,16 20,19 30,11 40,15 50,12 60,14 70,16 80,18" fill="none"
+                              stroke="currentColor" stroke-width="1.5" opacity=".7" />
+                </svg>
+            </div>
+            <div class="srq__sc srq__sc--appr">
+                <div class="srq__sc-top">
+                    <div>
+                        <div class="srq__sc-num" id="srq-sc-appr">45</div>
+                        <div class="srq__sc-lbl">Approved</div>
+                    </div>
+                    <i class="bi bi-check-circle srq__sc-ico"></i>
+                </div>
+                <svg class="srq__sc-spark" viewBox="0 0 80 28" preserveAspectRatio="none">
+                    <polyline points="0,26 10,20 20,16 30,12 40,9 50,7 60,9 70,11 80,13" fill="none"
+                              stroke="currentColor" stroke-width="1.5" opacity=".7" />
+                </svg>
+            </div>
+            <div class="srq__sc srq__sc--tran">
+                <div class="srq__sc-top">
+                    <div>
+                        <div class="srq__sc-num" id="srq-sc-tran">38</div>
+                        <div class="srq__sc-lbl">Transferred</div>
+                    </div>
+                    <i class="bi bi-arrow-left-right srq__sc-ico"></i>
+                </div>
+                <svg class="srq__sc-spark" viewBox="0 0 80 28" preserveAspectRatio="none">
+                    <polyline points="0,24 10,20 20,17 30,13 40,11 50,9 60,10 70,12 80,15" fill="none"
+                              stroke="currentColor" stroke-width="1.5" opacity=".7" />
+                </svg>
+            </div>
+            <div class="srq__sc srq__sc--rejt">
+                <div class="srq__sc-top">
+                    <div>
+                        <div class="srq__sc-num" id="srq-sc-rejt">2</div>
+                        <div class="srq__sc-lbl">Rejected</div>
+                    </div>
+                    <i class="bi bi-x-circle srq__sc-ico"></i>
+                </div>
+                <svg class="srq__sc-spark" viewBox="0 0 80 28" preserveAspectRatio="none">
+                    <polyline points="0,26 10,24 20,22 30,21 40,20 50,18 60,17 70,16 80,15" fill="none"
+                              stroke="currentColor" stroke-width="1.5" opacity=".7" />
+                </svg>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="srq__charts">
+            <div class="srq__cc">
+                <div class="srq__cc-hd">
+                    <span class="srq__cc-title">Request Trend</span>
+                    <span class="srq__cc-sub">Last 7 days</span>
+                </div>
+                <div class="srq__chart-ctrl">
+                    <button class="srq__filter-btn active" data-srq-range="week">Last 7 days</button>
+                    <button class="srq__filter-btn" data-srq-range="month">Last Month</button>
+                    <button class="srq__filter-btn" data-srq-range="3m">3 Months</button>
+                    <button class="srq__filter-btn" data-srq-range="6m">6 Months</button>
+                </div>
+                <div class="srq__cc-wrap">
+                    <canvas id="srq-trendChart"></canvas>
+                </div>
+            </div>
+            <div class="srq__cc">
+                <div class="srq__cc-hd">
+                    <span class="srq__cc-title">Status Breakdown</span>
+                    <span class="srq__cc-sub">This month</span>
+                </div>
+                <div style="display:flex;gap:1rem;align-items:center;flex-direction: column;">
+                    <div class="srq__cc-wrap srq__cc-sm" style="flex:0 0 120px;">
+                        <canvas id="srq-donutChart"></canvas>
+                    </div>
+                    <div id="srq-donutStats"
+                         style="flex:1;display:flex;flex-direction:column;gap:.4rem;font-size:11px; flex-direction: row;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Row -->
+        <div class="srq__info-row">
+            <div class="srq__panel">
+                <div class="srq__phd">
+                    <i class="bi bi-exclamation-triangle srq__phd-ico srq__phd-ico--w"></i>
+                    <span class="srq__phd-title">Low Stock Alerts</span>
+                    <span class="srq__phd-badge srq__phd-badge--r" id="srq-alertBadge">3 critical</span>
+                </div>
+                <div class="srq__al-list" id="srq-alertList"></div>
+                <button class="srq__see-all-btn" id="srq-alertSeeAll" style="display:none;">See all alerts</button>
+            </div>
+            <div class="srq__panel">
+                <div class="srq__phd">
+                    <i class="bi bi-clock-history srq__phd-ico srq__phd-ico--b"></i>
+                    <span class="srq__phd-title">Recent Activity</span>
+                    <span class="srq__phd-badge srq__phd-badge--g">● Live</span>
+                </div>
+                <div class="srq__act-list" id="srq-actList"></div>
+                <button class="srq__see-all-btn" id="srq-actSeeAll" style="display:none;">See all activity</button>
+            </div>
+        </div>
+
+        <!-- Form Card -->
+        <div class="srq__form-card">
+            <div class="srq__form-hd">
+                <i class="bi bi-plus-circle"></i>
+                <span class="srq__form-hd-t">New Stock Request</span>
+                <span class="srq__form-hd-s">Branch → Medicine → Quantity → Add</span>
+            </div>
+            <div class="srq__form-body">
+                <div id="srq-srqForm" novalidate>
+                    <div class="srq__fsec">Step 1: Select Branch &amp; Medicine</div>
+                    <div class="srq__frow" style="margin-top:.6rem;">
+                        <div class="srq__field">
+                            <label class="srq__flbl">Branch <span class="srq__req">*</span></label>
+                            <select class="srq__fsel" id="srq-requestBranch" required>
+                                <option value="" disabled selected>--- Choose Branch ---</option>
+                            </select>
+                        </div>
+                        <div class="srq__field">
+                            <label class="srq__flbl">Medicine <span class="srq__req">*</span></label>
+                            <select class="srq__fsel" id="srq-medicineSelect" required disabled>
+                                <option value="" disabled selected>--- Select Medicine ---</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="srq__frow" style="margin-top:.6rem;">
+                        <div class="srq__field">
+                            <label class="srq__flbl">Available Stock</label>
+                            <div class="srq__stock-info" id="srq-stockInfo">Select medicine</div>
+                        </div>
+                        <div class="srq__field">
+                            <label class="srq__flbl">Quantity <span class="srq__req">*</span></label>
+                            <input type="number" class="srq__finp" id="srq-medQty" min="1" placeholder="Qty"
+                                   required disabled>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:.5rem;margin-top:.6rem;">
+                        <button type="button" class="srq__btn-ck" id="srq-addMedBtn" disabled>
+                            <i class="bi bi-plus"></i> Add Medicine
+                        </button>
+                    </div>
+                    <div id="srq-selectedMedicinesTags" style="margin-top:.5rem;"></div>
+                    <div class="srq__fsec" style="margin-top:.8rem;">Step 2: Request Type &amp; Submit</div>
+                    <div class="srq__field" style="margin-top:.6rem;">
+                        <label class="srq__flbl">Request Type <span class="srq__req">*</span></label>
+                        <select class="srq__fsel" id="srq-requestType" required>
+                            <option value="" disabled selected>--- Select type ---</option>
+                            <option value="Direct Transfer">Direct Transfer</option>
+                            <option value="Purchase Order">Purchase Order</option>
+                            <option value="Inventory Adjustment">Inventory Adjustment</option>
+                        </select>
+                    </div>
+                    <div class="srq__form-acts" style="margin-top:.7rem;">
+                        <button type="reset" class="srq__btn-s">Clear</button>
+                        <button type="submit" class="srq__btn-p" id="srq-submitBtn" disabled>
+                            <i class="bi bi-check"></i> Submit Request
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- List Modal (outside srq__wrap so it can cover the full viewport) -->
+<div class="srq__mbg" id="srq-listModal">
+    <div class="srq__mbox">
+        <div class="srq__mhd">
+            <h2 class="srq__mtitle">Requests</h2>
+            <div class="srq__mtabs">
+                <button class="srq__tab-btn srq__tab-btn--on" data-srq-tab="pend">
+                    Pending <span class="srq__tcnt"
+                                  id="srq-mPendCnt" style="color: #ff9d00; font-weight: bold;">12</span>
+                </button>
+                <button class="srq__tab-btn" data-srq-tab="all">All Requests</button>
+            </div>
+            <button class="srq__mx" id="srq-listClose" style="border: 1px solid;"><i class="bi bi-x"></i></button>
+        </div>
+        <div class="srq__mbody">
+            <div class="srq__tab-pane srq__tab-pane--on" id="srq-tabPend">
+                <div class="srq__pgrid" id="srq-pendGrid"></div>
+            </div>
+            <div class="srq__tab-pane" id="srq-tabAll">
+                <div style="margin-bottom:.6rem;">
+                    <div class="srq__chart-ctrl">
+                        <button class="srq__filter-btn active" data-srq-range-table="all">All</button>
+                        <button class="srq__filter-btn" data-srq-range-table="today">Today</button>
+                        <button class="srq__filter-btn" data-srq-range-table="week">Last Week</button>
+                        <button class="srq__filter-btn" data-srq-range-table="month">Last Month</button>
+                        <button class="srq__filter-btn" data-srq-range-table="3m">3 Months</button>
+                        <button class="srq__filter-btn" data-srq-range-table="6m">6 Months</button>
+                    </div>
+                </div>
+                <div class="srq__tw">
+                    <table class="srq__dtbl">
+                        <thead>
+                            <tr>
+                                <th style="width:85px">ID</th>
+                                <th>Medicines</th>
+                                <th style="width:90px">Type</th>
+                                <th style="width:70px">Branch</th>
+                                <th style="width:85px">Status</th>
+                                <th style="width:75px">Date</th>
+                                <th style="width:50px">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="srq-allTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="srq__mbg" id="srq-detailModal">
+    <div class="srq__mbox srq__mbox--lg">
+        <div class="srq__mhd">
+            <h2 class="srq__mtitle" id="srq-detailTitle">Request Details</h2>
+            <button class="srq__mx" id="srq-detailClose" style="border: 1px solid;"><i class="bi bi-x"></i></button>
+        </div>
+        <div class="srq__mbody">
+            <div class="srq__dg" id="srq-detailContent" style="gap:.8rem;align-content:start;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="srq__toast" id="srq-toast">
+    <span class="srq__tdot" id="srq-tdot"></span>
+    <span id="srq-tmsg"></span>
+</div>
+
+<script>
+    (function () {
+        'use strict';
+
+        const BRANCHES = @Html.Raw(System.Text.Json.JsonSerializer.Serialize<object>(ViewBag.Branches))
+            .map(x => ({
+                id: x.BranchId,
+                name: x.BranchName
+            }));
+
+        const MEDICINES = @Html.Raw(System.Text.Json.JsonSerializer.Serialize<object>(ViewBag.Medicines))
+            .map(x => ({
+                id: x.MedicineId,
+                name: x.MedicineName
+            }));
+
+        const STOCK = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Stock));
+
+
+        const MEDICINES_BY_BRANCH = @Html.Raw(
+                        System.Text.Json.JsonSerializer.Serialize<object>(ViewBag.MedicinesByBranch)
+                );
+
+        const MEDICINE_STOCK = {
+            'MED-001': { 'BR-001': [{ batch: 'BCH-A101', exp: '2026-03', stock: 420 }, { batch: 'BCH-A102', exp: '2025-11', stock: 180 }], 'BR-002': [{ batch: 'BCH-A101', exp: '2026-03', stock: 95 }], 'BR-003': [{ batch: 'BCH-A102', exp: '2025-11', stock: 34 }], 'BR-004': [{ batch: 'BCH-A103', exp: '2026-06', stock: 300 }], 'BR-005': [{ batch: 'BCH-A101', exp: '2026-03', stock: 88 }] },
+            'MED-002': { 'BR-001': [{ batch: 'BCH-B201', exp: '2026-05', stock: 310 }], 'BR-002': [{ batch: 'BCH-B201', exp: '2026-05', stock: 200 }], 'BR-003': [{ batch: 'BCH-B203', exp: '2025-12', stock: 75 }], 'BR-004': [], 'BR-005': [{ batch: 'BCH-B202', exp: '2026-08', stock: 160 }] },
+            'MED-003': { 'BR-001': [{ batch: 'BCH-C301', exp: '2026-02', stock: 500 }], 'BR-002': [{ batch: 'BCH-C302', exp: '2026-07', stock: 180 }], 'BR-003': [{ batch: 'BCH-C301', exp: '2026-02', stock: 41 }], 'BR-004': [{ batch: 'BCH-C303', exp: '2026-10', stock: 370 }], 'BR-005': [{ batch: 'BCH-C301', exp: '2026-02', stock: 120 }] },
+            'MED-004': { 'BR-001': [{ batch: 'BCH-D401', exp: '2026-04', stock: 200 }], 'BR-002': [{ batch: 'BCH-D401', exp: '2026-04', stock: 60 }], 'BR-003': [{ batch: 'BCH-D402', exp: '2025-10', stock: 8 }], 'BR-004': [{ batch: 'BCH-D401', exp: '2026-04', stock: 130 }], 'BR-005': [{ batch: 'BCH-D403', exp: '2026-11', stock: 180 }] },
+            'MED-005': { 'BR-001': [{ batch: 'BCH-E501', exp: '2026-06', stock: 340 }], 'BR-002': [{ batch: 'BCH-E501', exp: '2026-06', stock: 110 }], 'BR-003': [{ batch: 'BCH-E502', exp: '2025-09', stock: 22 }], 'BR-004': [{ batch: 'BCH-E501', exp: '2026-06', stock: 5 }], 'BR-005': [{ batch: 'BCH-E503', exp: '2026-12', stock: 200 }] },
+            'MED-006': { 'BR-001': [{ batch: 'BCH-F601', exp: '2026-01', stock: 180 }], 'BR-002': [{ batch: 'BCH-F601', exp: '2026-01', stock: 12 }], 'BR-003': [{ batch: 'BCH-F602', exp: '2026-05', stock: 95 }], 'BR-004': [{ batch: 'BCH-F601', exp: '2026-01', stock: 70 }], 'BR-005': [{ batch: 'BCH-F603', exp: '2026-08', stock: 140 }] },
+            'MED-007': { 'BR-001': [{ batch: 'BCH-G701', exp: '2026-07', stock: 600 }], 'BR-002': [{ batch: 'BCH-G701', exp: '2026-07', stock: 250 }], 'BR-003': [{ batch: 'BCH-G703', exp: '2025-11', stock: 48 }], 'BR-004': [{ batch: 'BCH-G701', exp: '2026-07', stock: 310 }], 'BR-005': [{ batch: 'BCH-G702', exp: '2026-11', stock: 175 }] },
+        };
+
+        const ALERT_DATA = [
+            { med: 'Amoxicillin 500mg', branch: 'South Branch', stock: 8 },
+            { med: 'Insulin Glargine', branch: 'North Branch', stock: 12 },
+            { med: 'Metformin 1000mg', branch: 'East Branch', stock: 5 },
+            { med: 'Cetirizine 10mg', branch: 'South Branch', stock: 18 },
+            { med: 'Paracetamol 650mg', branch: 'North Branch', stock: 15 },
+            { med: 'Ibuprofen 400mg', branch: 'West Branch', stock: 22 },
+            { med: 'Aspirin 300mg', branch: 'East Branch', stock: 25 },
+            { med: 'Metformin 1000mg', branch: 'West Branch', stock: 11 },
+            { med: 'Insulin Glargine', branch: 'South Branch', stock: 14 },
+            { med: 'Amoxicillin 500mg', branch: 'North Branch', stock: 19 },
+            { med: 'Paracetamol 650mg', branch: 'East Branch', stock: 28 },
+        ];
+
+        let requests = [
+            { id: 'SRQ-2041', medicines: [{ name: 'Ibuprofen 400mg', qty: 200 }], status: 'approved', date: '2025-01-10', type: 'Direct Transfer', branch: 'North Branch' },
+            { id: 'SRQ-2040', medicines: [{ name: 'Aspirin 300mg', qty: 500 }], status: 'transferred', date: '2025-01-10', type: 'Direct Transfer', branch: 'Main Warehouse' },
+            { id: 'SRQ-2039', medicines: [{ name: 'Metformin 1000mg', qty: 150 }], status: 'pending', date: '2025-01-09', type: 'Purchase Order', branch: 'Main Warehouse' },
+            { id: 'SRQ-2038', medicines: [{ name: 'Amoxicillin 500mg', qty: 300 }], status: 'rejected', date: '2025-01-09', type: 'Direct Transfer', branch: 'North Branch' },
+            { id: 'SRQ-2037', medicines: [{ name: 'Paracetamol 650mg', qty: 400 }], status: 'approved', date: '2025-01-08', type: 'Direct Transfer', branch: 'North Branch' },
+            { id: 'SRQ-2036', medicines: [{ name: 'Insulin Glargine', qty: 80 }], status: 'transferred', date: '2025-01-08', type: 'Direct Transfer', branch: 'North Branch' },
+            { id: 'SRQ-2035', medicines: [{ name: 'Cetirizine 10mg', qty: 600 }], status: 'pending', date: '2025-01-07', type: 'Inventory Adjustment', branch: 'South Branch' },
+            { id: 'SRQ-2034', medicines: [{ name: 'Aspirin 300mg', qty: 50 }, { name: 'Ibuprofen 400mg', qty: 70 }], status: 'pending', date: '2025-01-07', type: 'Direct Transfer', branch: 'East Branch' },
+        ];
+
+        let selectedMedicines = [];
+        let selectedBranch = null;
+        let currentTableFilter = 'all';
+
+        const pillMap = { pending: 'srq__pill--pend', approved: 'srq__pill--appr', transferred: 'srq__pill--tran', rejected: 'srq__pill--rejt' };
+
+        const $ = id => document.getElementById(id);
+
+        function toast(msg, ok = true) {
+            $('srq-tmsg').textContent = msg;
+            $('srq-tdot').className = 'srq__tdot' + (ok ? '' : ' srq__tdot--e');
+            const t = $('srq-toast');
+            t.classList.add('srq__toast--show');
+            clearTimeout(t._st);
+            t._st = setTimeout(() => t.classList.remove('srq__toast--show'), 2800);
+        }
+
+        function openModal(id) {
+            const el = $(id);
+
+            el.classList.add('srq__mbg--open');
+            document.body.style.overflow = 'hidden';
+
+            el.style.pointerEvents = 'none';
+
+            el.querySelectorAll('*').forEach(child => {
+                child.style.pointerEvents = 'all';
+            });
+            $('#srq-pendBadge').style.color = 'darkorange !important';
+            $('#srq-mPendCnt').style.color = 'darkorange !important';
+        }
+
+        function closeModal(id) {
+            const el = $(id);
+
+            el.classList.remove('srq__mbg--open');
+            document.body.style.overflow = '';
+
+            el.removeAttribute('style');
+
+            el.querySelectorAll('*').forEach(child => {
+                child.removeAttribute('style');
+            });
+            $('#srq-pendBadge').style.color = 'darkorange !important';
+            $('#srq-mPendCnt').style.color = 'darkorange !important';
+        }
+
+        function esc(s) {
+            return String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        function getStock(medId, branchId) {
+            return STOCK[medId + "_" + branchId] || 0;
+        }
+
+        function daysAgo(dateStr) {
+            return Math.floor((new Date('2025-01-11') - new Date(dateStr)) / 86400000);
+        }
+
+        function filterByRange(range) {
+            return requests.filter(r => {
+                const d = daysAgo(r.date);
+                if (range === 'today') return d === 0;
+                if (range === 'week') return d <= 7;
+                if (range === 'month') return d <= 30;
+                if (range === '3m') return d <= 90;
+                if (range === '6m') return d <= 180;
+                return true;
+            });
+        }
+
+        function isDark() {
+            return document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        }
+
+        /* ---- Selects ---- */
+        function populateSelects() {
+            BRANCHES.forEach(b => {
+                const o = document.createElement('option');
+                o.value = b.id; o.textContent = b.name;
+                $('srq-requestBranch').appendChild(o);
+            });
+        }
+
+        $('srq-requestBranch').addEventListener('change', function () {
+            selectedBranch = this.value;
+            const sel = $('srq-medicineSelect');
+
+            sel.innerHTML = '<option value="" disabled selected>-- Select Medicine --</option>';
+
+            if (selectedBranch) {
+
+                MEDICINES
+                    .sort((a, b) => a.name.localeCompare(b.name)) // ✅ sorting
+                    .forEach(med => {
+                        const o = document.createElement('option');
+                        o.value = med.id;
+                        o.textContent = med.name;
+                        sel.appendChild(o);
+                    });
+
+                sel.disabled = false;
+            } else {
+                sel.disabled = true;
+            }
+
+            $('srq-medQty').disabled = true;
+            $('srq-addMedBtn').disabled = true;
+            $('srq-stockInfo').textContent = 'Select medicine';
+            $('srq-medQty').value = '';
+        });
+
+        $('srq-medicineSelect').addEventListener('change', function () {
+            if (this.value && selectedBranch) {
+                const s = getStock(this.value, selectedBranch);
+
+                $('srq-stockInfo').textContent = s + ' units available';
+                $('srq-medQty').disabled = false;
+                $('srq-medQty').max = s;
+                $('srq-medQty').value = '';
+                $('srq-addMedBtn').disabled = false;
+            }
+        });
+
+        $('srq-medQty').addEventListener('input', function () {
+            const s = parseInt($('srq-stockInfo').textContent);
+            if (parseInt(this.value) > s) this.value = s;
+        });
+
+        $('srq-addMedBtn').addEventListener('click', function () {
+            const medId = $('srq-medicineSelect').value;
+            const qty = parseInt($('srq-medQty').value);
+            if (!medId) { toast('Please select medicine', false); return; }
+            if (!qty || qty <= 0) { toast('Please enter valid quantity', false); return; }
+            if (qty > getStock(medId, selectedBranch)) { toast('Quantity exceeds available stock', false); return; }
+            const med = MEDICINES.find(m => m.id === medId);
+            const idx = selectedMedicines.findIndex(m => m.id === medId);
+            if (idx >= 0) { selectedMedicines[idx].qty = qty; toast(med.name + ' quantity updated'); }
+            else { selectedMedicines.push({ id: medId, name: med.name, qty }); toast(med.name + ' added'); }
+            updateTags();
+            $('srq-medicineSelect').value = '';
+            $('srq-medQty').value = '';
+            $('srq-medQty').disabled = true;
+            $('srq-addMedBtn').disabled = true;
+            $('srq-stockInfo').textContent = 'Select medicine';
+            $('srq-submitBtn').disabled = selectedMedicines.length === 0;
+        });
+
+            function updateTags() {
+        $('srq-selectedMedicinesTags').innerHTML =
+            selectedMedicines.map((m, i) => `
+                <div class="srq__med-tag"
+                     data-id="${m.id}"
+                     data-qty="${m.qty}">
+                 
+                    ${esc(m.name)} ×${m.qty}
+
+                    <span class="srq__med-tag-close"
+                          onclick="window.srqRemMed(${i})">
+                          ✕
+                    </span>
+                </div>
+            `).join('');
+    }
+
+        window.srqRemMed = function (i) {
+            selectedMedicines.splice(i, 1);
+            updateTags();
+            $('srq-submitBtn').disabled = selectedMedicines.length === 0;
+        };
+
+        /* ---- Charts ---- */
+        let tChart, dChart;
+
+        function buildCharts() {
+            const dark = isDark();
+            const grid = dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+            const tick = dark ? '#64748b' : '#94a3b8';
+            const font = { family: "'DM Sans',sans-serif", size: 10 };
+            const tip = { backgroundColor: dark ? '#1e293b' : '#0f172a', titleColor: '#f1f5f9', bodyColor: '#94a3b8', padding: 8, cornerRadius: 4, displayColors: true, titleFont: { ...font, weight: '600' }, bodyFont: font };
+
+            if (tChart) tChart.destroy();
+            if (dChart) dChart.destroy();
+
+            tChart = new Chart($('srq-trendChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [
+                        { label: 'Submitted', data: [8, 12, 7, 15, 10, 6, 13], backgroundColor: '#2f6e8c', borderColor: '#ffff', borderRadius: 3, borderSkipped: false },
+                        { label: 'Approved', data: [5, 9, 6, 11, 8, 4, 10], backgroundColor: '#10b981', borderColor: '#10b981', borderRadius: 3, borderSkipped: false },
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { legend: { labels: { color: tick, font, boxWidth: 8, padding: 10 } }, tooltip: tip },
+                    scales: {
+                        x: { grid: { color: grid }, ticks: { color: tick, font }, border: { display: false } },
+                        y: { grid: { color: grid }, ticks: { color: tick, font, stepSize: 5 }, border: { display: false }, beginAtZero: true }
+                    }
+                }
+            });
+
+            const counts = ['pending', 'approved', 'transferred', 'rejected'].map(s => requests.filter(r => r.status === s).length);
+
+            dChart = new Chart($('srq-donutChart').getContext('2d'), {
+                type: 'doughnut',
+                data: { labels: ['Pending', 'Approved', 'Transferred', 'Rejected'], datasets: [{ data: counts, backgroundColor: ['#f59e0b', '#10b981', '#3b82f6', '#ef4444'], borderWidth: 0, hoverOffset: 6 }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false }, tooltip: tip } }
+            });
+
+            $('srq-donutStats').innerHTML = [
+                { color: '#f59e0b', label: 'Pending', val: counts[0] },
+                { color: '#10b981', label: 'Approved', val: counts[1] },
+                { color: '#3b82f6', label: 'Transferred', val: counts[2] },
+                { color: '#ef4444', label: 'Rejected', val: counts[3] },
+            ].map(d => `
+            <div style="display:flex;align-items:center;gap:6px;">
+                <div style="width:8px;height:8px;border-radius:50%;background:${d.color};flex-shrink:0;"></div>
+                <span style="flex:1;color:var(--srq-tx2);">${d.label}</span>
+                <span style="font-weight:600;color:var(--srq-tx);">${d.val}</span>
+            </div>`).join('');
+        }
+
+        /* ---- Stats ---- */
+        function updateStats() {
+            const p = requests.filter(r => r.status === 'pending').length;
+            $('srq-sc-pend').textContent = p;
+            $('srq-sc-appr').textContent = requests.filter(r => r.status === 'approved').length;
+            $('srq-sc-tran').textContent = requests.filter(r => r.status === 'transferred').length;
+            $('srq-sc-rejt').textContent = requests.filter(r => r.status === 'rejected').length;
+            $('srq-pendBadge').textContent = p;
+            $('srq-mPendCnt').textContent = p;
+        }
+
+        /* ---- Alerts ---- */
+        function updateAlerts() {
+            $('srq-alertList').innerHTML = ALERT_DATA.slice(0, 10).map(a => `
+            <div class="srq__al-item">
+                <div class="srq__al-inf">
+                    <span class="srq__al-name">${esc(a.med)}</span>
+                    <span class="srq__al-br">${esc(a.branch)}</span>
+                </div>
+                <div class="srq__al-r">
+                    <span class="srq__al-qty srq__al-qty--r">${a.stock} units</span>
+                    <div class="srq__al-bar"><div class="srq__al-fill" style="width:${Math.min(a.stock, 100)}%"></div></div>
+                </div>
+            </div>`).join('');
+            $('srq-alertBadge').textContent = ALERT_DATA.length + ' alerts';
+            $('srq-alertSeeAll').style.display = ALERT_DATA.length > 10 ? 'block' : 'none';
+        }
+
+        /* ---- Activity ---- */
+        function updateActivity() {
+            const dotMap = { pending: 'srq__act-dot--y', approved: 'srq__act-dot--g', transferred: 'srq__act-dot--b', rejected: 'srq__act-dot--r' };
+            $('srq-actList').innerHTML = requests.slice().sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10).map(r => `
+            <div class="srq__act-item">
+                <div class="srq__act-dot ${dotMap[r.status]}"></div>
+                <div class="srq__act-body">
+                    <span class="srq__act-title">${esc(r.id)} ${r.status}</span>
+                    <span class="srq__act-det">${esc(r.medicines.map(m => m.name + ' ×' + m.qty).join(', '))}</span>
+                </div>
+                <span class="srq__act-time">${esc(r.date)}</span>
+            </div>`).join('');
+            $('srq-actSeeAll').style.display = requests.length > 10 ? 'block' : 'none';
+        }
+
+        /* ---- Pending Grid ---- */
+        function buildPendingGrid() {
+            const pend = requests.filter(r => r.status === 'pending');
+            $('srq-pendGrid').innerHTML = pend.length ? pend.map(r => `
+            <div class="srq__pcard">
+                <div class="srq__pcard-info">
+                    <div class="srq__pcard-header">
+                        <span class="srq__pcard-id">${esc(r.id)}</span>
+                        <span class="srq__pcard-med">${esc(r.medicines.map(m => m.name + ' ×' + m.qty).join(', '))}</span>
+                    </div>
+                    <div class="srq__pcard-meta">
+                        <span><i class="bi bi-building"></i> ${esc(r.branch)}</span>
+                        <span><i class="bi bi-tag"></i> ${esc(r.type)}</span>
+                        <span><i class="bi bi-calendar"></i> ${esc(r.date)}</span>
+                    </div>
+                </div>
+                <div class="srq__pcard-acts">
+                    <button class="srq__pact srq__pact--v" onclick="window.srqDetail('${esc(r.id)}')"><i class="bi bi-eye"></i></button>
+                    <button class="srq__pact srq__pact--a" onclick="window.srqApprove('${esc(r.id)}')"><i class="bi bi-arrow-right"></i></button>
+                </div>
+            </div>`).join('')
+                : '<div style="text-align:center;padding:2rem;color:var(--srq-tx3);font-size:12px;">No pending requests 🎉</div>';
+        }
+
+        /* ---- All Table ---- */
+        function buildAllTable() {
+            $('srq-allTbody').innerHTML = filterByRange(currentTableFilter).map(r => `
+            <tr>
+                <td class="srq__td-m">${esc(r.id)}</td>
+                <td style="font-size:10px;">${esc(r.medicines.map(m => m.name + ' ×' + m.qty).join(', '))}</td>
+                <td>${esc(r.type)}</td>
+                <td>${esc(r.branch)}</td>
+                <td><span class="srq__pill ${pillMap[r.status]}">${r.status}</span></td>
+                <td class="srq__td-m">${esc(r.date)}</td>
+                <td><button class="srq__tbtn" onclick="window.srqDetail('${esc(r.id)}')"><i class="bi bi-eye"></i></button></td>
+            </tr>`).join('');
+        }
+
+        /* ---- Detail Modal ---- */
+        window.srqDetail = function (id) {
+            const r = requests.find(x => x.id === id);
+            if (!r) return;
+            $('srq-detailTitle').textContent = r.id + ' — Details';
+            const ip = r.status === 'pending';
+            $('srq-detailContent').innerHTML = `
+            ${r.medicines.map(m => `
+                <div class="srq__dgg">
+                    <div class="srq__dgg-t">Medicine: ${esc(m.name)}</div>
+                    <div class="srq__dgr"><span class="srq__dgl">Quantity</span><span class="srq__dgv">${m.qty} units</span></div>
+                </div>`).join('')}
+            <div class="srq__dgg">
+                <div class="srq__dgg-t">Request Information</div>
+                <div class="srq__dgr"><span class="srq__dgl">Branch</span><span class="srq__dgv">${esc(r.branch)}</span></div>
+                <div class="srq__dgr"><span class="srq__dgl">Type</span><span class="srq__dgv">${esc(r.type)}</span></div>
+                <div class="srq__dgr"><span class="srq__dgl">Date</span><span class="srq__dgv">${esc(r.date)}</span></div>
+            </div>
+            <div class="srq__dgg">
+                <div class="srq__dgg-t">Status</div>
+                <div class="srq__dgr"><span class="srq__dgl">Current</span><span class="srq__dgv"><span class="srq__pill ${pillMap[r.status]}">${r.status}</span></span></div>
+                <div class="srq__dgr"><span class="srq__dgl">Request ID</span><span class="srq__dgv" style="font-family:'DM Mono',monospace">${esc(r.id)}</span></div>
+            </div>
+            ${ip ? `<button class="srq__dg-appr srq__dga" onclick="window.srqApprove('${esc(r.id)}');closeModal('srq-detailModal')" style="font-size: 16px; padding: 4px;"><i class="bi bi-arrow-left"></i>&nbsp;&nbsp;&nbsp;&nbsp; Approve &nbsp;&nbsp;&nbsp;&nbsp;<i class="bi bi-arrow-right"> </i></button>` : ''}
+        `;
+            openModal('srq-detailModal');
+        };
+
+        /* ---- Approve ---- */
+        window.srqApprove = function (id) {
+            const r = requests.find(x => x.id === id);
+            if (!r || r.status !== 'pending') return;
+            r.status = 'approved';
+            updateStats(); buildPendingGrid(); buildAllTable(); buildCharts(); updateActivity();
+            closeModal('srq-detailModal');
+            toast(id + ' approved');
+        };
+
+        /* ---- Form Submit ---- */
+        $('srq-srqForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            if (!selectedBranch) { toast('Please select branch', false); return; }
+            if (!selectedMedicines.length) { toast('Please add medicines', false); return; }
+            const type = $('srq-requestType').value;
+            if (!type) { toast('Please select type', false); return; }
+            const branchName = BRANCHES.find(b => b.id === selectedBranch)?.name || selectedBranch;
+            const newId = 'SRQ-' + (2042 + requests.length);
+            requests.unshift({ id: newId, medicines: selectedMedicines.slice(), status: 'pending', date: '2025-01-11', type, branch: branchName });
+            updateStats(); buildPendingGrid(); buildAllTable(); buildCharts(); updateActivity();
+            toast(newId + ' submitted');
+            this.reset();
+            selectedBranch = null;
+            selectedMedicines = [];
+            updateTags();
+            $('srq-medicineSelect').innerHTML = '<option value="" disabled selected>-- Select Medicine --</option>';
+            $('srq-medicineSelect').disabled = true;
+            $('srq-submitBtn').disabled = true;
+        });
+
+        /* ---- Filter buttons ---- */
+        document.querySelectorAll('[data-srq-range]').forEach(b => b.addEventListener('click', function () {
+            document.querySelectorAll('[data-srq-range]').forEach(x => x.classList.remove('active'));
+            this.classList.add('active');
+            buildCharts();
+        }));
+
+        document.querySelectorAll('[data-srq-range-table]').forEach(b => b.addEventListener('click', function () {
+            document.querySelectorAll('[data-srq-range-table]').forEach(x => x.classList.remove('active'));
+            this.classList.add('active');
+            currentTableFilter = this.dataset.srqRangeTable;
+            buildAllTable();
+        }));
+
+        /* ---- Modal triggers ---- */
+        $('srq-pendBtn').addEventListener('click', () => { openModal('srq-listModal'); srqTab('pend'); });
+        $('srq-histBtn').addEventListener('click', () => { openModal('srq-listModal'); srqTab('all'); });
+        $('srq-listClose').addEventListener('click', () => closeModal('srq-listModal'));
+        $('srq-detailClose').addEventListener('click', () => closeModal('srq-detailModal'));
+        $('srq-listModal').addEventListener('click', e => { if (e.target === $('srq-listModal')) closeModal('srq-listModal'); });
+        $('srq-detailModal').addEventListener('click', e => { if (e.target === $('srq-detailModal')) closeModal('srq-detailModal'); });
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') { closeModal('srq-listModal'); closeModal('srq-detailModal'); }
+        });
+
+        /* ---- Tabs ---- */
+        function srqTab(tab) {
+            document.querySelectorAll('[data-srq-tab]').forEach(b => b.classList.toggle('srq__tab-btn--on', b.dataset.srqTab === tab));
+            $('srq-tabPend').classList.toggle('srq__tab-pane--on', tab === 'pend');
+            $('srq-tabAll').classList.toggle('srq__tab-pane--on', tab === 'all');
+        }
+
+        document.querySelectorAll('[data-srq-tab]').forEach(b => b.addEventListener('click', () => srqTab(b.dataset.srqTab)));
+
+        /* ---- Watch Mazer theme changes and rebuild charts ---- */
+        new MutationObserver(() => buildCharts())
+            .observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+
+        /* ---- Init ---- */
+        populateSelects();
+        updateStats();
+        updateAlerts();
+        updateActivity();
+        buildPendingGrid();
+        buildAllTable();
+        setTimeout(buildCharts, 120);
+
+    }());
+</script>

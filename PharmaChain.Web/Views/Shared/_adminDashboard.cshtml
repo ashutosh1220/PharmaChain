@@ -27,6 +27,7 @@
     <link rel="stylesheet" href="~/assets/static/css/supplier-stylesheet.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/assets/static/css/batch-stylesheet.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/assets/static/css/purchase-invoice-stylesheet.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/assets/static/css/stock-requests-stylesheet.css" asp-append-version="true" />
     <style>
 
         *, *::before, *::after {
@@ -1344,7 +1345,7 @@
                                     @if (perms.Contains(28))
                                     {
                                         <li class="submenu-item @(currentPage == "Create" && currentController == "Suppliers" ? "active" : "")">
-                                            <a href="@Url.Action("AddSupplier", "Supplier")" class="submenu-link">
+                                            <a href="#" data-url="@Url.Action("AddSupplier", "Supplier")" class="submenu-link ajax-link">
                                                 <i class="bi bi-plus-circle-fill"></i>&nbsp;&nbsp;Add Supplier
                                             </a>
                                         </li>
@@ -2075,6 +2076,7 @@
     <script src="~/assets/static/js/components/mz-popup.js" asp-append-version="true"></script>
     <script src="~/assets/static/js/app.js" asp-append-version="true"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" asp-append-version="true"></script>
 
     <script>
         function tnav(el){el.classList.toggle('open');}

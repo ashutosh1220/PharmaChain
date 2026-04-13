@@ -12,7 +12,7 @@ $(function() {
     if (!$toggleBtn.length || !$sidebar.length) return;
 
     function isDesktop() { return $(window).width() >= 1200; }
-    function isSidebarOpen() { return !$sidebar.hasClass("collapsed"); }
+    function isSidebarOpen() { return !$sidebar.hasClass("collapsed");}
 
     function openSidebar() {
         $sidebar.removeClass("collapsed");
@@ -1540,7 +1540,7 @@ var LogsPage = {
     },
 
     bindRowsPerPage: function() {
-        // Now handled by delegated event handler at document level
+        
     },
 
     updateResultsInfo: function() {
@@ -1580,8 +1580,6 @@ var LogsPage = {
 
         LogsPage.updateResultsInfo();
 
-        // NOTE: pagination click is handled by the single delegated handler above
-        // Filter submit button
         $(document).off('click.logsFilter').on('click.logsFilter', '#logPage button[type="submit"]', function(e) {
             e.preventDefault();
             LogsPage.applyFilters();
@@ -1597,7 +1595,6 @@ $(document).ready(function() {
 // ═══════════════════════════════════════════════════════════════════
 // FIX: UNIFIED ROWS PER PAGE HANDLER
 // ═══════════════════════════════════════════════════════════════════
-// Single handler that detects the current page and loads only that page's data
 $(document).ready(function() {
 
     // Single unified handler for all pages
@@ -1606,14 +1603,12 @@ $(document).ready(function() {
         
         console.log('Rows per page changed to:', newSize);
 
-        // DETECT WHICH PAGE WE'RE ON
         var isUsersPage = $('#userTableBody').length > 0;
         var isLogsPage = $('#logPage').length > 0;
         var isBatchPage = $('#batchTableBody').length > 0;
         var isBatchPage = $('#batchTableBody').length > 0;
         var isMedicinePage = $('#medicineTableBody').length > 0;
 
-        // PREVENT MULTIPLE TRIGGERS - Only one page should load
         if (isUsersPage && !isLogsPage && !isBatchPage) {
             console.log('→ Loading USERS page data');
             UsersPage.state.size = newSize;
