@@ -1,6 +1,4 @@
-﻿// ─────────────────────────────────────────────────────────────
-// 1. SIDEBAR TOGGLE
-// ─────────────────────────────────────────────────────────────
+﻿
 $(function() {
 
     var $toggleBtn = $('#sidebarToggleBtn');
@@ -13,7 +11,6 @@ $(function() {
 
     function isDesktop() { return $(window).width() >= 1200; }
     function isSidebarOpen() { return !$sidebar.hasClass("collapsed");}
-
     function openSidebar() {
         $sidebar.removeClass("collapsed");
         if ($sidebarInner.length) $sidebarInner.addClass("active");
@@ -53,8 +50,6 @@ $(function() {
     handleResize();
     $(window).on("resize", handleResize);
 });
-
-/* ─── Toast Engine ─────────────────────────── */
 
 const ICON_MAP = {
     primary: 'fa-circle-info',
@@ -121,15 +116,12 @@ function showToast(opts) {
 
     var $toast = $(toastHTML);
 
-    // Append
     $container.append($toast);
 
-    // Close button
     $toast.find('.mz-toast-close').on('click', function() {
         removeToast($toast);
     });
 
-    // Action buttons
     $toast.find('.mz-toast-action-btn').each(function(i) {
         if (actions[i] && actions[i].onClick) {
             $(this).on('click', actions[i].onClick);
@@ -139,7 +131,6 @@ function showToast(opts) {
         });
     });
 
-    // Auto remove
     if (duration > 0) {
         setTimeout(function() {
             removeToast($toast);
@@ -157,9 +148,6 @@ function removeToast($toast) {
     }, 300);
 }
 
-
-/* ─── Position (jQuery) ───────────────────────────────────── */
-
 let currentPos = 'pos-top-right';
 
 function setPos(pos) {
@@ -173,9 +161,6 @@ function setPos(pos) {
     $(event.target).addClass('active');
 }
 
-
-/* ─── Theme Toggle (jQuery) ───────────────────────────────── */
-
 function toggleTheme() {
     var $html = $('html');
 
@@ -183,9 +168,6 @@ function toggleTheme() {
     $html.attr('data-bs-theme', current === 'dark' ? 'light' : 'dark');
 }
 
-// ─────────────────────────────────────────────────────────────
-// 2. REGISTRATION WIZARD
-// ─────────────────────────────────────────────────────────────
 function initRegistrationWizard() {
     if (!$('#nextBtn').length) return;
 
@@ -455,10 +437,6 @@ var allData = [];
 var filteredData = [];
 var currentSort = { field: 'createdAt', direction: 'desc' };
 
-// ─────────────────────────────────────────────────────────────
-// 2. UTILITY FUNCTIONS
-// ─────────────────────────────────────────────────────────────
-
 function getCurrentRoute() {
     var path = window.location.pathname;
     return path.split('?')[0];
@@ -483,10 +461,6 @@ function buildQueryString(page = 1, size = pageSize, search = '', filter = '') {
     if (filter) params.set('filter', filter);
     return params.toString();
 }
-
-// ─────────────────────────────────────────────────────────────
-// 3. PAGINATION
-// ─────────────────────────────────────────────────────────────
 
 function renderPagination() {
     var $pagination = $('#tableFooter').find('.pagination');
@@ -551,9 +525,6 @@ function renderPagination() {
     );
 }
 
-// ─────────────────────────────────────────────────────────────
-// 4. TABLE — column toggles + init pagination
-// ─────────────────────────────────────────────────────────────
 $(document).ready(function() {
 
     if (!$('#tableFooter').length) return;
@@ -575,10 +546,6 @@ $(document).ready(function() {
     });
 });
 
-
-// ─────────────────────────────────────────────────────────────
-// 5. OVERLAY / LOADER
-// ─────────────────────────────────────────────────────────────
 let overlayTimer;
 
 function showOverlay(color, label) {
@@ -604,10 +571,6 @@ function simulateBtn(id, loadingText) {
     setTimeout(() => { btn.classList.remove('mz-btn-loading'); btn.innerHTML = origHTML; }, 2200);
 }
 
-
-// ─────────────────────────────────────────────────────────────
-// 6. AJAX LINK — sidebar navigation
-// ─────────────────────────────────────────────────────────────
 $(document).on('click', '.ajax-link', function(e) {
     e.preventDefault();
     var url = $(this).attr('data-url') || $(this).attr('href');
@@ -676,9 +639,6 @@ $(document).on('click', '.ajax-link', function(e) {
     });
 });
 
-// ─────────────────────────────────────────────────────────────
-// 7. CONFIRM ACTION — generic popup + AJAX
-// ─────────────────────────────────────────────────────────────
 function confirmAction(options) {
     MzPopup.show({
         type: options.type || 'warning',
@@ -709,10 +669,8 @@ function confirmAction(options) {
     });
 }
 
+// FORM SUBMIT + USER ACTIONS
 
-// ─────────────────────────────────────────────────────────────
-// 8. FORM SUBMIT + USER ACTIONS
-// ─────────────────────────────────────────────────────────────
 $(document).ready(function() {
 
     //$(document).on('submit', 'form', function(e) {
@@ -782,39 +740,64 @@ $(document).ready(function() {
     //});
 
 
-
-
     $(document).on('submit', 'form', function (e) {
         e.preventDefault();
         var form = this;
         var formData = new FormData(form);
         var confirmMessage = $(form).data('confirm');
 
-        // 🔍 DEBUG: Log the FormData being sent to console
-        console.log('===== FORM SUBMISSION DEBUG =====');
-        console.log('Form ID:', form.id);
-        console.log('Form Action:', $(form).attr('action'));
-        console.log('Form Data Contents:');
-
-        // Create a readable log of FormData
         var dataLog = {};
         for (let [key, value] of formData.entries()) {
             console.log(`  ${key}: ${value}`);
             dataLog[key] = value;
         }
-        console.log('FormData Object:', dataLog);
-        console.log('==================================');
+
+        let payload;
+        let isStockRequestForm = (form.id === 'srq-srqForm');
+
+        if (isStockRequestForm) {
+
+            let medicinesMap = {};
+
+            for (let [key, value] of formData.entries()) {
+
+                let match = key.match(/^Medicines\[(\d+)\]\.(\w+)$/);
+
+                if (match) {
+                    let index = match[1];
+                    let field = match[2];
+
+                    if (!medicinesMap[index]) medicinesMap[index] = {};
+                    medicinesMap[index][field] = value;
+                }
+            }
+
+            let medicines = Object.values(medicinesMap).map(x => ({
+                medicineId: x.MedicineId,
+                batchId: x.BatchId || "",
+                quantity: parseInt(x.Quantity || 0)
+            }));
+
+            payload = {
+                transferId: "",
+                assignedStockId: "",
+                medicines: medicines
+            };
+
+        } else {
+            payload = formData;
+        }
 
         function submitForm() {
             $.ajax({
                 url: $(form).attr('action'),
                 type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
+                data: isStockRequestForm ? JSON.stringify(payload) : formDat,
+                processData: !isStockRequestForm,
+                contentType: isStockRequestForm ? 'application/json; charset=utf-8' : false,
 
                 success: function (response) {
-                    console.log('✅ Server Response:', response);
+                    console.log('Server Response:', response);
 
                     let msg = response.message || response.messege || "No message";
 
@@ -854,7 +837,7 @@ $(document).ready(function() {
                 },
 
                 error: function (xhr) {
-                    console.error('❌ AJAX Error:', xhr);
+                    console.error(' Error:', xhr);
 
                     let errorMsg = "Something went wrong";
 
@@ -922,9 +905,6 @@ $(document).ready(function() {
 });
 
 
-// ─────────────────────────────────────────────────────────────
-// 9. USERS PAGE
-// ─────────────────────────────────────────────────────────────
 var UsersPage = {
     state: {
         page: 1, size: 10, search: '',
@@ -1001,7 +981,7 @@ var UsersPage = {
         UsersPage.state.page = parseInt($('#tableFooter').data('current-page')) || 1;
         UsersPage.state.size = parseInt($('#tableFooter').data('page-size')) || 10;
         UsersPage.updateResultsInfo();
-        // NOTE: pagination click is handled by the single delegated handler below
+        // pagination click is handled by the single delegated handler below
     }
 };
 
@@ -1011,9 +991,6 @@ $(function() {
     }
 });
 
-// ─────────────────────────────────────────────────────────────
-// 10. EXPORT EXCEL
-// ─────────────────────────────────────────────────────────────
 function exportExcel() {
     var rows = [];
 
@@ -1115,7 +1092,6 @@ $(document).on('click', '.fsb', function() {
     });
 });
 
-// ── DATA ─────────────────────────────────────────
 const ROLES = [
     { id: 'SuperAdmin', label: 'Super Admin', icon: 'bi-stars' },
     { id: 'Admin', label: 'Admin', icon: 'bi-shield-fill' },
@@ -1142,7 +1118,6 @@ let activeRole = 'SuperAdmin';
 let PERMISSIONS = [];
 const rolePerms = {};
 
-// ── API FETCH ─────────────────────────────────────
 function fetchPermissionsForRole(roleName) {
     showLoader(true);
 
@@ -1180,7 +1155,6 @@ function fetchPermissionsForRole(roleName) {
         });
 }
 
-// ── BUILD ROLE PILLS ──────────────────────────────
 function buildRolePills() {
     const $c = $('#rolePills').empty();
     $.each(ROLES, function(i, r) {
@@ -1194,7 +1168,6 @@ function buildRolePills() {
     });
 }
 
-// ── BUILD PERM GRID ───────────────────────────────
 function buildPermGrid() {
     const $grid = $('#permGrid').empty();
     const perms = rolePerms[activeRole] || new Set();
@@ -1277,7 +1250,6 @@ function buildPermGrid() {
     updateStats();
 }
 
-// ── ACTIONS ───────────────────────────────────────
 function selectRole(id) {
     activeRole = id;
     buildRolePills();
@@ -1444,7 +1416,6 @@ function savePermissions() {
     });
 }
 
-// ── STATS ─────────────────────────────────────────
 function updateStats() {
     const total = PERMISSIONS.length;
     const granted = (rolePerms[activeRole] || new Set()).size;
@@ -1478,7 +1449,7 @@ function showLoader(visible) {
 
 let toastTimer;
 function showToast(msg) {
-    // Support both legacy string calls (permissions page) and object calls
+   
     if (typeof msg === 'string') {
         const $toast = $('#toast');
         $('#toastMsg').html(msg);
@@ -1490,7 +1461,6 @@ function showToast(msg) {
         return;
     }
 
-    // Object-style call — use the full toast engine
     const {
         type = 'primary',
         title = '',
@@ -1702,13 +1672,8 @@ $(document).ready(function() {
     LogsPage.init();
 });
 
-
-// ═══════════════════════════════════════════════════════════════════
-// FIX: UNIFIED ROWS PER PAGE HANDLER
-// ═══════════════════════════════════════════════════════════════════
 $(document).ready(function() {
 
-    // Single unified handler for all pages
     $(document).off('change.rowsPerPage').on('change.rowsPerPage', '#rowsPerPage', function() {
         var newSize = $(this).val();
         
@@ -1815,8 +1780,6 @@ $(document).off('click.pagination').on('click.pagination', '.pagination .page-li
     }
 });
 
-
-// ── helpers ────────────────────────────────────────────────────────────────
 function esc(s) {
     return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
@@ -1825,7 +1788,6 @@ function di(label, val, full = false) {
     return `<div class="detail-item${full ? ' detail-full' : ''}"><dt>${label}</dt><dd>${val}</dd></div>`;
 }
 
-// ── enums ───────────────────────────────────────────────────────────────────
 const ACTION_TYPE_MAP = {
     1: ['Create', 'success', 'bi-plus-circle'],
     2: ['Update', 'warning', 'bi-pencil'],
@@ -1859,8 +1821,6 @@ function stBadge(st) {
                 <i class="bi ${icon} me-1"></i>${esc(st)}
             </span>`;
 }
-
-// ── device / UA parser ───────────────────────────────────────────────────────
 function parseUA(ua) {
     if (!ua) return {
         browser: 'Unknown', browserVer: '', browserIcon: 'bi-globe',
@@ -1953,8 +1913,6 @@ function buildDeviceBlock(ua) {
         </div>`;
 }
 
-// ── main drawer HTML builder ─────────────────────────────────────────────────
-
 function fmtDate(dateString) {
     if (!dateString) return '-';
 
@@ -2031,7 +1989,6 @@ function buildDrawerHTML(l) {
     );
 }
 
-// ── drawer open ──────────────────────────────────────────────────────────────
 $(document).on("click", "tbody tr[data-log-id]", function() {
     const logId = $(this).data("log-id");
 
@@ -2067,7 +2024,6 @@ $(document).on("click", "tbody tr[data-log-id]", function() {
         });
 });
 
-// ── drawer close ─────────────────────────────────────────────────────────────
 $(document).on("click", ".logdrawerclosebtn, #drawerOverlay", function() {
     $("#drawerOverlay, #logDrawer").removeClass("open");
 });
@@ -2094,7 +2050,6 @@ $(document).ready(function() {
             + '</div>';
     }
 
-    // Close drawer
     $(document).on('click', '.med-drawer-close-btn, #medDrawerOverlay', function() {
         closeMedDrawer();
     });
@@ -2189,7 +2144,6 @@ $(document).ready(function() {
         });
     }
 
-    // Row click
     $(document).on('click', 'tr.med-row', function(e) {
 
         if ($(e.target).closest('button, a').length) return;
@@ -2402,11 +2356,9 @@ var ExpiryPage = {
             success: function (response) {
                 var $res = $(response);
 
-                /* ── Table body ── */
                 var newBody = $res.find('#etTableBody').html();
                 if (newBody) $('#etTableBody').html(newBody);
 
-                /* ── Footer / pagination attrs ── */
                 var $newFooter = $res.find('#etTableFooter');
                 if ($newFooter.length) {
                     $('#etTableFooter')
@@ -2415,11 +2367,9 @@ var ExpiryPage = {
                         .attr('data-page-size', $newFooter.attr('data-page-size'));
                 }
 
-                /* ── Stat cards ── */
                 var newStats = $res.find('#statCards').html();
                 if (newStats) $('#statCards').html(newStats);
 
-                /* ── Sync local vars & re-render UI ── */
                 ExpiryPage.renderPagination();
                 ExpiryPage.updateResultsInfo();
                 ExpiryPage.highlightActiveCard();
@@ -2442,19 +2392,16 @@ var ExpiryPage = {
         });
     },
 
-    /* ── Pagination renderer ── */
     renderPagination: function () {
         var totalPages = parseInt($('#etTableFooter').attr('data-total-pages')) || 1;
         var currentPage = parseInt($('#etTableFooter').attr('data-current-page')) || 1;
         var $ul = $('#etPagination').empty();
 
-        /* Prev */
         $ul.append(
             '<li class="page-item ' + (currentPage <= 1 ? 'disabled' : '') + '">' +
             '<a class="page-link" href="#" data-page="' + (currentPage - 1) + '">«</a></li>'
         );
 
-        /* Page numbers — show window of 5 */
         var start = Math.max(1, currentPage - 2);
         var end = Math.min(totalPages, start + 4);
         if (end - start < 4) start = Math.max(1, end - 4);
@@ -2466,14 +2413,12 @@ var ExpiryPage = {
             );
         }
 
-        /* Next */
         $ul.append(
             '<li class="page-item ' + (currentPage >= totalPages ? 'disabled' : '') + '">' +
             '<a class="page-link" href="#" data-page="' + (currentPage + 1) + '">»</a></li>'
         );
     },
 
-    /* ── Results info label ── */
     updateResultsInfo: function () {
         var showing = $('#etTableBody tr').length;
         var totalPages = parseInt($('#etTableFooter').attr('data-total-pages')) || 1;
@@ -2487,21 +2432,18 @@ var ExpiryPage = {
         $('#etResultCount').text(showing + ' record' + (showing !== 1 ? 's' : ''));
     },
 
-    /* ── Highlight active stat card ── */
     highlightActiveCard: function () {
         $('#statCards .card').removeClass('border-primary');
         var $card = $('#card-' + ExpiryPage.state.status);
         if ($card.length) $card.find('.card').addClass('border-primary');
     },
 
-    /* ── Filter by status card click ── */
     filterByStatus: function (status) {
         ExpiryPage.state.status = status;
         ExpiryPage.state.page = 1;
         ExpiryPage.fetch();
     },
 
-    /* ── Apply all toolbar filters ── */
     applyFilters: function () {
         ExpiryPage.state.search = $('#etSearchInput').val().trim();
         ExpiryPage.state.branch = $('#etFilterBranch').val();
@@ -2512,7 +2454,6 @@ var ExpiryPage = {
         ExpiryPage.fetch();
     },
 
-    /* ── Reset all filters ── */
     resetFilters: function () {
         $('#etSearchInput').val('');
         $('#etFilterBranch').val('');
@@ -2529,29 +2470,24 @@ var ExpiryPage = {
         ExpiryPage.fetch();
     },
 
-    /* ── Rows-per-page change ── */
     changePageSize: function (val) {
         ExpiryPage.state.size = parseInt(val) || 10;
         ExpiryPage.state.page = 1;
         ExpiryPage.fetch();
     },
 
-    /* ── Re-bind row click + view-btn after each fetch ── */
     rebindRowEvents: function () {
-        /* View button */
         $('#etTableBody').off('click', '.et-view-btn').on('click', '.et-view-btn', function (e) {
             e.stopPropagation();
             ExpiryPage.openDrawer($(this).data('id'));
         });
 
-        /* Row click */
         $('#etTableBody').off('click', '.et-row').on('click', '.et-row', function () {
             var id = $(this).find('.et-view-btn').data('id');
             if (id) ExpiryPage.openDrawer(id);
         });
     },
 
-    /* ── Drawer open / close ── */
     openDrawer: function (batchId) {
         $('#expDrawerId').text('#' + batchId);
         $('#expDrawerBody').html(
@@ -2590,7 +2526,6 @@ var ExpiryPage = {
         $('#expExportBtn').prop('hidden', true);
     },
 
-    /* ── Export visible rows as CSV ── */
     exportExcel: function () {
         var headers = ['Medicine', 'Batch No', 'GRN', 'Mfg Date', 'Exp Date', 'Days Left', 'Stock', 'Status'];
         var rows = [];
@@ -2615,7 +2550,6 @@ var ExpiryPage = {
         a.click();
     },
 
-    /* ── Export drawer data as JSON ── */
     exportDrawerJson: function (data) {
         var a = document.createElement('a');
         a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data, null, 2));
@@ -2623,31 +2557,26 @@ var ExpiryPage = {
         a.click();
     },
 
-    /* ── Column visibility toggle ── */
     initColToggles: function () {
         $(document).on('change', '.et-col-toggle', function () {
             var cls = $(this).data('col');
             $('.' + cls).toggle(this.checked);
         });
 
-        /* Apply initial state for unchecked boxes */
         $('.et-col-toggle').each(function () {
             if (!this.checked) $('.' + $(this).data('col')).hide();
         });
     },
 
-    /* ── Select-all checkbox ── */
     toggleSelectAll: function (master) {
         $('#etTableBody .et-row-check').prop('checked', master.checked);
     },
 
-    /* ── Build drawer HTML (kept identical to original) ── */
     drawerHtml: function (data) {
         const statusClass = data.status === "Expired" ? "danger" : data.status === "Soon" ? "warning" : "success";
         const daysLeft = data.daysLeft;
         const daysText = daysLeft < 0 ? `${Math.abs(daysLeft)} days ago` : `${daysLeft} days`;
 
-        // Helper: Detail item
         const di = (label, value, fullWidth = false) => `
             <div class="detail-item ${fullWidth ? 'full-width' : ''}">
               <span class="detail-label">${label}</span>
@@ -2655,15 +2584,12 @@ var ExpiryPage = {
             </div>
           `;
 
-        // Helper: Badge pills
         const statusBadge = (text, variant) => `
             <span class="badge-pill badge-${variant}">${text}</span>
           `;
 
-        // Helper: Code block
         const code = (text) => `<code class="code-block">${text || "—"}</code>`;
 
-        // Helper: Highlight badge
         const highlightBadge = (text, variant) => `
             <span class="badge bg-${variant} bg-opacity-10 text-${variant}" style="border: 1px solid currentColor;">
               ${text}
@@ -3014,7 +2940,6 @@ var ExpiryPage = {
           `;
     },
 
-    /* ── Init ── */
     init: function () {
         ExpiryPage.state.page = parseInt($('#etTableFooter').attr('data-current-page')) || 1;
         ExpiryPage.state.size = parseInt($('#etTableFooter').attr('data-page-size')) || 10;
@@ -3023,7 +2948,6 @@ var ExpiryPage = {
         ExpiryPage.updateResultsInfo();
         ExpiryPage.initColToggles();
 
-        /* ── Row events — document pe delegate, ek baar bind ── */
         $(document).on('click', '#etTableBody .et-view-btn', function (e) {
             e.stopPropagation();
             ExpiryPage.openDrawer($(this).attr('data-id'));
@@ -3034,7 +2958,6 @@ var ExpiryPage = {
             if (id) ExpiryPage.openDrawer(id);
         });
 
-        /* Pagination clicks */
         $(document).on('click', '#etPagination .page-link', function (e) {
             e.preventDefault();
             var p = parseInt($(this).data('page'));
@@ -3044,12 +2967,10 @@ var ExpiryPage = {
             ExpiryPage.fetch();
         });
 
-        /* Rows-per-page */
         $(document).on('change', '#etRowsPerPage', function () {
             ExpiryPage.changePageSize($(this).val());
         });
 
-        /* Debounced search */
         var debounceTimer;
         $('#etSearchInput').on('input', function () {
             clearTimeout(debounceTimer);
@@ -3057,11 +2978,7 @@ var ExpiryPage = {
         });
 
         $('#etFilterBranch, #etFilterCategory, #etSortField, #etWindowSelect').on('change', ExpiryPage.applyFilters);
-
-        /* Drawer close */
         $('#expDrawerOverlay, .exp-drawer-close-btn').on('click', ExpiryPage.closeDrawer);
-
-        /* Select-all */
         $('#etSelectAll').on('change', function () { ExpiryPage.toggleSelectAll(this); });
     }
 };
