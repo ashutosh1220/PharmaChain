@@ -1375,7 +1375,7 @@
                                     @if (perms.Contains(32))
                                     {
                                         <li class="submenu-item @(currentPage == "Requests" ? "active" : "")">
-                                            <a href="@Url.Action("Requests", "StockTransfers")" class="submenu-link">
+                                            <a href="#" data-url="@Url.Action("StockTransfers", "StockTransactions")" class="submenu-link ajax-link">
                                                 <i class="bi bi-send-check-fill"></i>&nbsp;&nbsp;Requests
                                             </a>
                                         </li>
@@ -2068,16 +2068,15 @@
         </div>
     </div>
 
-    <script src="~/assets/static/js/components/dark.js" asp-append-version="true"></script>
     <script src="~/assets/static/js/jquery-4.0.0.min.js" asp-append-version="true"></script>
     <script src="~/assets/extensions/perfect-scrollbar/perfect-scrollbar.min.js" asp-append-version="true"></script>
-    <script src="~/assets/compiled/js/app.js" asp-append-version="true"></script>
-    <script src="~/assets/extensions/apexcharts/apexcharts.min.js" asp-append-version="true"></script>
+    <script src="~/assets/static/js/components/dark.js" asp-append-version="true"></script>
     <script src="~/assets/static/js/components/mz-popup.js" asp-append-version="true"></script>
+    <script src="~/assets/compiled/js/app.js" asp-append-version="true"></script>
     <script src="~/assets/static/js/app.js" asp-append-version="true"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" asp-append-version="true"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" asp-append-version="true"></script>
-
+    <script src="~/assets/extensions/apexcharts/apexcharts.min.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         function tnav(el){el.classList.toggle('open');}
 

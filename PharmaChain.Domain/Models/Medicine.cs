@@ -52,9 +52,9 @@ public partial class Medicine
 
     public virtual ICollection<StockLedger> StockLedgers { get; set; } = new List<StockLedger>();
 
-    public virtual ICollection<StockRequest> StockRequests { get; set; } = new List<StockRequest>();
+    //public virtual ICollection<StockRequest> StockRequests { get; set; } = new List<StockRequest>();
 
-    public virtual ICollection<StockTransferItem> StockTransferItems { get; set; } = new List<StockTransferItem>();
+    //public virtual ICollection<StockTransferItem> StockTransferItems { get; set; } = new List<StockTransferItem>();
 
     public virtual ICollection<SupplierReturn> SupplierReturns { get; set; } = new List<SupplierReturn>();
 

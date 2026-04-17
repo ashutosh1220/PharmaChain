@@ -55,9 +55,9 @@ public partial class Branch
 
     public virtual ICollection<StockRequest> StockRequestToBranches { get; set; } = new List<StockRequest>();
 
-    public virtual ICollection<StockTransfer> StockTransferFromBranches { get; set; } = new List<StockTransfer>();
+    //public virtual ICollection<StockTransfer> StockTransferFromBranches { get; set; } = new List<StockTransfer>();
 
-    public virtual ICollection<StockTransfer> StockTransferToBranches { get; set; } = new List<StockTransfer>();
+    //public virtual ICollection<StockTransfer> StockTransferToBranches { get; set; } = new List<StockTransfer>();
 
     public virtual ICollection<SupplierReturn> SupplierReturns { get; set; } = new List<SupplierReturn>();
 

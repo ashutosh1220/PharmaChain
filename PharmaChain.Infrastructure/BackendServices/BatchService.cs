@@ -60,16 +60,17 @@ namespace PharmaChain.Infrastructure.BackendServices
                     };
                 }
 
-                var lastBatch = await _context.MedicineBatches
-                    .OrderByDescending(x => x.CreatedAt)
-                    .FirstOrDefaultAsync();
+                var lastBatchId = await _context.MedicineBatches
+    .OrderByDescending(x => x.BatchId)
+    .Select(x => x.BatchId)
+    .FirstOrDefaultAsync();
 
                 int nextNumber = 1;
 
-                if (lastBatch != null && !string.IsNullOrEmpty(lastBatch.BatchId))
+                if (!string.IsNullOrEmpty(lastBatchId))
                 {
-                    var num = lastBatch.BatchId.Replace("BAT", "");
-                    if (int.TryParse(num, out int last))
+                    var numPart = lastBatchId.Replace("BAT", "");
+                    if (int.TryParse(numPart, out int last))
                         nextNumber = last + 1;
                 }
 

@@ -497,66 +497,94 @@ public partial class PharmaChainDbContext : DbContext, IPharmaChainDbContext
 
         modelBuilder.Entity<Medicine>(entity =>
         {
-            entity.HasKey(e => e.MedicineId).HasName("PK__medicine__BA9E65EE512821EF");
+            entity.HasKey(e => e.MedicineId)
+                .HasName("PK__medicine__BA9E65EE512821EF");
 
             entity.ToTable("medicines");
 
             entity.Property(e => e.MedicineId)
                 .HasMaxLength(16)
                 .HasColumnName("medicineId");
-            entity.Property(e => e.Category)
-                .HasMaxLength(100)
-                .HasColumnName("category");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnName("createdAt");
-            entity.Property(e => e.CreatedBy)
-                .HasMaxLength(16)
-                .HasColumnName("createdBy");
-            entity.Property(e => e.DeletedAt).HasColumnName("deletedAt");
-            entity.Property(e => e.DeletedBy)
-                .HasMaxLength(16)
-                .HasColumnName("deletedBy");
-            entity.Property(e => e.GenericName)
-                .HasMaxLength(150)
-                .HasColumnName("genericName");
-            entity.Property(e => e.GstPercentage)
-                .HasColumnType("decimal(5, 2)")
-                .HasColumnName("gstPercentage");
-            entity.Property(e => e.HsnCode)
-                .HasMaxLength(20)
-                .HasColumnName("hsnCode");
-            entity.Property(e => e.IsActive)
-                .HasDefaultValue(true)
-                .HasColumnName("isActive");
-            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
-            entity.Property(e => e.IsPrescriptionRequired).HasColumnName("isPrescriptionRequired");
-            entity.Property(e => e.Manufacturer)
-                .HasMaxLength(150)
-                .HasColumnName("manufacturer");
+
             entity.Property(e => e.MedicineName)
                 .HasMaxLength(150)
                 .HasColumnName("medicineName");
-            entity.Property(e => e.MinimumStockLevel).HasColumnName("minimumStockLevel");
+
+            entity.Property(e => e.GenericName)
+                .HasMaxLength(150)
+                .HasColumnName("genericName");
+
+            entity.Property(e => e.Category)
+                .HasMaxLength(100)
+                .HasColumnName("category");
+
             entity.Property(e => e.Strength)
                 .HasMaxLength(50)
                 .HasColumnName("strength");
-            entity.Property(e => e.UpdatedAt).HasColumnName("updatedAt");
+
+            entity.Property(e => e.Manufacturer)
+                .HasMaxLength(150)
+                .HasColumnName("manufacturer");
+
+            entity.Property(e => e.HsnCode)
+                .HasMaxLength(20)
+                .HasColumnName("hsnCode");
+
+            entity.Property(e => e.GstPercentage)
+                .HasColumnType("decimal(5, 2)")
+                .HasColumnName("gstPercentage");
+
+            entity.Property(e => e.MinimumStockLevel)
+                .HasColumnName("minimumStockLevel");
+
+            entity.Property(e => e.IsPrescriptionRequired)
+                .HasColumnName("isPrescriptionRequired");
+
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("isActive");
+
+            entity.Property(e => e.IsDeleted)
+                .HasColumnName("isDeleted");
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnName("createdAt");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnName("updatedAt");
+
+            entity.Property(e => e.DeletedAt)
+                .HasColumnName("deletedAt");
+
+            entity.Property(e => e.CreatedBy)
+                .HasMaxLength(16)
+                .HasColumnName("createdBy");
+
             entity.Property(e => e.UpdatedBy)
                 .HasMaxLength(16)
                 .HasColumnName("updatedBy");
 
-            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.MedicineCreatedByNavigations)
+            entity.Property(e => e.DeletedBy)
+                .HasMaxLength(16)
+                .HasColumnName("deletedBy");
+
+            entity.HasOne(d => d.CreatedByNavigation)
+                .WithMany(p => p.MedicineCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .HasConstraintName("FK_medicines_createdBy");
 
-            entity.HasOne(d => d.DeletedByNavigation).WithMany(p => p.MedicineDeletedByNavigations)
+            entity.HasOne(d => d.DeletedByNavigation)
+                .WithMany(p => p.MedicineDeletedByNavigations)
                 .HasForeignKey(d => d.DeletedBy)
                 .HasConstraintName("FK_medicines_deletedBy");
 
-            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.MedicineUpdatedByNavigations)
+            entity.HasOne(d => d.UpdatedByNavigation)
+                .WithMany(p => p.MedicineUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK_medicines_updatedBy");
+
+            // ❗ IMPORTANT: DO NOT ADD StockTransferItems navigation mapping here
         });
 
         modelBuilder.Entity<MedicineBatch>(entity =>
@@ -785,85 +813,119 @@ public partial class PharmaChainDbContext : DbContext, IPharmaChainDbContext
 
         modelBuilder.Entity<StockRequest>(entity =>
         {
-            entity.HasKey(e => e.AssignedStockId).HasName("PK__stockReq__B2D60BB6C7183A8B");
+            entity.HasKey(e => e.AssignedStockId)
+                .HasName("PK__stockReq__B2D60BB6C7183A8B");
 
             entity.ToTable("stockRequests");
 
             entity.Property(e => e.AssignedStockId)
                 .HasMaxLength(16)
                 .HasColumnName("assignedStockId");
+
             entity.Property(e => e.ApprovalStatus)
                 .HasMaxLength(20)
                 .HasDefaultValue("PENDING")
                 .HasColumnName("approvalStatus");
+
             entity.Property(e => e.ApprovedBy)
                 .HasMaxLength(16)
                 .HasColumnName("approvedBy");
-            entity.Property(e => e.ApprovedDate).HasColumnName("approvedDate");
-            entity.Property(e => e.BatchId)
-                .HasMaxLength(16)
-                .HasColumnName("batchId");
+
+            entity.Property(e => e.ApprovedDate)
+                .HasColumnName("approvedDate");
+
+            //entity.Property(e => e.BatchId)
+            //    .HasMaxLength(16)
+            //    .HasColumnName("batchId");
+
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnName("createdAt");
+
             entity.Property(e => e.CreatedBy)
                 .HasMaxLength(16)
                 .HasColumnName("createdBy");
-            entity.Property(e => e.DeletedAt).HasColumnName("deletedAt");
+
+            entity.Property(e => e.DeletedAt)
+                .HasColumnName("deletedAt");
+
             entity.Property(e => e.FromBranchId)
                 .HasMaxLength(16)
                 .HasColumnName("fromBranchId");
+
             entity.Property(e => e.FulfillmentType)
                 .HasMaxLength(20)
                 .HasColumnName("fulfillmentType");
-            entity.Property(e => e.MedicineId)
-                .HasMaxLength(16)
-                .HasColumnName("medicineId");
-            entity.Property(e => e.QuantityApproved).HasColumnName("quantityApproved");
-            entity.Property(e => e.QuantityRequested).HasColumnName("quantityRequested");
-            entity.Property(e => e.QuantityTransferred).HasColumnName("quantityTransferred");
+
+            entity.Property(e => e.ItemsId)
+                .HasMaxLength(1000)
+                .HasColumnName("itemsId");
+
+            entity.Property(e => e.QuantityApproved)
+                .HasColumnName("quantityApproved");
+
+            entity.Property(e => e.QuantityRequested)
+                .HasColumnName("quantityRequested");
+
+            entity.Property(e => e.QuantityTransferred)
+                .HasColumnName("quantityTransferred");
+
             entity.Property(e => e.Remarks)
                 .HasMaxLength(250)
                 .HasColumnName("remarks");
+
             entity.Property(e => e.RequestDate)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnName("requestDate");
+
             entity.Property(e => e.SupplierId)
                 .HasMaxLength(16)
                 .HasColumnName("supplierId");
+
             entity.Property(e => e.ToBranchId)
                 .HasMaxLength(16)
                 .HasColumnName("toBranchId");
-            entity.Property(e => e.TransferDate).HasColumnName("transferDate");
-            entity.Property(e => e.UpdatedAt).HasColumnName("updatedAt");
 
-            entity.HasOne(d => d.ApprovedByNavigation).WithMany(p => p.StockRequestApprovedByNavigations)
+            entity.Property(e => e.TransferDate)
+                .HasColumnName("transferDate");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnName("updatedAt");
+
+            entity.HasOne(d => d.ApprovedByNavigation)
+                .WithMany(p => p.StockRequestApprovedByNavigations)
                 .HasForeignKey(d => d.ApprovedBy)
                 .HasConstraintName("FK_assignedStock_approvedBy");
 
-            entity.HasOne(d => d.Batch).WithMany(p => p.StockRequests)
-                .HasForeignKey(d => d.BatchId)
-                .HasConstraintName("FK_assignedStock_batch");
+            //entity.HasOne(d => d.Batch)
+            //    .WithMany(p => p.StockRequests)
+            //    .HasForeignKey(d => d.BatchId)
+            //    .HasConstraintName("FK_assignedStock_batch");
 
-            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.StockRequestCreatedByNavigations)
+            entity.HasOne(d => d.CreatedByNavigation)
+                .WithMany(p => p.StockRequestCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_assignedStock_createdBy");
 
-            entity.HasOne(d => d.FromBranch).WithMany(p => p.StockRequestFromBranches)
+            entity.HasOne(d => d.FromBranch)
+                .WithMany(p => p.StockRequestFromBranches)
                 .HasForeignKey(d => d.FromBranchId)
                 .HasConstraintName("FK_assignedStock_fromBranch");
 
-            entity.HasOne(d => d.Medicine).WithMany(p => p.StockRequests)
-                .HasForeignKey(d => d.MedicineId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_assignedStock_medicine");
+            //entity.HasOne(d => d.Medicine)
+            //    .WithMany(p => p.StockRequests)
+            //    .HasForeignKey(d => d.ItemsId)
+            //    .OnDelete(DeleteBehavior.ClientSetNull)
+            //    .HasConstraintName("FK_assignedStock_items");
 
-            entity.HasOne(d => d.Supplier).WithMany(p => p.StockRequests)
+            entity.HasOne(d => d.Supplier)
+                .WithMany(p => p.StockRequests)
                 .HasForeignKey(d => d.SupplierId)
                 .HasConstraintName("FK_assignedStock_supplier");
 
-            entity.HasOne(d => d.ToBranch).WithMany(p => p.StockRequestToBranches)
+            entity.HasOne(d => d.ToBranch)
+                .WithMany(p => p.StockRequestToBranches)
                 .HasForeignKey(d => d.ToBranchId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_assignedStock_toBranch");
@@ -871,101 +933,128 @@ public partial class PharmaChainDbContext : DbContext, IPharmaChainDbContext
 
         modelBuilder.Entity<StockTransfer>(entity =>
         {
-            entity.HasKey(e => e.TransferId).HasName("PK__stockTra__AAADCD81391CA40C");
+            entity.HasKey(e => e.TransferId)
+                .HasName("PK__stockTra__AAADCD81391CA40C");
 
             entity.ToTable("stockTransfers");
 
             entity.Property(e => e.TransferId)
                 .HasMaxLength(16)
                 .HasColumnName("transferId");
+
             entity.Property(e => e.ApprovedBy)
                 .HasMaxLength(16)
                 .HasColumnName("approvedBy");
+
             entity.Property(e => e.AssignedStockId)
                 .HasMaxLength(16)
                 .HasColumnName("assignedStockId");
+
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnName("createdAt");
-            entity.Property(e => e.DeletedAt).HasColumnName("deletedAt");
-            entity.Property(e => e.FromBranchId)
-                .HasMaxLength(16)
-                .HasColumnName("fromBranchId");
+
+            entity.Property(e => e.DeletedAt)
+                .HasColumnName("deletedAt");
+
             entity.Property(e => e.Remarks)
                 .HasMaxLength(250)
                 .HasColumnName("remarks");
+
             entity.Property(e => e.RequestedBy)
                 .HasMaxLength(16)
                 .HasColumnName("requestedBy");
-            entity.Property(e => e.ToBranchId)
-                .HasMaxLength(16)
-                .HasColumnName("toBranchId");
-            entity.Property(e => e.TransferDate).HasColumnName("transferDate");
+
+            entity.Property(e => e.TransferDate)
+                .HasColumnName("transferDate");
+
             entity.Property(e => e.TransferStatus)
                 .HasMaxLength(20)
                 .HasDefaultValue("PENDING")
                 .HasColumnName("transferStatus");
-            entity.Property(e => e.UpdatedAt).HasColumnName("updatedAt");
 
-            entity.HasOne(d => d.ApprovedByNavigation).WithMany(p => p.StockTransferApprovedByNavigations)
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnName("updatedAt");
+
+            entity.HasOne(d => d.ApprovedByNavigation)
+                .WithMany(p => p.StockTransferApprovedByNavigations)
                 .HasForeignKey(d => d.ApprovedBy)
                 .HasConstraintName("FK_stockTransfers_approvedBy");
 
-            entity.HasOne(d => d.AssignedStock).WithMany(p => p.StockTransfers)
+            entity.HasOne(d => d.AssignedStock)
+                .WithMany(p => p.StockTransfers)
                 .HasForeignKey(d => d.AssignedStockId)
                 .HasConstraintName("FK_stockTransfers_assignedStock");
 
-            entity.HasOne(d => d.FromBranch).WithMany(p => p.StockTransferFromBranches)
-                .HasForeignKey(d => d.FromBranchId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_stockTransfers_fromBranch");
-
-            entity.HasOne(d => d.RequestedByNavigation).WithMany(p => p.StockTransferRequestedByNavigations)
+            entity.HasOne(d => d.RequestedByNavigation)
+                .WithMany(p => p.StockTransferRequestedByNavigations)
                 .HasForeignKey(d => d.RequestedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_stockTransfers_requestedBy");
-
-            entity.HasOne(d => d.ToBranch).WithMany(p => p.StockTransferToBranches)
-                .HasForeignKey(d => d.ToBranchId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_stockTransfers_toBranch");
         });
 
         modelBuilder.Entity<StockTransferItem>(entity =>
         {
-            entity.HasKey(e => e.TransferItemId).HasName("PK__stockTra__A36BC1BFF5DD2BBF");
+            entity.HasKey(e => e.TransferItemId)
+                .HasName("PK__stockTra__A36BC1BFF5DD2BBF");
 
             entity.ToTable("stockTransferItems");
 
-            entity.Property(e => e.TransferItemId).HasColumnName("transferItemId");
-            entity.Property(e => e.BatchId)
-                .HasMaxLength(16)
-                .HasColumnName("batchId");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnName("createdAt");
-            entity.Property(e => e.MedicineId)
-                .HasMaxLength(16)
-                .HasColumnName("medicineId");
-            entity.Property(e => e.Quantity).HasColumnName("quantity");
+            entity.Property(e => e.TransferItemId)
+                .HasColumnName("transferItemId");
+
             entity.Property(e => e.TransferId)
                 .HasMaxLength(16)
-                .HasColumnName("transferId");
+                .HasColumnName("transferId")
+                .IsRequired();
 
-            entity.HasOne(d => d.Batch).WithMany(p => p.StockTransferItems)
+            entity.Property(e => e.AssignedStockId)
+                .HasMaxLength(16)
+                .HasColumnName("assignedStockId")
+                .IsRequired();
+
+            entity.Property(e => e.MedicineId)
+                .HasMaxLength(16)
+                .HasColumnName("medicineId")
+                .IsRequired();
+
+            entity.Property(e => e.BatchId)
+                .HasMaxLength(16)
+                .HasColumnName("batchId")
+                .IsRequired();
+
+            entity.Property(e => e.Quantity)
+                .HasColumnName("quantity");
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnName("createdAt")
+                .HasDefaultValueSql("(getdate())");
+
+            /*
+            // ===================== NAVIGATION CONFIG (KEEP DISABLED FOR NOW) =====================
+
+            entity.HasOne(d => d.Batch)
+                .WithMany()
                 .HasForeignKey(d => d.BatchId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_stockTransferItems_batch");
 
-            entity.HasOne(d => d.Medicine).WithMany(p => p.StockTransferItems)
+            entity.HasOne(d => d.Medicine)
+                .WithMany()
                 .HasForeignKey(d => d.MedicineId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_stockTransferItems_medicine");
 
-            entity.HasOne(d => d.Transfer).WithMany(p => p.StockTransferItems)
+            entity.HasOne(d => d.Transfer)
+                .WithMany()
                 .HasForeignKey(d => d.TransferId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_stockTransferItems_transfer");
+
+            entity.HasOne<StockRequest>()
+                .WithMany()
+                .HasForeignKey(e => e.AssignedStockId)
+                .HasConstraintName("FK_stockTransferItems_assignedStock");
+
+            ============================================================================ 
+            */
         });
 
         modelBuilder.Entity<Supplier>(entity =>

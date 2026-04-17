@@ -6,6 +6,8 @@ using MimeKit;
 using PharmaChain.Application.DTOs;
 using PharmaChain.Application.Interfaces;
 using PharmaChain.Infrastructure.Models;
+using System.Runtime.CompilerServices;
+using static PharmaChain.Application.DTOs.StockLevelDto;
 using static PharmaChain.Application.DTOs.SupplierRequest;
 
 namespace PharmaChain.Web.ApiController
@@ -27,6 +29,7 @@ namespace PharmaChain.Web.ApiController
         private readonly IBatchService _batchService;
         private readonly IPurchaseStockService _purchaseStockService;
         private readonly ILogger<BackendApiController> _logger;
+        private readonly IStockTrackingService _stockTrackingService;
 
         public BackendApiController(IPharmaChainDbContext context,
             IAuthService authService, IOtpService otpService,
@@ -38,7 +41,8 @@ namespace PharmaChain.Web.ApiController
             ISupplierService supplierService,
             IBatchService batchService,
             IPurchaseStockService purchaseStockService,
-            ILogger<BackendApiController> logger
+            ILogger<BackendApiController> logger,
+            IStockTrackingService stockTrackingService
             )
         {
             _context = context;
@@ -54,6 +58,7 @@ namespace PharmaChain.Web.ApiController
             _batchService = batchService;
             _purchaseStockService = purchaseStockService;
             _logger = logger;
+            _stockTrackingService = stockTrackingService;
         }
 
         [HttpGet]
@@ -635,7 +640,7 @@ namespace PharmaChain.Web.ApiController
             var result = await _batchService.CreateBatch(request);
 
             if (!result.Success)
-                return BadRequest(new {Messege = "Failed to create batch!", Err = result});
+                return BadRequest(new { Messege = "Failed to create batch!", Err = result });
 
             return Ok(result);
         }
@@ -684,7 +689,7 @@ namespace PharmaChain.Web.ApiController
             return Ok(result);
         }
 
-        /********************************* Purchase Stock *******************************************/
+        /********************************* Stock Management*******************************************/
         [HttpPost("PurchaseInvoice/Create")]
         public async Task<IActionResult> CreatePurchaseInvoice([FromForm] PurchaseEntryDto request)
         {
@@ -731,12 +736,6 @@ namespace PharmaChain.Web.ApiController
                 });
             }
         }
-
-
-
-
-
-
 
         [HttpGet("Batch/Report")]
         [Produces("application/json")]
@@ -801,7 +800,6 @@ namespace PharmaChain.Web.ApiController
                     });
                 }
 
-                // 4. Calculate days left (FIXED DateOnly issue)
                 var today = DateTime.Today;
 
                 var expDateTime = batch.ExpDate.ToDateTime(TimeOnly.MinValue);
@@ -844,7 +842,7 @@ namespace PharmaChain.Web.ApiController
                     isPrescriptionRequired = batch.IsPrescriptionRequired,
 
                     hsnCode = batch.HsnCode ?? "—",
-                    gstPercentage = batch.GstPercentage ?? 0m, 
+                    gstPercentage = batch.GstPercentage ?? 0m,
 
                     createdBy = batch.CreatedBy ?? "System",
                     createdAt = batch.CreatedAt.ToString("dd MMM yyyy, hh:mm tt")
@@ -870,6 +868,87 @@ namespace PharmaChain.Web.ApiController
                 {
                     success = false,
                     message = "An unexpected error occurred while retrieving batch details."
+                });
+            }
+        }
+
+        [HttpGet("stockinfo/low-stock")]
+        public async Task<IActionResult> GetLowStockMedicines()
+        {
+            try
+            {
+                var result = await _stockTrackingService.GetLowStockMedicines();
+
+                return Ok(new
+                {
+                    success = true,
+                    message = result.Any()
+                        ? "Low stock medicines fetched successfully."
+                        : "No low stock medicines found.",
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("stockinfo/request-stats")]
+        public async Task<IActionResult> GetRequestStats([FromQuery] string? branchId, [FromQuery] int rangeInDays = 7)
+        {
+            try
+            {
+                var result = await _stockTrackingService.GetRequestStats(branchId, rangeInDays);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Request stats fetched successfully.",
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("stock/create-stock-request")]
+        public async Task<IActionResult> CreateStockTransfer([FromBody] StockTransferRequest request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            if (request.Medicines == null || !request.Medicines.Any())
+                return BadRequest("Invalid request data");
+
+            try
+            {
+                var transferId = await _stockTrackingService.AddStockTransferAsync(request);
+
+                return Ok(new
+                {
+                    message = "Stock transfer created successfully",
+                    transferId = transferId
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Something went wrong",
+                    error = ex.Message,
+                    innerError = ex.InnerException?.Message,
+                    innerInnerError = ex.InnerException?.InnerException?.Message
                 });
             }
         }

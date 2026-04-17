@@ -76,6 +76,7 @@ builder.Services.AddScoped<IMedicineService, MedicineService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddScoped<IBatchService, BatchService>();
 builder.Services.AddScoped<IPurchaseStockService, PurchaseStockService>();
+builder.Services.AddScoped<IStockTrackingService, StockTrackingService>();
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -87,6 +88,13 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromDays(7);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+});
+
+builder.Services.AddDbContext<PharmaChainDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+           .EnableDetailedErrors()
+           .EnableSensitiveDataLogging();
 });
 
 var app = builder.Build();

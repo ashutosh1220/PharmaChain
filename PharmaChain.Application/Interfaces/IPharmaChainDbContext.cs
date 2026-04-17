@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using PharmaChain.Infrastructure.Models;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,7 +50,7 @@ namespace PharmaChain.Application.Interfaces
         DbSet<Roles> Roles { get; set; }
         DbSet<RolePermissions> RolePermissions { get; set; }
         DbSet<Permissions> Permissions { get; set; }
-
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
+        DatabaseFacade Database { get; }
     }
 }

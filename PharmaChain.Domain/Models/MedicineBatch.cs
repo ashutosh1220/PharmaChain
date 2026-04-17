@@ -43,9 +43,8 @@ public partial class MedicineBatch
 
     public virtual ICollection<StockLedger> StockLedgers { get; set; } = new List<StockLedger>();
 
-    public virtual ICollection<StockRequest> StockRequests { get; set; } = new List<StockRequest>();
-
-    public virtual ICollection<StockTransferItem> StockTransferItems { get; set; } = new List<StockTransferItem>();
+    //public virtual ICollection<StockRequest> StockRequests { get; set; } = new List<StockRequest>();
+    //public virtual ICollection<StockTransferItem> StockTransferItems { get; set; } = new List<StockTransferItem>();
 
     public virtual Supplier Supplier { get; set; } = null!;
 

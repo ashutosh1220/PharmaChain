@@ -1010,7 +1010,7 @@
     display: flex;
     align-items: center;
     gap: .2rem;
-    border: none;
+    
     white-space: nowrap;
 }
 
@@ -1103,13 +1103,13 @@
 
 .srq__tbtn {
     padding: .22rem .55rem;
-    background: var(--srq-s2);
+    background: #88f6ff !important;
     border: 1px solid var(--srq-bd);
     border-radius: 4px;
     font-size: 9px;
     font-weight: 600;
     cursor: pointer;
-    color: var(--srq-tx);
+    color: black !important;
     font-family: 'DM Sans', sans-serif;
     transition: all .2s;
     display: flex;
@@ -1120,7 +1120,7 @@
     .srq__tbtn:hover {
         background: var(--srq-p);
         color: gray;
-        border-color: 1px solid gray;
+        border: 1px solid black !important;
     }
 
     .srq__tbtn i {
@@ -1686,9 +1686,10 @@
     height: 28px;
     border-radius: var(--srq-rs);
     border: 0.5px solid var(--srq-bd);
-    background: transparent;
+    background: #88f6ff !important;
     cursor: pointer;
     font-size: 13px;
+    color: black !important;
     transition: background 0.13s, color 0.13s, border-color 0.13s, transform 0.1s;
 }
 

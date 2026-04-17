@@ -715,11 +715,95 @@ function confirmAction(options) {
 // ─────────────────────────────────────────────────────────────
 $(document).ready(function() {
 
-    $(document).on('submit', 'form', function(e) {
+    //$(document).on('submit', 'form', function(e) {
+    //    e.preventDefault();
+    //    var form = this;
+    //    var formData = new FormData(form);
+    //    var confirmMessage = $(form).data('confirm');
+
+    //    function submitForm() {
+    //        $.ajax({
+    //            url: $(form).attr('action'),
+    //            type: 'POST',
+    //            data: formData,
+    //            processData: false,
+    //            contentType: false,
+
+    //            success: function(response) {
+    //                let msg = response.message || response.messege || "No message";
+
+    //                if (response.success) {
+    //                    MzPopup.show({
+    //                        type: 'success',
+    //                        title: 'Success',
+    //                        message: msg,
+    //                        okText: 'OK',
+    //                        onOk: function() {
+    //                            form.reset();
+    //                            window.location.reload();
+    //                        }
+    //                    });
+    //                } else {
+    //                    MzPopup.show({
+    //                        type: 'danger',
+    //                        title: 'Failed',
+    //                        message: msg,
+    //                        okText: 'OK'
+    //                    });
+    //                }
+    //            },
+
+    //            error: function(xhr) {
+    //                let errorMsg = "Something went wrong";
+
+    //                try {
+    //                    let res = JSON.parse(xhr.responseText);
+    //                    errorMsg = res.message || res.messege || errorMsg;
+    //                } catch (e) { }
+
+    //                MzPopup.show({
+    //                    type: 'danger',
+    //                    title: 'Error',
+    //                    message: errorMsg,
+    //                    okText: 'OK'
+    //                });
+    //            }
+    //        });
+    //    }
+
+    //    if (confirmMessage) {
+    //        MzPopup.show({
+    //            type: 'warning', title: 'Confirm Action', message: confirmMessage, okText: 'Yes', cancelText: 'Cancel',
+    //            onOk: function() { submitForm(); }
+    //        });
+    //    } else {
+    //        submitForm();
+    //    }
+    //});
+
+
+
+
+    $(document).on('submit', 'form', function (e) {
         e.preventDefault();
         var form = this;
         var formData = new FormData(form);
         var confirmMessage = $(form).data('confirm');
+
+        // 🔍 DEBUG: Log the FormData being sent to console
+        console.log('===== FORM SUBMISSION DEBUG =====');
+        console.log('Form ID:', form.id);
+        console.log('Form Action:', $(form).attr('action'));
+        console.log('Form Data Contents:');
+
+        // Create a readable log of FormData
+        var dataLog = {};
+        for (let [key, value] of formData.entries()) {
+            console.log(`  ${key}: ${value}`);
+            dataLog[key] = value;
+        }
+        console.log('FormData Object:', dataLog);
+        console.log('==================================');
 
         function submitForm() {
             $.ajax({
@@ -729,7 +813,9 @@ $(document).ready(function() {
                 processData: false,
                 contentType: false,
 
-                success: function(response) {
+                success: function (response) {
+                    console.log('✅ Server Response:', response);
+
                     let msg = response.message || response.messege || "No message";
 
                     if (response.success) {
@@ -738,8 +824,22 @@ $(document).ready(function() {
                             title: 'Success',
                             message: msg,
                             okText: 'OK',
-                            onOk: function() {
+                            onOk: function () {
+                                // Reset form state
                                 form.reset();
+
+                                if (window.selectedBranch !== undefined) {
+                                    window.selectedBranch = null;
+                                }
+                                if (window.selectedMedicines !== undefined) {
+                                    window.selectedMedicines = [];
+                                }
+                                if (window.updateTags !== undefined) {
+                                    window.updateTags();
+                                }
+                                if (window.renderHiddenFields !== undefined) {
+                                    window.renderHiddenFields();
+                                }
                                 window.location.reload();
                             }
                         });
@@ -753,13 +853,17 @@ $(document).ready(function() {
                     }
                 },
 
-                error: function(xhr) {
+                error: function (xhr) {
+                    console.error('❌ AJAX Error:', xhr);
+
                     let errorMsg = "Something went wrong";
 
                     try {
                         let res = JSON.parse(xhr.responseText);
                         errorMsg = res.message || res.messege || errorMsg;
-                    } catch (e) { }
+                    } catch (e) {
+                        errorMsg = "Server error: " + xhr.status + " " + xhr.statusText;
+                    }
 
                     MzPopup.show({
                         type: 'danger',
@@ -773,13 +877,20 @@ $(document).ready(function() {
 
         if (confirmMessage) {
             MzPopup.show({
-                type: 'warning', title: 'Confirm Action', message: confirmMessage, okText: 'Yes', cancelText: 'Cancel',
-                onOk: function() { submitForm(); }
+                type: 'warning',
+                title: 'Confirm Action',
+                message: confirmMessage,
+                okText: 'Yes',
+                cancelText: 'Cancel',
+                onOk: function () {
+                    submitForm();
+                }
             });
         } else {
             submitForm();
         }
     });
+
 
     $(document).on("click", ".toggle-status", function() {
         let row = $(this).closest("tr");

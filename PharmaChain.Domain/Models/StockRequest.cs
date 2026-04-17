@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-
+﻿
 namespace PharmaChain.Infrastructure.Models;
 
 public partial class StockRequest
 {
     public string AssignedStockId { get; set; } = null!;
 
-    public string MedicineId { get; set; } = null!;
-
-    public string? BatchId { get; set; }
+    public string ItemsId { get; set; } = null!;
 
     public string? FromBranchId { get; set; }
 
@@ -47,13 +43,9 @@ public partial class StockRequest
 
     public virtual User? ApprovedByNavigation { get; set; }
 
-    public virtual MedicineBatch? Batch { get; set; }
-
     public virtual User CreatedByNavigation { get; set; } = null!;
 
     public virtual Branch? FromBranch { get; set; }
-
-    public virtual Medicine Medicine { get; set; } = null!;
 
     public virtual ICollection<StockTransfer> StockTransfers { get; set; } = new List<StockTransfer>();
 
