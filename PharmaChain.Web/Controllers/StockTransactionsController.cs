@@ -77,6 +77,7 @@ namespace PharmaChain.Web.Controllers
         {
             var username = User.FindFirst(ClaimTypes.Name)?.Value;
             var role = User.FindFirst(ClaimTypes.Role)?.Value;
+            var branchId = User.FindFirst("BranchId")?.Value;
 
             var permissions = await _permissionService.GetAllPermissionsForRolesAsync(role);
 
@@ -85,6 +86,7 @@ namespace PharmaChain.Web.Controllers
                 .ToListAsync();
 
             var branches = await _context.Branches
+                .Where(b => b.BranchId.ToString() != branchId)
                 .Select(b => new { b.BranchId, b.BranchName })
                 .ToListAsync();
 
@@ -133,6 +135,7 @@ namespace PharmaChain.Web.Controllers
             ViewBag.Medicines = medicines;
             ViewBag.Branches = branches;
             ViewBag.Stock = stockMap;
+            ViewBag.CurrentBranch = branchId;
 
             return View();
         }

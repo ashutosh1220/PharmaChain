@@ -1026,6 +1026,11 @@ public partial class PharmaChainDbContext : DbContext, IPharmaChainDbContext
             entity.Property(e => e.Quantity)
                 .HasColumnName("quantity");
 
+            entity.Property(e => e.QtyApproved)
+                .HasColumnName("qtyApproved")
+                .HasColumnType("int")
+                .IsRequired(false);
+
             entity.Property(e => e.CreatedAt)
                 .HasColumnName("createdAt")
                 .HasDefaultValueSql("(getdate())");

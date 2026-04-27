@@ -3,10 +3,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MimeKit;
+using PharmaChain.Application.Common.Enums;
 using PharmaChain.Application.DTOs;
+using PharmaChain.Application.DTOs.Sales;
 using PharmaChain.Application.Interfaces;
 using PharmaChain.Infrastructure.Models;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using static PharmaChain.Application.DTOs.StockLevelDto;
 using static PharmaChain.Application.DTOs.SupplierRequest;
 
@@ -17,6 +20,7 @@ namespace PharmaChain.Web.ApiController
     public class BackendApiController : ControllerBase
     {
         private readonly IPharmaChainDbContext _context;
+        private readonly IHttpContextAccessor _httpContext;
         private readonly IAuthService _authService;
         private readonly IOtpService _otpService;
         private readonly IUserService _userService;
@@ -30,8 +34,10 @@ namespace PharmaChain.Web.ApiController
         private readonly IPurchaseStockService _purchaseStockService;
         private readonly ILogger<BackendApiController> _logger;
         private readonly IStockTrackingService _stockTrackingService;
+        private readonly IReportsService _reportsService;
 
         public BackendApiController(IPharmaChainDbContext context,
+            IHttpContextAccessor httpContext,
             IAuthService authService, IOtpService otpService,
             IUserService userService, IRoleService roleService,
             IPermissionService permissionService,
@@ -42,10 +48,12 @@ namespace PharmaChain.Web.ApiController
             IBatchService batchService,
             IPurchaseStockService purchaseStockService,
             ILogger<BackendApiController> logger,
-            IStockTrackingService stockTrackingService
+            IStockTrackingService stockTrackingService,
+            IReportsService reportsService
             )
         {
             _context = context;
+            _httpContext = httpContext;
             _authService = authService;
             _otpService = otpService;
             _userService = userService;
@@ -59,6 +67,7 @@ namespace PharmaChain.Web.ApiController
             _purchaseStockService = purchaseStockService;
             _logger = logger;
             _stockTrackingService = stockTrackingService;
+            _reportsService = reportsService;
         }
 
         [HttpGet]
@@ -128,7 +137,7 @@ namespace PharmaChain.Web.ApiController
             client.Send(message);
             client.Disconnect(true);
         }
-
+        [Authorize]
         [HttpPost("send-otp")]
         public IActionResult SendOtp([FromForm] string email)
         {
@@ -136,7 +145,7 @@ namespace PharmaChain.Web.ApiController
                 return BadRequest("Email is required.");
 
             string otp = GenerateOtp();
-            _otpService.StoreOtp(email, otp, DateTime.UtcNow.AddMinutes(5)); // store in singleton service
+            _otpService.StoreOtp(email, otp, DateTime.UtcNow.AddMinutes(5));
 
             try
             {
@@ -148,7 +157,7 @@ namespace PharmaChain.Web.ApiController
                 return StatusCode(500, new { Message = "Failed to send OTP.", Error = ex.Message });
             }
         }
-
+        [Authorize]
         [HttpPost("verify-otp")]
         public IActionResult VerifyOtp([FromForm] VerifyOtpRequest request)
         {
@@ -278,6 +287,7 @@ namespace PharmaChain.Web.ApiController
             return prefix + new string(digits);
         }
 
+        [Authorize]
         [HttpPost]
         [Route("Users-List")]
         public async Task<IActionResult> UsersList(int page, int size)
@@ -286,6 +296,7 @@ namespace PharmaChain.Web.ApiController
             return Ok(record);
         }
 
+        [Authorize]
         [HttpPost]
         [Route("AddRole")]
         public async Task<IActionResult> AddRoleAsync(string RollName)
@@ -294,6 +305,7 @@ namespace PharmaChain.Web.ApiController
             return Ok(RollName);
         }
 
+        [Authorize]
         [HttpGet]
         [Route("Roles")]
         public async Task<IActionResult> Roles()
@@ -302,6 +314,7 @@ namespace PharmaChain.Web.ApiController
             return Ok(result);
         }
 
+        [Authorize]
         [HttpPost]
         [Route("UpdateRoleState")]
         public async Task<IActionResult> UpdateRoleState(int roleid, string roleName)
@@ -310,6 +323,7 @@ namespace PharmaChain.Web.ApiController
             return Ok(result);
         }
 
+        [Authorize]
         [HttpPost]
         [Route("UpdateActivateRoleState")]
         public async Task<IActionResult> UpdateRoleActiveState(int roleid, string roleName)
@@ -344,6 +358,7 @@ namespace PharmaChain.Web.ApiController
             }
         }
 
+        [Authorize]
         [HttpPost]
         [Route("Permissions/save")]
         public async Task<IActionResult> UpdateRolePermissions([FromBody] UpdateRolePermissionRequest request)
@@ -366,6 +381,7 @@ namespace PharmaChain.Web.ApiController
             }
         }
 
+        [Authorize]
         [HttpPatch("toggle-user-status")]
         public async Task<IActionResult> ToggleActive(string id)
         {
@@ -402,6 +418,7 @@ namespace PharmaChain.Web.ApiController
             }
         }
 
+        [Authorize]
         [HttpPatch("update-user-info")]
         public async Task<IActionResult> UpdateUserInfo([FromBody] UpdateUserRequest req)
         {
@@ -414,6 +431,7 @@ namespace PharmaChain.Web.ApiController
             return Ok(res);
         }
 
+        [Authorize]
         [HttpGet("get-all-roles")]
         public async Task<IActionResult> GetRoles(int? page, int? size)
         {
@@ -427,6 +445,7 @@ namespace PharmaChain.Web.ApiController
             return Ok(roles);
         }
 
+        [Authorize]
         [HttpGet("get-logs")]
         public async Task<IActionResult> GetLogs(int? page, int? size)
         {
@@ -458,7 +477,7 @@ namespace PharmaChain.Web.ApiController
             }
         }
 
-
+        [Authorize]
         [HttpGet("get-log-by-id")]
         public async Task<IActionResult> GetLogByLogIdAsync(long LogId)
         {
@@ -513,6 +532,7 @@ namespace PharmaChain.Web.ApiController
             return Ok(result);
         }
 
+        [Authorize]
         [HttpPost("Medicine/Update")]
         public async Task<IActionResult> UpdateMedicine([FromForm] MedicineRequest request)
         {
@@ -524,6 +544,7 @@ namespace PharmaChain.Web.ApiController
             return Ok(result);
         }
 
+        [Authorize]
         [HttpDelete("Medicine/Delete")]
         public async Task<IActionResult> DeleteMedicine(string id)
         {
@@ -535,6 +556,8 @@ namespace PharmaChain.Web.ApiController
             return Ok(result);
         }
 
+
+        [Authorize]
         [HttpPatch("Medicine/Toggle/Status")]
         public async Task<IActionResult> ToggleActiveMedicine(string id)
         {
@@ -546,6 +569,8 @@ namespace PharmaChain.Web.ApiController
             return Ok(result);
         }
 
+
+        [Authorize]
         [HttpGet("Medicine/Get/List")]
         public async Task<IActionResult> GetMedicines(int page = 1, int size = 10)
         {
@@ -557,6 +582,8 @@ namespace PharmaChain.Web.ApiController
             return Ok(result);
         }
 
+
+        [Authorize]
         [HttpGet("Medicine/Get")]
         public async Task<IActionResult> GetMedicineById(string id)
         {
@@ -597,6 +624,8 @@ namespace PharmaChain.Web.ApiController
             return Ok(result);
         }
 
+
+        [Authorize]
         [HttpPost("Supplier/Update")]
         public async Task<IActionResult> UpdateSupplier([FromForm] CreateSupplierRequest request)
         {
@@ -608,6 +637,8 @@ namespace PharmaChain.Web.ApiController
             return Ok(result);
         }
 
+
+        [Authorize]
         [HttpGet("Suppliers/List")]
         public async Task<IActionResult> GetSuppliers(int page = 1, int size = 10)
         {
@@ -621,6 +652,8 @@ namespace PharmaChain.Web.ApiController
 
         /*************************************** Batch ***********************************************/
 
+
+        [Authorize]
         [HttpPost("Batch/Create")]
         public async Task<IActionResult> CreateBatch([FromForm] MedicineBatchRequest request)
         {
@@ -645,6 +678,8 @@ namespace PharmaChain.Web.ApiController
             return Ok(result);
         }
 
+
+        [Authorize]
         [HttpPost("Batch/Update")]
         public async Task<IActionResult> UpdateBatch([FromForm] MedicineBatchRequest request)
         {
@@ -656,6 +691,8 @@ namespace PharmaChain.Web.ApiController
             return Ok(result);
         }
 
+
+        [Authorize]
         [HttpDelete("Batch/Delete")]
         public async Task<IActionResult> DeleteBatch(string id)
         {
@@ -667,6 +704,8 @@ namespace PharmaChain.Web.ApiController
             return Ok(result);
         }
 
+
+        [Authorize]
         [HttpGet("Batch/GetAll")]
         public async Task<IActionResult> GetBatches(int page = 1, int size = 10)
         {
@@ -678,6 +717,8 @@ namespace PharmaChain.Web.ApiController
             return Ok(result);
         }
 
+
+        [Authorize]
         [HttpGet("Batch/GetById")]
         public async Task<IActionResult> GetBatchById(string id)
         {
@@ -690,6 +731,7 @@ namespace PharmaChain.Web.ApiController
         }
 
         /********************************* Stock Management*******************************************/
+        [Authorize]
         [HttpPost("PurchaseInvoice/Create")]
         public async Task<IActionResult> CreatePurchaseInvoice([FromForm] PurchaseEntryDto request)
         {
@@ -737,13 +779,13 @@ namespace PharmaChain.Web.ApiController
             }
         }
 
+        [Authorize]
         [HttpGet("Batch/Report")]
         [Produces("application/json")]
         public async Task<IActionResult> BatchDetail(string? id)
         {
             try
             {
-                // 1. Validate input
                 if (string.IsNullOrWhiteSpace(id))
                 {
                     _logger.LogWarning("BatchDetail requested with null or empty ID");
@@ -755,7 +797,6 @@ namespace PharmaChain.Web.ApiController
                     });
                 }
 
-                // 2. Fetch data with joins
                 var batch = await (
                     from b in _context.MedicineBatches
                     join m in _context.Medicines
@@ -872,6 +913,7 @@ namespace PharmaChain.Web.ApiController
             }
         }
 
+        [Authorize]
         [HttpGet("stockinfo/low-stock")]
         public async Task<IActionResult> GetLowStockMedicines()
         {
@@ -898,6 +940,7 @@ namespace PharmaChain.Web.ApiController
             }
         }
 
+        [Authorize]
         [HttpGet("stockinfo/request-stats")]
         public async Task<IActionResult> GetRequestStats([FromQuery] string? branchId, [FromQuery] int rangeInDays = 7)
         {
@@ -922,6 +965,7 @@ namespace PharmaChain.Web.ApiController
             }
         }
 
+        [Authorize]
         [HttpPost("stock/create-stock-request")]
         public async Task<IActionResult> CreateStockTransfer([FromBody] StockTransferRequest request)
         {
@@ -933,11 +977,12 @@ namespace PharmaChain.Web.ApiController
 
             try
             {
-                var transferId = await _stockTrackingService.AddStockTransferAsync(request);
+                var transferId = await _stockTrackingService.CreateStockTransferAsync(request);
 
                 return Ok(new
                 {
-                    message = "Stock transfer created successfully",
+                    success = true,
+                    messege = "Stock request sent successfully",
                     transferId = transferId
                 });
             }
@@ -950,6 +995,360 @@ namespace PharmaChain.Web.ApiController
                     innerError = ex.InnerException?.Message,
                     innerInnerError = ex.InnerException?.InnerException?.Message
                 });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("Stock/Requests/Activities")]
+        public async Task<IActionResult> GetPendingRequests()
+        {
+            try
+            {
+                var data = await _stockTrackingService.GetStockRequestActivitiesAsync();
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Error fetching pending requests",
+                    error = ex.Message
+                });
+            }
+        }
+
+        private string? GetUserId()
+        {
+            return _httpContext?.HttpContext?.User?.FindFirst("UserId")?.Value;
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Route("stock/approve")]
+        public async Task<IActionResult> ApproveStock([FromBody] ApprovalRequestDto req)
+        {
+            try
+            {
+                var userId = GetUserId();
+
+                var result = await _stockTrackingService.ApproveStockAsync(req, userId);
+
+                return Ok(new
+                {
+                    success = result,
+                    message = "Stock approved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = ex.Message,
+                    innerException = ex.InnerException?.Message
+                });
+            }
+        }
+
+        [HttpPost("stock/reject")]
+        public async Task<IActionResult> RejectStock([FromBody] RejectStockRequestDto req)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                if (string.IsNullOrEmpty(req.AssignedStockId))
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "AssignedStockId is required"
+                    });
+                }
+
+                var stockTransfers = await _context.StockTransfers
+                    .FirstOrDefaultAsync(x => x.AssignedStockId == req.AssignedStockId);
+
+                var stockRequest = await _context.StockRequests
+                    .FirstOrDefaultAsync(x => x.AssignedStockId == req.AssignedStockId);
+
+                if (stockTransfers == null || stockRequest == null)
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = "Stock request not found"
+                    });
+                }
+
+                var oldValue = new
+                {
+                    TransferStatus = stockTransfers.TransferStatus,
+                    TransferRemarks = stockTransfers.Remarks,
+                    RequestStatus = stockRequest.ApprovalStatus,
+                    RequestRemarks = stockRequest.Remarks
+                };
+
+                var userId = GetUserId();
+                var now = DateTime.UtcNow;
+
+                stockTransfers.TransferStatus = "CANCELLED";
+                stockTransfers.Remarks = req.Remark;
+                stockTransfers.ApprovedBy = userId;
+                stockTransfers.UpdatedAt = now;
+
+                stockRequest.ApprovalStatus = "REJECTED";
+                stockRequest.Remarks = req.Remark;
+                stockRequest.ApprovedBy = userId;
+                stockRequest.UpdatedAt = now;
+
+                await _context.SaveChangesAsync(CancellationToken.None);
+                await transaction.CommitAsync(CancellationToken.None);
+
+                var newValue = new
+                {
+                    TransferStatus = stockTransfers.TransferStatus,
+                    TransferRemarks = stockTransfers.Remarks,
+                    RequestStatus = stockRequest.ApprovalStatus,
+                    RequestRemarks = stockRequest.Remarks
+                };
+
+                var delta = new
+                {
+                    Action = "Rejected",
+                    Remark = req.Remark
+                };
+
+                try
+                {
+                    await _logService.AddLogAsync(new LogRequest
+                    {
+                        Action = "Reject Stock",
+                        ActionType = (short)LogActionType.Update,
+                        ModuleName = "Stock Management",
+                        TableName = "StockTransfers",
+                        RecordId = req.AssignedStockId,
+                        OldValue = oldValue,
+                        NewValue = newValue,
+                        ChangedFields = "Status + Remarks",
+                        Delta = JsonSerializer.Serialize(delta),
+                        Notes = $"Stock rejected. Remark: {req.Remark}"
+                    });
+                }
+                catch { }
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Request rejected successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+
+                try
+                {
+                    await _logService.AddLogAsync(new LogRequest
+                    {
+                        Action = "Reject Stock Failed",
+                        ActionType = (short)LogActionType.Error,
+                        ModuleName = "Stock Management",
+                        TableName = "StockTransfers",
+                        RecordId = req.AssignedStockId ?? "N/A",
+                        OldValue = null,
+                        NewValue = req,
+                        ChangedFields = null,
+                        Notes = ex.Message
+                    });
+                }
+                catch { }
+
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = ex.Message,
+                    innerException = ex.InnerException?.Message,
+                    fullException = ex.ToString()
+                });
+            }
+        }
+
+        /*********************************************************** Reports Endpoints ****************************************************/
+
+        [HttpPost("sales/dashboard")]
+        public async Task<IActionResult> GetDashboard([FromBody] SalesFilterDto filter)
+        {
+            try
+            {
+                if (filter == null)
+                    return BadRequest(new { message = "Filter is required" });
+
+                var result = await _reportsService.GetSalesDashboardAsync(filter);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Failed to fetch dashboard data",
+                    error = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("sales/trend")]
+        public async Task<IActionResult> GetTrend([FromBody] SalesFilterDto filter)
+        {
+            try
+            {
+                var result = await _reportsService.GetSalesTrendAsync(filter);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("sales/top-medicines")]
+        public async Task<IActionResult> GetTopMedicines([FromBody] SalesFilterDto filter)
+        {
+            try
+            {
+                var result = await _reportsService.GetTopMedicinesAsync(filter);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+
+        [HttpPost("sales/category-revenue")]
+        public async Task<IActionResult> GetCategoryRevenue([FromBody] SalesFilterDto filter)
+        {
+            try
+            {
+                var result = await _reportsService.GetCategoryRevenueAsync(filter);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("sales/suppliers")]
+        public async Task<IActionResult> GetSuppliers([FromBody] SalesFilterDto filter)
+        {
+            try
+            {
+                var result = await _reportsService.GetSupplierContributionAsync(filter);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("sales/gst")]
+        public async Task<IActionResult> GetGst([FromBody] SalesFilterDto filter)
+        {
+            try
+            {
+                var result = await _reportsService.GetGstBreakdownAsync(filter);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("sales/metrics")]
+        public async Task<IActionResult> GetMetrics([FromBody] SalesFilterDto filter)
+        {
+            try
+            {
+                var result = await _reportsService.GetSalesMetricsAsync(filter);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("sales/expiry-risk")]
+        public async Task<IActionResult> GetExpiryRisk([FromBody] SalesFilterDto filter)
+        {
+            try
+            {
+                var result = await _reportsService.GetExpiryRiskReportAsync(filter);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("sales/audit")]
+        public async Task<IActionResult> GetAudit([FromBody] SalesFilterDto filter)
+        {
+            try
+            {
+                var result = await _reportsService.GetAuditReportAsync(filter);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("sales/export/csv")]
+        public async Task<IActionResult> ExportCsv([FromBody] SalesFilterDto filter)
+        {
+            try
+            {
+                var file = await _reportsService.ExportSalesReportCsvAsync(filter);
+
+                return File(file, "text/csv", "sales-report.csv");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("sales/export/excel")]
+        public async Task<IActionResult> ExportExcel([FromBody] SalesFilterDto filter)
+        {
+            try
+            {
+                var file = await _reportsService.ExportSalesReportExcelAsync(filter);
+
+                return File(
+                    file,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "sales-report.xlsx"
+                );
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
             }
         }
     }

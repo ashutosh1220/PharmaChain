@@ -774,7 +774,6 @@ $(document).ready(function() {
 
             let medicines = Object.values(medicinesMap).map(x => ({
                 medicineId: x.MedicineId,
-                batchId: x.BatchId || "",
                 quantity: parseInt(x.Quantity || 0)
             }));
 
@@ -787,13 +786,12 @@ $(document).ready(function() {
         } else {
             payload = formData;
         }
-
         function submitForm() {
             $.ajax({
                 url: $(form).attr('action'),
                 type: 'POST',
-                data: isStockRequestForm ? JSON.stringify(payload) : formDat,
-                processData: !isStockRequestForm,
+                data: isStockRequestForm ? JSON.stringify(payload) : formData,
+                processData: false,
                 contentType: isStockRequestForm ? 'application/json; charset=utf-8' : false,
 
                 success: function (response) {
@@ -1202,6 +1200,14 @@ function buildPermGrid() {
                         </span>
                     `
         });
+
+        function fmt(text) {
+            if (!text) return '';
+            return text
+                .toString()
+                .replace(/_/g, ' ')
+                .replace(/\b\w/g, c => c.toUpperCase());
+        }
 
         $header.find('.toggle-all-link').on('click', function() {
             toggleGroup(mod, ids);
@@ -2982,6 +2988,8 @@ var ExpiryPage = {
         $('#etSelectAll').on('change', function () { ExpiryPage.toggleSelectAll(this); });
     }
 };
+
+
 
 function etFilterByStatus(s) { ExpiryPage.filterByStatus(s); }
 function etApplyFilters() { ExpiryPage.applyFilters(); }

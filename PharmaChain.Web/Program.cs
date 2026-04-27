@@ -6,6 +6,7 @@ using PharmaChain.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using PharmaChain.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,6 +78,7 @@ builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddScoped<IBatchService, BatchService>();
 builder.Services.AddScoped<IPurchaseStockService, PurchaseStockService>();
 builder.Services.AddScoped<IStockTrackingService, StockTrackingService>();
+builder.Services.AddScoped<IReportsService, ReportsService>();
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

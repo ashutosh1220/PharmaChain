@@ -30,8 +30,8 @@ namespace PharmaChain.Infrastructure.BackendServices
                         UserId = l.UserId,
                         UserName = l.Username,
                         FullName = u.FullName,
+                        Branch = u.BranchId,
                         Role = r.RoleName
-                        //Branch = u.BranchId
                     }
                 ).FirstOrDefaultAsync();
 

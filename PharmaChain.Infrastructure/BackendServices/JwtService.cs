@@ -23,7 +23,10 @@ public class JwtService : IJwtService
         new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
 
         new Claim(ClaimTypes.Name, user.FullName ?? ""),             
-        new Claim("UserName", user.UserName ?? ""),                  
+        new Claim("UserName", user.UserName ?? ""),
+
+        new Claim("BranchId", user.Branch.ToString()),
+        new Claim(ClaimTypes.NameIdentifier, user.Branch.ToString()),
 
         new Claim(ClaimTypes.Role, user.Role ?? "")
     };

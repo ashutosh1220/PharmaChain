@@ -8,7 +8,13 @@
 
 @{
     var permList = ViewBag.Permissions as List<PermissionResponse>;
-    var perms = new HashSet<int>(permList?.Select(p => p.PermissionId) ?? Enumerable.Empty<int>());
+    var perms = new HashSet<int>(
+        permList?
+            .Where(p => p.IsActive == true)
+            .Select(p => p.PermissionId)
+        ?? Enumerable.Empty<int>()
+    );
+    int a = 0;
 }
 
 <!DOCTYPE html>
@@ -1375,7 +1381,14 @@
                                     @if (perms.Contains(32))
                                     {
                                         <li class="submenu-item @(currentPage == "Requests" ? "active" : "")">
-                                            <a href="#" data-url="@Url.Action("StockTransfers", "StockTransactions")" class="submenu-link ajax-link">
+                                            <a href="#"
+                                                   data-url="@Url.Action("StockTransfers", "StockTransactions")"
+                                                   class="submenu-link ajax-link"
+                                                   onclick="setTimeout(function () {
+                                                if (document.getElementById('srq__page')) {
+                                                location.reload();
+                                                }
+                                                }, 500);">
                                                 <i class="bi bi-send-check-fill"></i>&nbsp;&nbsp;Requests
                                             </a>
                                         </li>
@@ -1552,7 +1565,7 @@
                                     @if (perms.Contains(48))
                                     {
                                         <li class="submenu-item @(currentPage == "Create" && currentController == "PurchaseInvoices" ? "active" : "")">
-                                            <a href="@Url.Action("Create", "PurchaseInvoices")" class="submenu-link">
+                                            <a href="@Url.Action("PurchaseInvoiceForm", "StockTransactions")" class="submenu-link">
                                                 <i class="bi bi-file-earmark-plus-fill"></i>&nbsp;&nbsp;Create Purchase
                                             </a>
                                         </li>
@@ -1683,7 +1696,7 @@
                                             <i class="bi bi-exclamation-circle-fill"></i>&nbsp;&nbsp;Low Stock
                                         </a>
                                     </li>
-                                    <li class="submenu-item @(currentPage == "Expiry" ? "active" : "")">
+                                    <li href="#" data-url="@Url.Action("ExpiryTracker", "Medicine")" class="submenu-link ajax-link">
                                         <a href="@Url.Action("Expiry", "StockReports")" class="submenu-link">
                                             <i class="bi bi-calendar2-x-fill"></i>&nbsp;&nbsp;Expiry Report
                                         </a>
@@ -1735,21 +1748,21 @@
                                     <span>Settings</span>
                                 </a>
                                 <ul class="submenu @(currentController == "Settings" ? "submenu-open" : "")">
-                                    <li class="submenu-item @(currentPage == "WorkingHours" ? "active" : "")">
+                                    @* <li class="submenu-item @(currentPage == "WorkingHours" ? "active" : "")">
                                         <a href="@Url.Action("WorkingHours", "Settings")" class="submenu-link">
                                             <i class="bi bi-clock-fill"></i>&nbsp;&nbsp;Working Hours
                                         </a>
-                                    </li>
+                                    </li> *@
                                     <li class="submenu-item @(currentPage == "Notifications" ? "active" : "")">
                                         <a href="@Url.Action("Notifications", "Settings")" class="submenu-link">
                                             <i class="bi bi-bell-fill"></i>&nbsp;&nbsp;Notifications
                                         </a>
                                     </li>
-                                    <li class="submenu-item @(currentPage == "TaxDefaults" ? "active" : "")">
+                                    @* <li class="submenu-item @(currentPage == "TaxDefaults" ? "active" : "")">
                                         <a href="@Url.Action("TaxDefaults", "Settings")" class="submenu-link">
                                             <i class="bi bi-percent"></i>&nbsp;&nbsp;Tax Defaults
                                         </a>
-                                    </li>
+                                    </li> *@
                                 </ul>
                             </li>
                         }

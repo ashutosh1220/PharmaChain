@@ -114,7 +114,6 @@ namespace PharmaChain.Infrastructure.BackendServices
 
                 await _context.PurchaseItems.AddRangeAsync(items);
 
-                // 🔹 Save
                 var result = await _context.SaveChangesAsync(CancellationToken.None);
 
                 Console.WriteLine($"Rows affected: {result}");

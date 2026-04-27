@@ -14,6 +14,8 @@ public partial class StockTransferItem
 
     public int Quantity { get; set; }
 
+    public int? QtyApproved { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     //public virtual MedicineBatch Batch { get; set; } = null!;

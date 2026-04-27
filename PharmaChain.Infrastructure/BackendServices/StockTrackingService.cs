@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using PharmaChain.Application.DTOs;
+using PharmaChain.Application.Common.Enums;
 using PharmaChain.Application.Interfaces;
 using PharmaChain.Infrastructure.Models;
+using System.Text.Json;
 using static PharmaChain.Application.DTOs.StockLevelDto;
 
 namespace PharmaChain.Infrastructure.BackendServices
@@ -256,6 +257,339 @@ namespace PharmaChain.Infrastructure.BackendServices
             catch
             {
                 await transaction.RollbackAsync(CancellationToken.None);
+                throw;
+            }
+        }
+
+        public async Task<string> CreateStockTransferAsync(StockTransferRequest request)
+        {
+            string transferId = "";
+
+            try
+            {
+                transferId = await AddStockTransferAsync(request); // existing logic
+
+                try
+                {
+                    await _logService.AddLogAsync(new LogRequest
+                    {
+                        Action = "Create Stock Transfer Request",
+                        ActionType = (short)LogActionType.Create,
+                        ModuleName = "Stock Management",
+                        TableName = "StockTransfers",
+                        RecordId = transferId,
+                        OldValue = null,
+                        NewValue = request,
+                        ChangedFields = "All",
+                        Notes = $"Stock request created with {request.Medicines.Count} medicines"
+                    });
+                }
+                catch { }
+
+                return transferId;
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    await _logService.AddLogAsync(new LogRequest
+                    {
+                        Action = "Create Stock Transfer Request Failed",
+                        ActionType = (short)LogActionType.Error,
+                        ModuleName = "Stock Management",
+                        TableName = "StockTransfers",
+                        RecordId = string.IsNullOrEmpty(transferId) ? "N/A" : transferId,
+                        OldValue = null,
+                        NewValue = request,
+                        ChangedFields = null,
+                        Notes = ex.Message
+                    });
+                }
+                catch {
+                
+                }
+
+                throw;
+            }
+        }
+
+        public async Task<List<object>> GetStockRequestActivitiesAsync()
+        {
+            var data = await (
+                from r in _context.StockRequests
+                where !string.IsNullOrEmpty(r.ApprovalStatus)
+
+                join i in _context.StockTransferItems
+                    on r.AssignedStockId equals i.AssignedStockId
+
+                join m in _context.Medicines
+                    on i.MedicineId equals m.MedicineId
+
+                group new { i, m } by new
+                {
+                    r.AssignedStockId,
+                    r.FulfillmentType,
+                    r.RequestDate,
+                    r.ToBranchId,
+                    r.ApprovalStatus,
+                    r.Remarks
+                }
+                into g
+
+                select new
+                {
+                    id = g.Key.AssignedStockId,
+                    branch = g.Key.ToBranchId,
+                    type = g.Key.FulfillmentType,
+                    date = g.Key.RequestDate,
+                    status = g.Key.ApprovalStatus,
+                    remark = g.Key.Remarks,
+
+                    medicines = g.Select(x => new
+                    {
+                        medicineId = x.i.MedicineId,
+                        medicineName = x.m.MedicineName,
+                        batchId = x.i.BatchId,
+                        qty = x.i.Quantity
+                    }).ToList()
+                }
+            ).ToListAsync();
+
+            return data.Cast<object>().ToList();
+        }
+
+        public async Task<bool> ApproveStockAsync(ApprovalRequestDto req, string? userId)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                var now = DateTime.UtcNow;
+
+                var transfer = await _context.StockTransfers
+                    .FirstOrDefaultAsync(x => x.AssignedStockId == req.AssignedStockId);
+
+                if (transfer == null)
+                    throw new Exception("StockTransfer not found");
+
+                var request = await _context.StockRequests
+                    .FirstOrDefaultAsync(x => x.AssignedStockId == req.AssignedStockId);
+
+                var items = await _context.StockTransferItems
+                    .Where(x => x.AssignedStockId == req.AssignedStockId)
+                    .ToListAsync();
+
+                var oldValue = new
+                {
+                    transfer.ApprovedBy,
+                    transfer.UpdatedAt,
+                    Request = request == null ? null : new
+                    {
+                        request.QuantityApproved,
+                        request.ApprovalStatus,
+                        request.ApprovedDate
+                    },
+                    Items = items.Select(i => new
+                    {
+                        i.MedicineId,
+                        i.QtyApproved
+                    }).ToList()
+                };
+
+                transfer.ApprovedBy = userId;
+                transfer.UpdatedAt = now;
+
+                if (request != null)
+                {
+                    request.QuantityApproved = req.Medicines.Sum(x => x.QtyApproved);
+                    request.ApprovalStatus = req.ApprovalStatus;
+                    request.ApprovedDate = now;
+                    request.FulfillmentType = req.FulfillmentType;
+                    request.Remarks = req.Remark ?? "Approved";
+                }
+
+                foreach (var item in items)
+                {
+                    var match = req.Medicines
+                        .FirstOrDefault(m => m.MedicineId == item.MedicineId);
+
+                    if (match != null)
+                        item.QtyApproved = match.QtyApproved;
+                }
+
+                var newValue = new
+                {
+                    transfer.ApprovedBy,
+                    transfer.UpdatedAt,
+                    Request = request == null ? null : new
+                    {
+                        request.QuantityApproved,
+                        request.ApprovalStatus,
+                        request.ApprovedDate
+                    },
+                    Items = items.Select(i => new
+                    {
+                        i.MedicineId,
+                        i.QtyApproved
+                    }).ToList()
+                };
+
+                var delta = new
+                {
+                    Status = "Approved",
+                    MedicinesCount = req.Medicines.Count
+                };
+
+                await _context.SaveChangesAsync(CancellationToken.None);
+                await transaction.CommitAsync(CancellationToken.None);
+
+                try
+                {
+                    await _logService.AddLogAsync(new LogRequest
+                    {
+                        Action = "Approve Stock",
+                        ActionType = (short)LogActionType.Update,
+                        ModuleName = "Stock Management",
+                        TableName = "StockTransfers",
+                        RecordId = req.AssignedStockId,
+                        OldValue = oldValue,
+                        NewValue = newValue,
+                        ChangedFields = "Approval + Items",
+                        Delta = JsonSerializer.Serialize(delta),
+                        Notes = $"Stock approved with {req.Medicines.Count} medicines"
+                    });
+                }
+                catch { }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(CancellationToken.None);
+
+                try
+                {
+                    await _logService.AddLogAsync(new LogRequest
+                    {
+                        Action = "Approve Stock Failed",
+                        ActionType = (short)LogActionType.Error,
+                        ModuleName = "Stock Management",
+                        TableName = "StockTransfers",
+                        RecordId = req.AssignedStockId ?? "N/A",
+                        OldValue = null,
+                        NewValue = req,
+                        ChangedFields = null,
+                        Notes = ex.Message
+                    });
+                }
+                catch { }
+
+                throw;
+            }
+        }
+
+        public async Task<bool> RejectStockAsync(RejectStockRequestDto req, string? userId)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                if (string.IsNullOrEmpty(req.AssignedStockId))
+                    throw new Exception("AssignedStockId is required");
+
+                var stockTransfers = await _context.StockTransfers
+                    .FirstOrDefaultAsync(x => x.AssignedStockId == req.AssignedStockId);
+
+                var stockRequest = await _context.StockRequests
+                    .FirstOrDefaultAsync(x => x.AssignedStockId == req.AssignedStockId);
+
+                if (stockTransfers == null || stockRequest == null)
+                    throw new Exception("Stock request not found");
+
+                var oldValue = new
+                {
+                    TransferStatus = stockTransfers.TransferStatus,
+                    TransferRemarks = stockTransfers.Remarks,
+                    RequestStatus = stockRequest.ApprovalStatus,
+                    RequestRemarks = stockRequest.Remarks
+                };
+
+                var now = DateTime.UtcNow;
+
+                stockTransfers.TransferStatus = "CANCELLED";
+                stockTransfers.Remarks = req.Remark;
+                stockTransfers.ApprovedBy = userId;
+                stockTransfers.UpdatedAt = now;
+
+                stockRequest.ApprovalStatus = "REJECTED";
+                stockRequest.Remarks = req.Remark;
+                stockRequest.ApprovedBy = userId;
+                stockRequest.UpdatedAt = now;
+
+                await _context.SaveChangesAsync(CancellationToken.None);
+                await transaction.CommitAsync();
+
+                var newValue = new
+                {
+                    TransferStatus = stockTransfers.TransferStatus,
+                    TransferRemarks = stockTransfers.Remarks,
+                    ApprovalStatus = stockRequest.ApprovalStatus,
+                    RequestRemarks = stockRequest.Remarks
+                };
+
+                var delta = new
+                {
+                    Action = "Rejected",
+                    Remark = req.Remark
+                };
+
+                try
+                {
+                    await _logService.AddLogAsync(new LogRequest
+                    {
+                        Action = "Reject Stock",
+                        ActionType = (short)LogActionType.Update,
+                        ModuleName = "Stock Management",
+                        TableName = "StockTransfers",
+                        RecordId = req.AssignedStockId,
+                        OldValue = oldValue,
+                        NewValue = newValue,
+                        ChangedFields = "Status + Remarks",
+                        Delta = JsonSerializer.Serialize(delta),
+                        Notes = $"Stock rejected. Remark: {req.Remark}"
+                    });
+                }
+                catch 
+                {
+                
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+
+                try
+                {
+                    await _logService.AddLogAsync(new LogRequest
+                    {
+                        Action = "Reject Stock Failed",
+                        ActionType = (short)LogActionType.Error,
+                        ModuleName = "Stock Management",
+                        TableName = "StockTransfers",
+                        RecordId = req.AssignedStockId ?? "N/A",
+                        OldValue = null,
+                        NewValue = req,
+                        ChangedFields = null,
+                        Notes = ex.Message
+                    });
+                }
+                catch 
+                { 
+                
+                }
+
                 throw;
             }
         }

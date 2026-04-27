@@ -1,0 +1,1138 @@
+﻿
+@{
+    ViewData["Title"] = "SalesReport";
+    Layout = "~/Views/Shared/_adminDashboard.cshtml";
+}
+
+<div class="psv-layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="psv-sidebar" style="display: none;">
+    <div class="psv-logo">
+      <div class="psv-logo-text">&#9670; Pharmachain</div>
+      <div class="psv-logo-sub">Branch Sales Console</div>
+    </div>
+
+    <div class="psv-nav-label">Sales</div>
+    <div class="psv-nav-item active" onclick="psv_setPage('sales')">
+      <span class="psv-nav-icon">&#128200;</span> Sales Tracking
+    </div>
+    <div class="psv-nav-item" onclick="psv_setPage('audit')">
+      <span class="psv-nav-icon">&#128269;</span> Trade Audit
+    </div>
+
+    <div class="psv-nav-label">Inventory</div>
+    <div class="psv-nav-item">
+      <span class="psv-nav-icon">&#128138;</span> Medicine Stock
+    </div>
+    <div class="psv-nav-item">
+      <span class="psv-nav-icon">&#128666;</span> Batches
+    </div>
+
+    <div class="psv-nav-label">Finance</div>
+    <div class="psv-nav-item">
+      <span class="psv-nav-icon">&#128203;</span> Invoices
+    </div>
+    <div class="psv-nav-item">
+      <span class="psv-nav-icon">&#128176;</span> GST Reports
+    </div>
+
+    <div class="psv-nav-label">Network</div>
+    <div class="psv-nav-item">
+      <span class="psv-nav-icon">&#127970;</span> Branches
+    </div>
+    <div class="psv-nav-item">
+      <span class="psv-nav-icon">&#128101;</span> Suppliers
+    </div>
+
+    <div class="psv-sidebar-bottom">
+      <div class="psv-dark-toggle">
+        <span>Dark mode</span>
+        <div class="psv-toggle-switch" id="psv-dark-toggle" onclick="psv_toggleDark()"></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="psv-main" id="psv-main">
+
+    <!-- Top bar -->
+    <div class="psv-topbar">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <div class="psv-page-title" id="psv-page-title">Sales Tracking</div>
+          <!-- Branch context switcher -->
+          <div class="psv-branch-switcher">
+            <span class="psv-branch-dot" id="psv-branch-dot"></span>
+            <select class="psv-branch-select" id="psv-active-branch" onchange="psv_switchBranch()">
+              <option value="BRN-001">North Delhi</option>
+              <option value="BRN-002">South Delhi</option>
+              <option value="BRN-003">East Delhi</option>
+              <option value="BRN-004">West Delhi</option>
+              <option value="BRN-005">Central</option>
+            </select>
+          </div>
+        </div>
+        <div class="psv-page-sub" id="psv-page-sub">Single branch view &bull; Updated just now</div>
+      </div>
+      <div class="psv-topbar-right">
+        <div class="psv-view-tabs" id="psv-view-tabs">
+          <button class="psv-view-tab" onclick="psv_setView('daily')">Daily</button>
+          <button class="psv-view-tab active" onclick="psv_setView('monthly')">Monthly</button>
+        </div>
+        <button class="psv-btn psv-btn-primary" onclick="psv_exportCSV()">&#8595; Export</button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="psv-filters">
+      <div class="psv-filter-group">
+        <span class="psv-filter-label">Category</span>
+        <select class="psv-select" id="psv-cat-filter" onchange="psv_applyFilters()">
+          <option value="all">All Categories</option>
+          <option value="antibiotics">Antibiotics</option>
+          <option value="pain">Pain Relief</option>
+          <option value="vaccines">Vaccines</option>
+          <option value="cardiac">Cardiac</option>
+          <option value="diabetes">Diabetes</option>
+        </select>
+      </div>
+      <div class="psv-divider"></div>
+      <div class="psv-filter-group">
+        <span class="psv-filter-label">Supplier</span>
+        <select class="psv-select" id="psv-supplier-filter" onchange="psv_applyFilters()">
+          <option value="all">All Suppliers</option>
+          <option value="SUP-01">Cipla Ltd</option>
+          <option value="SUP-02">Sun Pharma</option>
+          <option value="SUP-03">Dr Reddy's</option>
+          <option value="SUP-04">Lupin Ltd</option>
+          <option value="SUP-05">Alkem Labs</option>
+        </select>
+      </div>
+      <div class="psv-divider"></div>
+      <div class="psv-filter-group">
+        <span class="psv-filter-label">Period</span>
+        <input type="date" class="psv-input" id="psv-date-from" value="2025-01-01" />
+        <span style="color:var(--psv-text3); font-size:12px;">to</span>
+        <input type="date" class="psv-input" id="psv-date-to" value="2025-12-31" />
+      </div>
+      <div class="psv-divider"></div>
+      <button class="psv-btn" onclick="psv_resetFilters()">Reset</button>
+    </div>
+
+    <!-- ═══════ METRICS ═══════ -->
+    <div class="psv-metrics" id="psv-metrics">
+      <div class="psv-metric">
+        <div class="psv-metric-label">Total Sales</div>
+        <div class="psv-metric-value" id="psv-m-sales">&#8377;24.8L</div>
+        <div class="psv-metric-change pos" id="psv-m-sales-c">&#8593; 12.4% vs prev</div>
+      </div>
+      <div class="psv-metric">
+        <div class="psv-metric-label">Units Sold</div>
+        <div class="psv-metric-value" id="psv-m-units">68,420</div>
+        <div class="psv-metric-change pos" id="psv-m-units-c">&#8593; 9.1% vs prev</div>
+      </div>
+      <div class="psv-metric">
+        <div class="psv-metric-label">Avg Invoice</div>
+        <div class="psv-metric-value" id="psv-m-avg">&#8377;1,847</div>
+        <div class="psv-metric-change pos" id="psv-m-avg-c">&#8593; 3.2% vs prev</div>
+      </div>
+      <div class="psv-metric">
+        <div class="psv-metric-label">Gross Margin</div>
+        <div class="psv-metric-value" id="psv-m-margin">28.4%</div>
+        <div class="psv-metric-change neg" id="psv-m-margin-c">&#8595; 0.8% vs prev</div>
+      </div>
+      <div class="psv-metric">
+        <div class="psv-metric-label">GST Collected</div>
+        <div class="psv-metric-value" id="psv-m-gst">&#8377;3.2L</div>
+        <div class="psv-metric-change pos" id="psv-m-gst-c">&#8593; 11.8% vs prev</div>
+      </div>
+      <div class="psv-metric" style="border-left-color: var(--psv-warning)">
+        <div class="psv-metric-label">Expiry Risk</div>
+        <div class="psv-metric-value" style="color:var(--psv-warning)" id="psv-m-expiry">23 SKUs</div>
+        <div class="psv-metric-change warn" id="psv-m-expiry-c">&#9888; 8 critical</div>
+      </div>
+    </div>
+
+    <!-- ═══════ MAIN CHARTS ═══════ -->
+    <div id="psv-charts-area">
+      <!-- Row 1: Sales Trend + Branch Performance -->
+      <div class="psv-grid psv-grid-3" style="margin-bottom:14px;">
+
+        <div class="psv-card psv-full" id="psv-trend-card">
+          <div class="psv-card-header">
+            <div>
+              <div class="psv-card-title" id="psv-trend-title">Monthly Sales Trend — 2025</div>
+              <div class="psv-card-sub">Revenue &amp; Units across channels</div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <select class="psv-select" id="psv-trend-mode" onchange="psv_updateTrendChart()" style="font-size:12px;">
+                <option value="revenue">Revenue</option>
+                <option value="units">Units Sold</option>
+                <option value="both">Revenue + Units</option>
+              </select>
+            </div>
+          </div>
+          <div class="psv-chart-wrap psv-chart-wrap-lg">
+            <canvas id="psv-trendChart" role="img" aria-label="Sales trend line chart showing monthly revenue and units sold over 12 months">Monthly data not available in text.</canvas>
+          </div>
+          <div class="psv-legend" id="psv-trend-legend">
+            <div class="psv-legend-item"><span class="psv-legend-dot" style="background:#0d9488"></span>Hospital</div>
+            <div class="psv-legend-item"><span class="psv-legend-dot" style="background:#3b82f6"></span>Retail Pharmacy</div>
+            <div class="psv-legend-item"><span class="psv-legend-dot" style="background:#f59e0b"></span>Clinics</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="psv-grid" style="margin-bottom:14px;">
+        <!-- Supplier contribution bars for this branch -->
+        <div class="psv-card">
+          <div class="psv-card-header">
+            <div>
+              <div class="psv-card-title">Supplier Contribution</div>
+              <div class="psv-card-sub">Revenue share from each supplier at this branch</div>
+            </div>
+            <span class="psv-tag psv-tag-blue" id="psv-branch-tag">North Delhi</span>
+          </div>
+          <div class="psv-branch-bars" id="psv-branch-bars"></div>
+        </div>
+
+        <!-- Top medicines -->
+        <div class="psv-card">
+          <div class="psv-card-header">
+            <div>
+              <div class="psv-card-title">Top Medicines by Revenue</div>
+              <div class="psv-card-sub">invoiceItems.totalPrice — this branch only</div>
+            </div>
+          </div>
+          <div class="psv-top-list" id="psv-top-medicines"></div>
+        </div>
+      </div>
+
+      <div class="psv-grid" style="margin-bottom:14px;">
+        <!-- Category sales bar chart -->
+        <div class="psv-card">
+          <div class="psv-card-header">
+            <div>
+              <div class="psv-card-title">Revenue by Medicine Category</div>
+              <div class="psv-card-sub">medicineBatch &rarr; medicines.category</div>
+            </div>
+          </div>
+          <div class="psv-chart-wrap">
+            <canvas id="psv-catChart" role="img" aria-label="Bar chart showing revenue by medicine category">Category revenue data.</canvas>
+          </div>
+        </div>
+
+        <!-- GST Breakdown -->
+        <div class="psv-card">
+          <div class="psv-card-header">
+            <div>
+              <div class="psv-card-title">GST Breakdown</div>
+              <div class="psv-card-sub">invoiceItems.gstPercentage slabs</div>
+            </div>
+          </div>
+          <div class="psv-chart-wrap" style="height:150px; margin-bottom:12px;">
+            <canvas id="psv-gstChart" role="img" aria-label="Doughnut chart showing GST slab distribution">GST data.</canvas>
+          </div>
+          <div class="psv-gst-grid" id="psv-gst-grid"></div>
+        </div>
+      </div>
+
+      <!-- Batch Expiry Risk timeline -->
+      <div class="psv-card psv-full" style="margin-bottom:14px;">
+        <div class="psv-card-header">
+          <div>
+            <div class="psv-card-title">Batch Expiry Risk — 2025–2026</div>
+            <div class="psv-card-sub">medicineBatch.expDate &bull; Units at risk per quarter</div>
+          </div>
+          <span class="psv-tag psv-tag-yellow">&#9888; 8 critical &lt; 90 days</span>
+        </div>
+        <div class="psv-chart-wrap">
+          <canvas id="psv-expiryChart" role="img" aria-label="Bar chart showing batch expiry risk by quarter">Expiry risk data.</canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ TRADE AUDIT GRAPH ═══════ -->
+    <div class="psv-audit" id="psv-audit-section">
+      <div class="psv-audit-header">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+            <div class="psv-card-title" style="font-size:15px;">Interactive Trade Audit Graph</div>
+            <span class="psv-audit-badge">AUDIT MODE</span>
+          </div>
+          <div class="psv-card-sub">
+            Trace batches &rarr; invoiceItems &rarr; branches &bull; Click any bar to drill down
+          </div>
+        </div>
+        <div class="psv-audit-controls">
+          <select class="psv-select" id="psv-audit-metric" onchange="psv_buildAuditChart()" style="font-size:12px;">
+            <option value="revenue">Revenue (&#8377;)</option>
+            <option value="units">Units Sold</option>
+            <option value="gst">GST Amount</option>
+            <option value="margin">Margin %</option>
+            <option value="unitprice">Avg Unit Price</option>
+          </select>
+          <select class="psv-select" id="psv-audit-group" onchange="psv_buildAuditChart()" style="font-size:12px;">
+            <option value="category">By Category</option>
+            <option value="medicine">By Medicine</option>
+            <option value="supplier">By Supplier</option>
+            <option value="month">By Month</option>
+            <option value="gst">By GST Slab</option>
+          </select>
+          <button class="psv-btn" onclick="psv_resetAuditDrill()" id="psv-audit-back" style="display:none;">&#8592; Back</button>
+        </div>
+      </div>
+
+      <!-- Audit chart -->
+      <div class="psv-audit-chart-wrap">
+        <canvas id="psv-auditChart" role="img" aria-label="Interactive audit chart for trade analysis">Audit data.</canvas>
+      </div>
+
+      <!-- Drill path indicator -->
+      <div id="psv-drill-path" style="margin-top:8px; font-size:11px; color:var(--psv-text3); font-family:'DM Mono',monospace; display:none;"></div>
+
+      <!-- Audit anomalies -->
+      <div style="margin-top:16px;">
+        <div style="font-size:12px; font-weight:600; color:var(--psv-text2); margin-bottom:8px;">Audit Anomalies &amp; Flags</div>
+        <div class="psv-anomaly-list" id="psv-anomaly-list"></div>
+      </div>
+
+      <!-- Audit detail table -->
+      <div class="psv-audit-table-wrap" style="margin-top:16px;">
+        <div class="psv-audit-table-header">
+          <span class="psv-audit-table-title" id="psv-audit-table-title">Invoice Line Items — Drill-Down View</span>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div class="psv-search-wrap">
+              <span class="psv-search-icon">&#128269;</span>
+              <input type="text" class="psv-input" id="psv-audit-search" placeholder="Search medicine, batch..." oninput="psv_filterAuditTable()" style="padding-left:28px; font-size:12px; width:220px;" />
+            </div>
+            <select class="psv-select" id="psv-audit-table-sort" onchange="psv_sortAuditTable()" style="font-size:12px;">
+              <option value="revenue_desc">Revenue &#8595;</option>
+              <option value="revenue_asc">Revenue &#8593;</option>
+              <option value="units_desc">Units &#8595;</option>
+              <option value="margin_desc">Margin &#8595;</option>
+            </select>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="psv-table" id="psv-audit-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Medicine Name</th>
+                <th>Category</th>
+                <th>Batch No.</th>
+                <th>Supplier</th>
+                <th>Units</th>
+                <th>Unit Price</th>
+                <th>Revenue</th>
+                <th>GST %</th>
+                <th>GST Amt</th>
+                <th>Margin %</th>
+                <th>Exp Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="psv-audit-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Tooltip -->
+<div class="psv-tooltip" id="psv-tooltip"></div>
+
+<script>
+// ════════════════════════════════════════
+//  MOCK DATA  (mirrors DB schema)
+// ════════════════════════════════════════
+const PSV = {};
+
+PSV.branches = [
+  { branchId:'BRN-001', name:'North Delhi' },
+  { branchId:'BRN-002', name:'South Delhi' },
+  { branchId:'BRN-003', name:'East Delhi' },
+  { branchId:'BRN-004', name:'West Delhi' },
+  { branchId:'BRN-005', name:'Central' }
+];
+
+PSV.suppliers = [
+  { supplierId:'SUP-01', name:'Cipla Ltd' },
+  { supplierId:'SUP-02', name:'Sun Pharma' },
+  { supplierId:'SUP-03', name:'Dr Reddy\'s' },
+  { supplierId:'SUP-04', name:'Lupin Ltd' },
+  { supplierId:'SUP-05', name:'Alkem Labs' }
+];
+
+PSV.medicines = [
+  { medicineId:'MED-001', medicineName:'Amoxicillin 500mg', genericName:'Amoxicillin', category:'Antibiotics', strength:'500mg', manufacturer:'Cipla', gstPercentage:12, minimumStockLevel:200 },
+  { medicineId:'MED-002', medicineName:'Paracetamol 650mg', genericName:'Paracetamol', category:'Pain Relief', strength:'650mg', manufacturer:'GSK', gstPercentage:5, minimumStockLevel:500 },
+  { medicineId:'MED-003', medicineName:'Metformin 500mg', genericName:'Metformin', category:'Diabetes', strength:'500mg', manufacturer:'Sun Pharma', gstPercentage:12, minimumStockLevel:300 },
+  { medicineId:'MED-004', medicineName:'Atorvastatin 10mg', genericName:'Atorvastatin', category:'Cardiac', strength:'10mg', manufacturer:'Lupin', gstPercentage:12, minimumStockLevel:150 },
+  { medicineId:'MED-005', medicineName:'Azithromycin 250mg', genericName:'Azithromycin', category:'Antibiotics', strength:'250mg', manufacturer:'Cipla', gstPercentage:12, minimumStockLevel:200 },
+  { medicineId:'MED-006', medicineName:'Omeprazole 20mg', genericName:'Omeprazole', category:'Gastrointestinal', strength:'20mg', manufacturer:'Dr Reddy\'s', gstPercentage:12, minimumStockLevel:250 },
+  { medicineId:'MED-007', medicineName:'Cetirizine 10mg', genericName:'Cetirizine', category:'Antihistamine', strength:'10mg', manufacturer:'Alkem', gstPercentage:12, minimumStockLevel:300 },
+  { medicineId:'MED-008', medicineName:'Insulin Glargine', genericName:'Insulin', category:'Diabetes', strength:'100U/ml', manufacturer:'Sanofi', gstPercentage:5, minimumStockLevel:100 },
+  { medicineId:'MED-009', medicineName:'Hepatitis B Vaccine', genericName:'HBsAg', category:'Vaccines', strength:'1ml', manufacturer:'Serum Institute', gstPercentage:5, minimumStockLevel:80 },
+  { medicineId:'MED-010', medicineName:'Amlodipine 5mg', genericName:'Amlodipine', category:'Cardiac', strength:'5mg', manufacturer:'Sun Pharma', gstPercentage:12, minimumStockLevel:200 }
+];
+
+// medicineBatch table
+PSV.batches = [];
+const batchData = [
+  ['BCH-001','MED-001','B2025-001',1200,12.5,28.0,'2024-06-01','2027-06-01','SUP-01','BRN-001','GRN-001'],
+  ['BCH-002','MED-002','B2025-002',3000,3.2,8.5,'2024-08-01','2026-08-01','SUP-02','BRN-002','GRN-002'],
+  ['BCH-003','MED-003','B2025-003',2000,15.0,32.0,'2024-05-01','2026-05-01','SUP-03','BRN-003','GRN-003'],
+  ['BCH-004','MED-004','B2025-004',900,45.0,95.0,'2024-03-01','2027-03-01','SUP-04','BRN-004','GRN-004'],
+  ['BCH-005','MED-005','B2025-005',1500,18.0,42.0,'2024-07-01','2026-07-01','SUP-01','BRN-005','GRN-005'],
+  ['BCH-006','MED-006','B2025-006',1800,8.5,22.0,'2024-09-01','2026-09-01','SUP-02','BRN-001','GRN-006'],
+  ['BCH-007','MED-007','B2025-007',2200,5.0,14.0,'2024-10-01','2026-10-01','SUP-05','BRN-002','GRN-007'],
+  ['BCH-008','MED-008','B2025-008',500,180.0,350.0,'2024-11-01','2025-11-01','SUP-03','BRN-003','GRN-008'],
+  ['BCH-009','MED-009','B2025-009',300,220.0,480.0,'2024-04-01','2025-04-01','SUP-04','BRN-004','GRN-009'],
+  ['BCH-010','MED-010','B2025-010',1100,38.0,82.0,'2024-12-01','2027-12-01','SUP-05','BRN-005','GRN-010'],
+  ['BCH-011','MED-001','B2025-011',800,12.8,28.5,'2025-01-01','2028-01-01','SUP-01','BRN-003','GRN-011'],
+  ['BCH-012','MED-002','B2025-012',2500,3.0,8.0,'2025-02-01','2027-02-01','SUP-02','BRN-005','GRN-012'],
+];
+batchData.forEach(r => {
+  PSV.batches.push({ batchId:r[0], medicineId:r[1], batchNumber:r[2], totalStockReceived:r[3], unitPurchasePrice:r[4], unitSellingPrice:r[5], mfgDate:r[6], expDate:r[7], supplierId:r[8], branchId:r[9], grnNumber:r[10] });
+});
+
+// invoiceItems table (simulated from real schema)
+PSV.invoiceItems = [];
+const months = ['2025-01','2025-02','2025-03','2025-04','2025-05','2025-06','2025-07','2025-08','2025-09','2025-10','2025-11','2025-12'];
+let invId = 1;
+PSV.batches.forEach(b => {
+  const med = PSV.medicines.find(m => m.medicineId === b.medicineId);
+  months.forEach((mo,mi) => {
+    const qty = Math.round((20 + Math.random()*60) * (1 + mi*0.04));
+    const gst = med.gstPercentage;
+    const base = +(b.unitSellingPrice * qty).toFixed(2);
+    const total = +(base * (1 + gst/100)).toFixed(2);
+    PSV.invoiceItems.push({
+      id: invId++,
+      invoiceId: 'INV-' + String(invId).padStart(4,'0'),
+      medicineId: b.medicineId,
+      branchId: b.branchId,
+      batchId: b.batchId,
+      quantity: qty,
+      unitPrice: b.unitSellingPrice,
+      gstPercentage: gst,
+      totalPrice: total,
+      month: mo
+    });
+  });
+});
+
+// ════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════
+PSV.state = {
+  view: 'monthly',
+  activeBranch: 'BRN-001',
+  category: 'all',
+  supplier: 'all',
+  dark: false,
+  auditDrill: null,
+  charts: {}
+};
+
+// ════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════
+function psv_fmt(n) {
+  if (n >= 100000) return '&#8377;' + (n/100000).toFixed(1) + 'L';
+  if (n >= 1000)   return '&#8377;' + (n/1000).toFixed(1) + 'K';
+  return '&#8377;' + Math.round(n);
+}
+function psv_fmtNum(n) {
+  if (n >= 1000) return (n/1000).toFixed(1) + 'K';
+  return String(Math.round(n));
+}
+
+function psv_filteredItems() {
+  // Always scope to the active single branch
+  let items = PSV.invoiceItems.filter(i => i.branchId === PSV.state.activeBranch);
+  const cat = document.getElementById('psv-cat-filter').value;
+  const sup = document.getElementById('psv-supplier-filter').value;
+  if (cat !== 'all') {
+    const catMap = { antibiotics:'Antibiotics', pain:'Pain Relief', vaccines:'Vaccines', cardiac:'Cardiac', diabetes:'Diabetes' };
+    items = items.filter(i => {
+      const med = PSV.medicines.find(m => m.medicineId === i.medicineId);
+      return med && med.category === catMap[cat];
+    });
+  }
+  if (sup !== 'all') {
+    items = items.filter(i => {
+      const batch = PSV.batches.find(b => b.batchId === i.batchId);
+      return batch && batch.supplierId === sup;
+    });
+  }
+  return items;
+}
+
+function psv_getMedName(medicineId) {
+  const m = PSV.medicines.find(x => x.medicineId === medicineId);
+  return m ? m.medicineName : medicineId;
+}
+function psv_getMedCat(medicineId) {
+  const m = PSV.medicines.find(x => x.medicineId === medicineId);
+  return m ? m.category : '?';
+}
+function psv_getBranchName(branchId) {
+  const b = PSV.branches.find(x => x.branchId === branchId);
+  return b ? b.name : branchId;
+}
+function psv_getSupplierName(batchId) {
+  const b = PSV.batches.find(x => x.batchId === batchId);
+  if (!b) return '?';
+  const s = PSV.suppliers.find(x => x.supplierId === b.supplierId);
+  return s ? s.name : b.supplierId;
+}
+function psv_getBatchPurchasePrice(batchId) {
+  const b = PSV.batches.find(x => x.batchId === batchId);
+  return b ? b.unitPurchasePrice : 0;
+}
+
+const PSV_COLORS = ['#0d9488','#3b82f6','#f59e0b','#10b981','#ef4444','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316'];
+
+function psv_destroyChart(key) {
+  if (PSV.state.charts[key]) {
+    PSV.state.charts[key].destroy();
+    delete PSV.state.charts[key];
+  }
+}
+
+// ════════════════════════════════════════
+//  METRICS
+// ════════════════════════════════════════
+function psv_updateMetrics() {
+  const items = psv_filteredItems();
+  const totalRev = items.reduce((s,i) => s + i.totalPrice, 0);
+  const totalUnits = items.reduce((s,i) => s + i.quantity, 0);
+  const totalGST = items.reduce((s,i) => {
+    const base = i.totalPrice / (1 + i.gstPercentage/100);
+    return s + (i.totalPrice - base);
+  }, 0);
+  const totalCOGS = items.reduce((s,i) => s + (psv_getBatchPurchasePrice(i.batchId) * i.quantity), 0);
+  const margin = totalRev > 0 ? ((totalRev - totalCOGS) / totalRev * 100) : 0;
+  const invoiceCount = new Set(items.map(i => i.invoiceId)).size;
+  const avgInv = invoiceCount > 0 ? totalRev / invoiceCount : 0;
+
+  document.getElementById('psv-m-sales').innerHTML = psv_fmt(totalRev);
+  document.getElementById('psv-m-units').textContent = totalUnits.toLocaleString();
+  document.getElementById('psv-m-avg').innerHTML = psv_fmt(avgInv);
+  document.getElementById('psv-m-margin').textContent = margin.toFixed(1) + '%';
+  document.getElementById('psv-m-gst').innerHTML = psv_fmt(totalGST);
+}
+
+// ════════════════════════════════════════
+//  TREND CHART
+// ════════════════════════════════════════
+function psv_buildTrendChart() {
+  psv_destroyChart('trend');
+  const view = PSV.state.view;
+  const items = psv_filteredItems();
+  const mode = document.getElementById('psv-trend-mode').value;
+  const branchName = psv_getBranchName(PSV.state.activeBranch);
+
+  let labels, datasets;
+
+  if (view === 'daily') {
+    labels = Array.from({length:30}, (_,i) => {
+      const d = new Date('2025-12-01');
+      d.setDate(d.getDate() + i);
+      return (d.getMonth()+1) + '/' + d.getDate();
+    });
+    const monthItems = items.filter(i => i.month === '2025-12');
+    // Split by top 3 medicine categories at this branch
+    const cats = ['Antibiotics','Pain Relief','Diabetes'];
+    datasets = cats.map((cat, ci) => {
+      const catItems = monthItems.filter(i => psv_getMedCat(i.medicineId) === cat);
+      const total = catItems.reduce((s,i) => s + (mode==='units'?i.quantity:i.totalPrice), 0);
+      const daily = labels.map(() => Math.round(total/30 * (0.7 + Math.random()*0.6)));
+      return { label: cat, data: daily, borderColor: PSV_COLORS[ci], backgroundColor: PSV_COLORS[ci]+'15', fill:true, tension:0.1, borderWidth:2, pointRadius:2, pointHoverRadius:5 };
+    });
+    document.getElementById('psv-trend-title').textContent = `Daily Sales — ${branchName} — Dec 2025`;
+
+  } else {
+    // Monthly: split by top categories at this branch
+    const monthKeys = ['2025-01','2025-02','2025-03','2025-04','2025-05','2025-06','2025-07','2025-08','2025-09','2025-10','2025-11','2025-12'];
+    labels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    // Find top 3 categories for this branch
+    const catTotals = {};
+    items.forEach(i => {
+      const c = psv_getMedCat(i.medicineId);
+      catTotals[c] = (catTotals[c]||0) + i.totalPrice;
+    });
+    const topCats = Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]);
+    datasets = topCats.map((cat, ci) => {
+      const data = monthKeys.map(mo => {
+        const moItems = items.filter(i => i.month===mo && psv_getMedCat(i.medicineId)===cat);
+        return +(moItems.reduce((s,i) => s+(mode==='units'?i.quantity:i.totalPrice),0)).toFixed(0);
+      });
+      return { label: cat, data, borderColor: PSV_COLORS[ci], backgroundColor: PSV_COLORS[ci]+'15', fill:true, tension:0.1, borderWidth:2, pointRadius:3, pointHoverRadius:6 };
+    });
+    document.getElementById('psv-trend-title').textContent = `Monthly Sales — ${branchName} — 2025`;
+  }
+
+  const ctx = document.getElementById('psv-trendChart').getContext('2d');
+  PSV.state.charts.trend = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.parsed.y;
+              return ' ' + ctx.dataset.label + ': ' + (mode==='units' ? v.toLocaleString()+' units' : '₹' + v.toLocaleString());
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(128,128,128,0.08)' }, ticks: { color: '#8a9e98', font:{size:11} } },
+        y: { grid: { color: 'rgba(128,128,128,0.08)' }, ticks: { color: '#8a9e98', font:{size:11}, callback: v => mode==='units' ? psv_fmtNum(v) : '₹' + psv_fmtNum(v) } }
+      },
+      interaction: { intersect: false, mode: 'index' },
+      animation: { duration: 600 }
+    }
+  });
+
+  // update legend
+  const leg = document.getElementById('psv-trend-legend');
+  leg.innerHTML = datasets.map((d,i) => `<div class="psv-legend-item"><span class="psv-legend-dot" style="background:${PSV_COLORS[i]}"></span>${d.label}</div>`).join('');
+}
+
+function psv_updateTrendChart() { psv_buildTrendChart(); }
+
+// ════════════════════════════════════════
+//  BRANCH BARS
+// ════════════════════════════════════════
+function psv_buildBranchBars() {
+  const items = psv_filteredItems();
+  const totals = PSV.branches.map(b => {
+    const rev = items.filter(i => i.branchId===b.branchId).reduce((s,i) => s+i.totalPrice, 0);
+    return { name: b.name, rev };
+  }).sort((a,b) => b.rev - a.rev);
+  const max = totals[0].rev;
+  const el = document.getElementById('psv-branch-bars');
+  el.innerHTML = totals.map(b => `
+    <div class="psv-branch-row">
+      <span class="psv-branch-name">${b.name}</span>
+      <div class="psv-branch-bar-wrap">
+        <div class="psv-branch-bar" style="width:${max>0?Math.round(b.rev/max*100):0}%">
+          <span class="psv-branch-bar-val">${max>0?Math.round(b.rev/max*100):0}%</span>
+        </div>
+      </div>
+      <span class="psv-branch-total">${psv_fmt(b.rev)}</span>
+    </div>
+  `).join('');
+}
+
+// ════════════════════════════════════════
+//  TOP MEDICINES
+// ════════════════════════════════════════
+function psv_buildTopMedicines() {
+  const items = psv_filteredItems();
+  const map = {};
+  items.forEach(i => {
+    if (!map[i.medicineId]) map[i.medicineId] = 0;
+    map[i.medicineId] += i.totalPrice;
+  });
+  const sorted = Object.entries(map).sort((a,b) => b[1]-a[1]).slice(0,7);
+  const max = sorted[0]?.[1] || 1;
+  const el = document.getElementById('psv-top-medicines');
+  el.innerHTML = sorted.map(([mid,rev],i) => `
+    <div class="psv-top-item">
+      <span class="psv-top-rank">${i+1}</span>
+      <div class="psv-top-info">
+        <div class="psv-top-name">${psv_getMedName(mid)}</div>
+        <div class="psv-top-cat">${psv_getMedCat(mid)}</div>
+      </div>
+      <div class="psv-top-bar-wrap"><div class="psv-top-bar" style="width:${Math.round(rev/max*100)}%"></div></div>
+      <span class="psv-top-val">${psv_fmt(rev)}</span>
+    </div>
+  `).join('');
+}
+
+// ════════════════════════════════════════
+//  CATEGORY CHART
+// ════════════════════════════════════════
+function psv_buildCatChart() {
+  psv_destroyChart('cat');
+  const items = psv_filteredItems();
+  const cats = {};
+  items.forEach(i => {
+    const c = psv_getMedCat(i.medicineId);
+    if (!cats[c]) cats[c] = 0;
+    cats[c] += i.totalPrice;
+  });
+  const sorted = Object.entries(cats).sort((a,b) => b[1]-a[1]);
+  const ctx = document.getElementById('psv-catChart').getContext('2d');
+  PSV.state.charts.cat = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sorted.map(x=>x[0]),
+      datasets: [{ data: sorted.map(x=>x[1]), backgroundColor: sorted.map((_,i)=>PSV_COLORS[i%PSV_COLORS.length]), borderRadius:6, borderSkipped:false }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ' ₹' + Math.round(ctx.parsed.x).toLocaleString() } } },
+      scales:{
+        x:{ grid:{color:'rgba(128,128,128,0.08)'}, ticks:{color:'#8a9e98',font:{size:10}, callback:v=>'₹'+psv_fmtNum(v)} },
+        y:{ grid:{display:false}, ticks:{color:'#8a9e98',font:{size:11}} }
+      },
+      animation:{duration:600}
+    }
+  });
+}
+
+// ════════════════════════════════════════
+//  GST CHART
+// ════════════════════════════════════════
+function psv_buildGSTChart() {
+  psv_destroyChart('gst');
+  const items = psv_filteredItems();
+  const slabs = {};
+  items.forEach(i => {
+    const k = i.gstPercentage + '%';
+    if (!slabs[k]) slabs[k] = {amt:0, count:0};
+    const base = i.totalPrice / (1 + i.gstPercentage/100);
+    slabs[k].amt += (i.totalPrice - base);
+    slabs[k].count++;
+  });
+  const keys = Object.keys(slabs);
+  const ctx = document.getElementById('psv-gstChart').getContext('2d');
+  PSV.state.charts.gst = new Chart(ctx, {
+    type:'doughnut',
+    data:{
+      labels: keys,
+      datasets:[{ data: keys.map(k=>slabs[k].amt), backgroundColor: keys.map((_,i)=>PSV_COLORS[i]), borderWidth:2, hoverOffset:4 }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'68%',
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ' ₹' + Math.round(ctx.parsed).toLocaleString() } } },
+      animation:{duration:500}
+    }
+  });
+  // GST cells
+  const grid = document.getElementById('psv-gst-grid');
+  grid.innerHTML = keys.map((k,i) => `
+    <div class="psv-gst-cell">
+      <div class="psv-gst-rate">GST ${k}</div>
+      <div class="psv-gst-amt">₹${Math.round(slabs[k].amt).toLocaleString()}</div>
+      <div class="psv-gst-txns">${slabs[k].count} line items</div>
+    </div>
+  `).join('');
+}
+
+// ════════════════════════════════════════
+//  EXPIRY CHART
+// ════════════════════════════════════════
+function psv_buildExpiryChart() {
+  psv_destroyChart('expiry');
+  const quarters = ['Q1 2025','Q2 2025','Q3 2025','Q4 2025','Q1 2026','Q2 2026','Q3 2026','Q4 2026'];
+  const critical = [0,0,1800,2400,3200,1200,800,0];
+  const warning  = [0,300,1200,1800,2200,3400,1500,600];
+  const safe     = [500,1200,2000,3500,4200,5100,6200,7800];
+  const ctx = document.getElementById('psv-expiryChart').getContext('2d');
+  PSV.state.charts.expiry = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: quarters,
+      datasets:[
+        { label:'Critical (<90d)', data:critical, backgroundColor:'#ef4444', borderRadius:4, stack:'s1' },
+        { label:'Warning (<180d)', data:warning,  backgroundColor:'#f59e0b', borderRadius:4, stack:'s1' },
+        { label:'Safe',           data:safe,      backgroundColor:'#10b981', borderRadius:4, stack:'s1' }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ' ' + ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString() + ' units' } } },
+      scales:{
+        x:{ stacked:true, grid:{display:false}, ticks:{color:'#8a9e98',font:{size:11}} },
+        y:{ stacked:true, grid:{color:'rgba(128,128,128,0.08)'}, ticks:{color:'#8a9e98',font:{size:11}, callback:v=>psv_fmtNum(v)+' u'} }
+      },
+      animation:{duration:600}
+    }
+  });
+}
+
+// ════════════════════════════════════════
+//  AUDIT CHART
+// ════════════════════════════════════════
+let PSV_auditData = [];
+
+function psv_buildAuditChart() {
+  psv_destroyChart('audit');
+  const metric  = document.getElementById('psv-audit-metric').value;
+  const groupBy = document.getElementById('psv-audit-group').value;
+  const branchF = document.getElementById('psv-audit-branch').value;
+
+  let items = PSV.invoiceItems;
+  if (branchF !== 'all') items = items.filter(i => i.branchId === branchF);
+  if (PSV.state.auditDrill) {
+    items = items.filter(i => {
+      const d = PSV.state.auditDrill;
+      if (d.type === 'category') return psv_getMedCat(i.medicineId) === d.value;
+      if (d.type === 'branch')   return i.branchId === d.value;
+      if (d.type === 'supplier') return psv_getSupplierName(i.batchId) === d.value;
+      if (d.type === 'month')    return i.month === d.value;
+      if (d.type === 'gst')      return (i.gstPercentage+'%') === d.value;
+      return true;
+    });
+    document.getElementById('psv-audit-back').style.display = 'inline-block';
+    document.getElementById('psv-drill-path').style.display = 'block';
+    document.getElementById('psv-drill-path').textContent = 'Drilled into: ' + PSV.state.auditDrill.type.toUpperCase() + ' = "' + PSV.state.auditDrill.label + '"';
+  } else {
+    document.getElementById('psv-audit-back').style.display = 'none';
+    document.getElementById('psv-drill-path').style.display = 'none';
+  }
+
+  // Group
+  const map = {};
+  const labelMap = {};
+  items.forEach(i => {
+    let key, label;
+    if (groupBy === 'category')  { key = psv_getMedCat(i.medicineId); label = key; }
+    else if (groupBy === 'branch')   { key = i.branchId; label = psv_getBranchName(i.branchId); }
+    else if (groupBy === 'supplier') { key = psv_getSupplierName(i.batchId); label = key; }
+    else if (groupBy === 'month')    { key = i.month; label = key; }
+    else if (groupBy === 'gst')      { key = i.gstPercentage+'%'; label = 'GST ' + key; }
+    if (!map[key]) { map[key] = { rev:0, units:0, gstAmt:0, cogs:0, count:0 }; labelMap[key] = label; }
+    const base = i.totalPrice / (1 + i.gstPercentage/100);
+    map[key].rev   += i.totalPrice;
+    map[key].units += i.quantity;
+    map[key].gstAmt+= (i.totalPrice - base);
+    map[key].cogs  += psv_getBatchPurchasePrice(i.batchId) * i.quantity;
+    map[key].count++;
+  });
+
+  let sorted = Object.entries(map).sort((a,b) => b[1].rev - a[1].rev);
+  const labels = sorted.map(x => labelMap[x[0]] || x[0]);
+  const getValue = entry => {
+    if (metric === 'revenue')   return Math.round(entry.rev);
+    if (metric === 'units')     return Math.round(entry.units);
+    if (metric === 'gst')       return Math.round(entry.gstAmt);
+    if (metric === 'margin')    return entry.rev>0 ? +((entry.rev - entry.cogs)/entry.rev*100).toFixed(1) : 0;
+    if (metric === 'unitprice') return entry.units>0 ? +(entry.rev/entry.units).toFixed(2) : 0;
+    return 0;
+  };
+  const data = sorted.map(x => getValue(x[1]));
+  PSV_auditData = sorted.map((x,i) => ({ key: x[0], label: labelMap[x[0]]||x[0], data: x[1], value: data[i] }));
+
+  const metricLabel = { revenue:'Revenue (₹)', units:'Units Sold', gst:'GST Amount (₹)', margin:'Gross Margin (%)', unitprice:'Avg Unit Price (₹)' }[metric];
+
+  const ctx = document.getElementById('psv-auditChart').getContext('2d');
+  PSV.state.charts.audit = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: metricLabel,
+        data,
+        backgroundColor: labels.map((_,i) => PSV_COLORS[i % PSV_COLORS.length] + 'cc'),
+        hoverBackgroundColor: labels.map((_,i) => PSV_COLORS[i % PSV_COLORS.length]),
+        borderRadius: 6, borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.parsed.y;
+              if (metric === 'margin' || metric === 'unitprice') return ' ' + ctx.dataset.label + ': ' + v;
+              return ' ' + ctx.dataset.label + ': ₹' + v.toLocaleString();
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid:{display:false}, ticks:{color:'#8a9e98', font:{size:11}, maxRotation:30} },
+        y: { grid:{color:'rgba(128,128,128,0.08)'}, ticks:{color:'#8a9e98',font:{size:11},
+          callback: v => (metric==='revenue'||metric==='gst') ? '₹'+psv_fmtNum(v) : (metric==='margin'||metric==='unitprice') ? v : psv_fmtNum(v)
+        } }
+      },
+      onClick: (e, elements) => {
+        if (elements.length && !PSV.state.auditDrill) {
+          const idx = elements[0].index;
+          const item = PSV_auditData[idx];
+          PSV.state.auditDrill = { type: groupBy, value: item.key, label: item.label };
+          psv_buildAuditChart();
+          psv_buildAuditTable();
+        }
+      },
+      onHover: (e, elements) => {
+        e.native.target.style.cursor = elements.length && !PSV.state.auditDrill ? 'pointer' : 'default';
+      },
+      animation: { duration: 400 }
+    }
+  });
+
+  psv_buildAuditTable();
+  psv_buildAnomalies(items);
+}
+
+function psv_resetAuditDrill() {
+  PSV.state.auditDrill = null;
+  psv_buildAuditChart();
+}
+
+// ════════════════════════════════════════
+//  ANOMALY DETECTION
+// ════════════════════════════════════════
+function psv_buildAnomalies(items) {
+  const anomalies = [];
+
+  // High GST mismatch
+  items.forEach(i => {
+    const med = PSV.medicines.find(m => m.medicineId === i.medicineId);
+    if (med && med.gstPercentage !== i.gstPercentage) {
+      anomalies.push({ type:'critical', text: `<strong>GST Mismatch</strong>: ${psv_getMedName(i.medicineId)} — invoiced at ${i.gstPercentage}% but master rate is ${med.gstPercentage}%`, time: i.month });
+    }
+  });
+
+  // Price outliers: invoice price > batch selling price * 1.15
+  const priceFlags = new Set();
+  items.forEach(i => {
+    const batch = PSV.batches.find(b => b.batchId === i.batchId);
+    if (batch && i.unitPrice > batch.unitSellingPrice * 1.15 && !priceFlags.has(i.batchId)) {
+      priceFlags.add(i.batchId);
+      anomalies.push({ type:'warn', text: `<strong>Price Overrun</strong>: ${psv_getMedName(i.medicineId)} sold at ₹${i.unitPrice} vs. batch price ₹${batch.unitSellingPrice}`, time: i.month });
+    }
+  });
+
+  // Near-expiry batch still being sold
+  const today = new Date('2025-12-01');
+  PSV.batches.forEach(b => {
+    const exp = new Date(b.expDate);
+    const days = Math.round((exp - today) / 86400000);
+    if (days >= 0 && days < 120) {
+      const hasItems = items.some(i => i.batchId === b.batchId);
+      if (hasItems) {
+        anomalies.push({ type: days < 60 ? 'critical' : 'warn', text: `<strong>Near-Expiry Sale</strong>: Batch ${b.batchNumber} (${psv_getMedName(b.medicineId)}) expires in ${days} days — still active in sales`, time: b.expDate });
+      }
+    }
+  });
+
+  // Low margin
+  const medMargins = {};
+  items.forEach(i => {
+    if (!medMargins[i.medicineId]) medMargins[i.medicineId] = {rev:0,cogs:0};
+    medMargins[i.medicineId].rev  += i.totalPrice;
+    medMargins[i.medicineId].cogs += psv_getBatchPurchasePrice(i.batchId) * i.quantity;
+  });
+  Object.entries(medMargins).forEach(([mid,v]) => {
+    const m = v.rev > 0 ? (v.rev - v.cogs)/v.rev*100 : 0;
+    if (m < 10 && v.rev > 50000) {
+      anomalies.push({ type:'warn', text: `<strong>Low Margin Alert</strong>: ${psv_getMedName(mid)} margin is ${m.toFixed(1)}% (below 10% threshold)`, time: 'FY2025' });
+    }
+  });
+
+  if (anomalies.length === 0) {
+    anomalies.push({ type:'ok', text: '<strong>No anomalies detected</strong> — all invoice items pass audit checks for the current filter', time: 'Now' });
+  }
+
+  const el = document.getElementById('psv-anomaly-list');
+  el.innerHTML = anomalies.slice(0,6).map(a => `
+    <div class="psv-anomaly-item ${a.type}">
+      <span style="font-size:14px;">${a.type==='critical'?'🔴':a.type==='warn'?'🟡':'🟢'}</span>
+      <span class="psv-anomaly-text">${a.text}</span>
+      <span class="psv-anomaly-time">${a.time}</span>
+    </div>
+  `).join('');
+}
+
+// ════════════════════════════════════════
+//  AUDIT TABLE
+// ════════════════════════════════════════
+PSV.auditTableData = [];
+
+function psv_buildAuditTable() {
+  let items = PSV.invoiceItems;
+  const branchF = document.getElementById('psv-audit-branch').value;
+  if (branchF !== 'all') items = items.filter(i => i.branchId === branchF);
+  if (PSV.state.auditDrill) {
+    const d = PSV.state.auditDrill;
+    items = items.filter(i => {
+      if (d.type==='category') return psv_getMedCat(i.medicineId) === d.value;
+      if (d.type==='branch')   return i.branchId === d.value;
+      if (d.type==='supplier') return psv_getSupplierName(i.batchId) === d.value;
+      if (d.type==='month')    return i.month === d.value;
+      if (d.type==='gst')      return (i.gstPercentage+'%') === d.value;
+      return true;
+    });
+  }
+
+  // Aggregate by medicine + batch + branch
+  const map = {};
+  items.forEach(i => {
+    const k = i.medicineId + '|' + i.batchId + '|' + i.branchId;
+    if (!map[k]) {
+      map[k] = {
+        medicineId: i.medicineId, batchId: i.batchId, branchId: i.branchId,
+        quantity:0, revenue:0, gstAmt:0, gstPct: i.gstPercentage,
+        unitPrice: i.unitPrice
+      };
+    }
+    map[k].quantity += i.quantity;
+    map[k].revenue  += i.totalPrice;
+    const base = i.totalPrice / (1 + i.gstPercentage/100);
+    map[k].gstAmt   += (i.totalPrice - base);
+  });
+
+  PSV.auditTableData = Object.values(map).map(r => {
+    const cogs = psv_getBatchPurchasePrice(r.batchId) * r.quantity;
+    const margin = r.revenue > 0 ? (r.revenue - cogs)/r.revenue*100 : 0;
+    return { ...r, margin };
+  });
+
+  psv_renderAuditTable(PSV.auditTableData);
+}
+
+function psv_renderAuditTable(data) {
+  const tbody = document.getElementById('psv-audit-tbody');
+  if (data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;color:var(--psv-text3);padding:20px;">No data for current filter</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.slice(0, 50).map((r, i) => {
+    const marginClass = r.margin >= 25 ? 'high' : r.margin >= 12 ? 'medium' : 'low';
+    const batch = PSV.batches.find(b => b.batchId === r.batchId);
+    const batchNo = batch ? batch.batchNumber : r.batchId;
+    const exp = batch ? new Date(batch.expDate) : null;
+    const today = new Date('2025-12-01');
+    const daysLeft = exp ? Math.round((exp-today)/86400000) : 999;
+    const statusTag = daysLeft < 60 ? `<span class="psv-tag psv-tag-red">Expiring</span>`
+      : daysLeft < 120 ? `<span class="psv-tag psv-tag-yellow">Near Exp</span>`
+      : `<span class="psv-tag psv-tag-green">Active</span>`;
+    return `
+      <tr>
+        <td>${i+1}</td>
+        <td class="name">${psv_getMedName(r.medicineId)}</td>
+        <td>${psv_getMedCat(r.medicineId)}</td>
+        <td>${batchNo}</td>
+        <td>${psv_getBranchName(r.branchId)}</td>
+        <td>${psv_getSupplierName(r.batchId)}</td>
+        <td>${r.quantity.toLocaleString()}</td>
+        <td>₹${r.unitPrice.toFixed(2)}</td>
+        <td>₹${Math.round(r.revenue).toLocaleString()}</td>
+        <td>${r.gstPct}%</td>
+        <td>₹${Math.round(r.gstAmt).toLocaleString()}</td>
+        <td class="${marginClass}">${r.margin.toFixed(1)}%</td>
+        <td>${statusTag}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function psv_filterAuditTable() {
+  const q = document.getElementById('psv-audit-search').value.toLowerCase();
+  if (!q) { psv_renderAuditTable(PSV.auditTableData); return; }
+  const filtered = PSV.auditTableData.filter(r =>
+    psv_getMedName(r.medicineId).toLowerCase().includes(q) ||
+    psv_getMedCat(r.medicineId).toLowerCase().includes(q) ||
+    psv_getBranchName(r.branchId).toLowerCase().includes(q) ||
+    psv_getSupplierName(r.batchId).toLowerCase().includes(q)
+  );
+  psv_renderAuditTable(filtered);
+}
+
+function psv_sortAuditTable() {
+  const s = document.getElementById('psv-audit-table-sort').value;
+  let sorted = [...PSV.auditTableData];
+  if (s === 'revenue_desc') sorted.sort((a,b) => b.revenue - a.revenue);
+  if (s === 'revenue_asc')  sorted.sort((a,b) => a.revenue - b.revenue);
+  if (s === 'units_desc')   sorted.sort((a,b) => b.quantity - a.quantity);
+  if (s === 'margin_desc')  sorted.sort((a,b) => b.margin - a.margin);
+  psv_renderAuditTable(sorted);
+}
+
+// ════════════════════════════════════════
+//  CONTROLS
+// ════════════════════════════════════════
+function psv_setView(v) {
+  PSV.state.view = v;
+  document.querySelectorAll('.psv-view-tab').forEach((el,i) => {
+    el.classList.toggle('active', ['daily','monthly','branchwise'][i] === v);
+  });
+  psv_buildTrendChart();
+}
+
+function psv_applyFilters() {
+  psv_updateMetrics();
+  psv_buildTrendChart();
+  psv_buildBranchBars();
+  psv_buildTopMedicines();
+  psv_buildCatChart();
+  psv_buildGSTChart();
+  psv_buildAuditChart();
+}
+
+function psv_resetFilters() {
+  document.getElementById('psv-branch-filter').value = 'all';
+  document.getElementById('psv-cat-filter').value = 'all';
+  psv_applyFilters();
+}
+
+function psv_setPage(p) {
+  document.querySelectorAll('.psv-nav-item').forEach(el => el.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  if (p === 'audit') {
+    document.getElementById('psv-page-title').textContent = 'Trade Audit';
+    document.getElementById('psv-page-sub').textContent = 'Drill-down audit across batches, invoiceItems, branches';
+    document.getElementById('psv-charts-area').style.display = 'none';
+    document.getElementById('psv-audit-section').style.display = 'block';
+  } else {
+    document.getElementById('psv-page-title').textContent = 'Sales Tracking';
+    document.getElementById('psv-page-sub').textContent = 'Showing data across all branches • Updated just now';
+    document.getElementById('psv-charts-area').style.display = 'block';
+    document.getElementById('psv-audit-section').style.display = 'block';
+  }
+}
+
+function psv_toggleDark() {
+  PSV.state.dark = !PSV.state.dark;
+  document.documentElement.setAttribute('data-psv-dark', PSV.state.dark);
+  document.getElementById('psv-dark-toggle').classList.toggle('on', PSV.state.dark);
+}
+
+function psv_exportCSV() {
+  const rows = [['Medicine','Category','Branch','Batch','Units','UnitPrice','Revenue','GST%','GSTAmt','Margin%']];
+  PSV.auditTableData.forEach(r => {
+    rows.push([
+      psv_getMedName(r.medicineId), psv_getMedCat(r.medicineId), psv_getBranchName(r.branchId),
+      r.batchId, r.quantity, r.unitPrice.toFixed(2), Math.round(r.revenue),
+      r.gstPct, Math.round(r.gstAmt), r.margin.toFixed(1)
+    ]);
+  });
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+  a.download = 'pharmachain_sales.csv';
+  a.click();
+}
+
+// ════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════
+window.addEventListener('load', () => {
+  psv_updateMetrics();
+  psv_buildTrendChart();
+  psv_buildBranchBars();
+  psv_buildTopMedicines();
+  psv_buildCatChart();
+  psv_buildGSTChart();
+  psv_buildExpiryChart();
+  psv_buildAuditChart();
+});
+</script>
